@@ -164,9 +164,9 @@ def validate(model: str, root: Path) -> dict:
                 1.05 * p.oxygen_inlet_concentration,
             )
 
-    if model == "v02":
-        required_v02 = ("phi_s", "phi_m", "eta", "j_orr")
-        for name in required_v02:
+    if model in ("v02", "v04"):
+        required_electrochem = ("phi_s", "phi_m", "eta", "j_orr")
+        for name in required_electrochem:
             add_check(checks, f"required field {name} present", name in fields)
 
         j = fields.get("j_orr")
@@ -268,6 +268,47 @@ def validate(model: str, root: Path) -> dict:
                 "> 0 A (domain integral)",
             )
 
+    if model == "v04":
+        required_v04 = ("lambda_cl", "sigma_m")
+        for name in required_v04:
+            add_check(checks, f"required field {name} present", name in fields)
+
+        lambda_cl = fields.get("lambda_cl")
+        if lambda_cl:
+            lam_min = lambda_cl.get("min")
+            lam_max = lambda_cl.get("max")
+            add_check(
+                checks,
+                "hydrated cathode lambda has finite extrema",
+                lam_min is not None and lam_max is not None,
+                [lam_min, lam_max],
+                "finite",
+            )
+            if lam_min is not None and lam_max is not None:
+                target_lambda = membrane_water_content_from_activity(
+                    p.relative_humidity
+                ).item()
+                add_check(
+                    checks,
+                    "hydrated cathode lambda remains bounded",
+                    lam_min >= -1e-8 and lam_max <= 1.01 * target_lambda,
+                    [lam_min, lam_max],
+                    [0.0, 1.01 * target_lambda],
+                )
+
+        sigma = fields.get("sigma_m")
+        if sigma:
+            sigma_min = sigma.get("min")
+            sigma_max = sigma.get("max")
+            add_check(
+                checks,
+                "hydrated cathode conductivity is positive",
+                sigma_min is not None and sigma_max is not None
+                and sigma_min > 0.0 and sigma_max > sigma_min,
+                [sigma_min, sigma_max],
+                "> 0 S/m with CL/GDL contrast",
+            )
+
     if model == "v03":
         required_v03 = ("lambda", "sigma_m", "n_drag")
         for name in required_v03:
@@ -357,7 +398,7 @@ def validate(model: str, root: Path) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=("v01", "v02", "v03"), required=True)
+    parser.add_argument("--model", choices=("v01", "v02", "v03", "v04"), required=True)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
