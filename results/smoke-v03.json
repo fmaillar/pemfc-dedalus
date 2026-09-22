@@ -1,0 +1,176 @@
+{
+  "checks": [
+    {
+      "limit": 1.0,
+      "name": "lambda: all values finite",
+      "pass": true,
+      "value": 1.0
+    },
+    {
+      "limit": 1.0,
+      "name": "n_drag: all values finite",
+      "pass": true,
+      "value": 1.0
+    },
+    {
+      "limit": 1.0,
+      "name": "sigma_m: all values finite",
+      "pass": true,
+      "value": 1.0
+    },
+    {
+      "limit": null,
+      "name": "required field lambda present",
+      "pass": true,
+      "value": null
+    },
+    {
+      "limit": null,
+      "name": "required field sigma_m present",
+      "pass": true,
+      "value": null
+    },
+    {
+      "limit": null,
+      "name": "required field n_drag present",
+      "pass": true,
+      "value": null
+    },
+    {
+      "limit": "finite",
+      "name": "membrane water content has finite extrema",
+      "pass": true,
+      "value": [
+        0.04506420816201384,
+        3.4834175347427054
+      ]
+    },
+    {
+      "limit": [
+        0.039557499999999995,
+        3.488942499999998
+      ],
+      "name": "membrane water content remains within boundary range",
+      "pass": true,
+      "value": [
+        0.04506420816201384,
+        3.4834175347427054
+      ]
+    },
+    {
+      "limit": "finite",
+      "name": "membrane proton conductivity has finite extrema",
+      "pass": true,
+      "value": [
+        -0.00021689401488916675,
+        1.6727278363796123
+      ]
+    },
+    {
+      "limit": "<= 0.001 of positive peak",
+      "name": "membrane conductivity negative spectral undershoot is limited",
+      "pass": true,
+      "value": 0.00012966485651282267
+    },
+    {
+      "limit": ">= approximately 0",
+      "name": "electro-osmotic drag coefficient is non-negative",
+      "pass": true,
+      "value": 0.00204837309827334
+    }
+  ],
+  "fields_last_write": {
+    "lambda": {
+      "finite_fraction": 1.0,
+      "max": 3.4834175347427054,
+      "mean": 1.7639310202947647,
+      "min": 0.04506420816201384,
+      "p01": 0.05017604667287712,
+      "p50": 1.763866450767455,
+      "p99": 3.4782642121865286,
+      "size": 32,
+      "std": 1.217107492336722
+    },
+    "n_drag": {
+      "finite_fraction": 1.0,
+      "max": 0.15833716067012293,
+      "mean": 0.08017868274067112,
+      "min": 0.00204837309827334,
+      "p01": 0.0022807293942216766,
+      "p50": 0.08017574776215704,
+      "p99": 0.15810291873575127,
+      "size": 32,
+      "std": 0.055323067833487366
+    },
+    "sigma_m": {
+      "finite_fraction": 1.0,
+      "max": 1.6727278363796123,
+      "mean": 0.7254595224943876,
+      "min": -0.00021689401488916675,
+      "p01": -0.00019357870751036558,
+      "p50": 0.6631342217122309,
+      "p99": 1.6697070583992328,
+      "size": 32,
+      "std": 0.637937519803067
+    }
+  },
+  "generated_utc": "2026-09-22T22:04:39.955088+00:00",
+  "git_commit": "e649a4da0d58f1681015376f189c48ad2cf65636",
+  "host": {
+    "hostname": "m710s",
+    "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "input": {
+    "root": ".test-output/v03",
+    "scalars": ".test-output/v03/scalars/scalars_s1.h5",
+    "scalars_sha256": "1b1174c79b99f589669bee4fdd3661f91409e60fd096df8c61e3ab825214f2c9",
+    "snapshots": ".test-output/v03/snapshots/snapshots_s1.h5",
+    "snapshots_sha256": "5dbddf64df709a01ae7113a43cce57c22d69cde0d75370a55709ba438588efdb"
+  },
+  "model": "v03",
+  "pass": true,
+  "scalar_series": {
+    "final_sim_time": 0.009999999999999995,
+    "mean_lambda": {
+      "finite_fraction": 1.0,
+      "first": 1.7642499999999988,
+      "last": 1.7638827729944861,
+      "max": 1.7642499999999988,
+      "mean": 1.7640647880313634,
+      "min": 1.7638827729944861,
+      "p01": 1.7638863648956105,
+      "p50": 1.7640639968852543,
+      "p99": 1.764246190604228,
+      "relative_last_step_change": 4.072720907753316e-06,
+      "size": 51,
+      "std": 0.00010798293400851022
+    },
+    "mean_sigma_m": {
+      "finite_fraction": 1.0,
+      "first": 0.6932472552801356,
+      "last": 0.6930651956782948,
+      "max": 0.6932472552801356,
+      "mean": 0.6931557572561932,
+      "min": 0.6930651956782948,
+      "p01": 0.6930669927423749,
+      "p50": 0.6931555255484533,
+      "p99": 0.6932453945303677,
+      "relative_last_step_change": 5.185844250617459e-06,
+      "size": 51,
+      "std": 5.355967685631273e-05
+    },
+    "sim_time": {
+      "finite_fraction": 1.0,
+      "max": 0.009999999999999995,
+      "mean": 0.005000000000000001,
+      "min": 0.0,
+      "p01": 0.0001,
+      "p50": 0.005,
+      "p99": 0.009899999999999996,
+      "size": 51,
+      "std": 0.0029439202887759502
+    }
+  },
+  "schema_version": 1
+}
