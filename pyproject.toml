@@ -22,7 +22,8 @@ test = [
 
 [project.scripts]
 pemfc-cathode-3d = "pemfc_dedalus.cathode_3d:main"
-pemfc-cathode-electrochem-3d = "pemfc_dedalus.cathode_electrochem_3d:main"\npemfc-membrane-1d = "pemfc_dedalus.membrane_1d:main"
+pemfc-cathode-electrochem-3d = "pemfc_dedalus.cathode_electrochem_3d:main"
+pemfc-membrane-1d = "pemfc_dedalus.membrane_1d:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
