@@ -39,6 +39,19 @@ def run_command(args: list[str], *, env: dict[str, str]) -> int:
     return subprocess.run(args, env=env, check=False).returncode
 
 
+def mpi_ranks_for_grid(grid: tuple[int, int, int], max_ranks: int) -> int:
+    """Choose a practical MPI rank count for the grid, capped by max_ranks."""
+    nx, ny, _ = grid
+    transverse_modes = nx * ny
+    if transverse_modes <= 64:
+        desired = 2
+    elif transverse_modes <= 144:
+        desired = 4
+    else:
+        desired = 8
+    return min(desired, max_ranks)
+
+
 def run_and_validate(
     *,
     grid: tuple[int, int, int],
@@ -46,6 +59,9 @@ def run_and_validate(
     max_dt: float,
     scalar_dt: float,
     root: Path,
+    mpiexec: str,
+    mpi_flags: list[str],
+    mpi_n: int,
 ) -> dict[str, Any]:
     """Run one V0.2 case and return its validation report."""
     nx, ny, nz = grid
@@ -58,8 +74,18 @@ def run_and_validate(
     env.setdefault("OMP_NUM_THREADS", "1")
     env.setdefault("NUMEXPR_NUM_THREADS", "1")
 
+    ranks = mpi_ranks_for_grid(grid, mpi_n)
+    print(
+        f"grid {nx}x{ny}x{nz}: using {ranks} MPI ranks "
+        f"(configured maximum {mpi_n})"
+    )
+
     rc = run_command(
         [
+            mpiexec,
+            *mpi_flags,
+            "-n",
+            str(ranks),
             "pemfc-cathode-electrochem-3d",
             "--nx",
             str(nx),
@@ -112,6 +138,9 @@ def converge_grid(
     tolerance: float,
     scalar_dt: float,
     root: Path,
+    mpiexec: str,
+    mpi_flags: list[str],
+    mpi_n: int,
 ) -> tuple[dict[str, Any], float, list[dict[str, Any]]]:
     """Repeat a run with increasing horizon until scalar changes converge."""
     stop_time = initial_stop_time
@@ -123,6 +152,9 @@ def converge_grid(
             max_dt=max_dt,
             scalar_dt=scalar_dt,
             root=root,
+            mpiexec=mpiexec,
+            mpi_flags=mpi_flags,
+            mpi_n=mpi_n,
         )
         changes = scalar_relative_changes(report)
         metric = time_convergence_metric(report)
@@ -183,7 +215,7 @@ def main() -> None:
         help="grid NXxNYxNZ; repeat for multiple resolutions",
     )
     parser.add_argument("--initial-stop-time", type=float, default=5e-5)
-    parser.add_argument("--max-stop-time", type=float, default=3.2e-3)
+    parser.add_argument("--max-stop-time", type=float, default=0.0128)
     parser.add_argument("--max-dt", type=float, default=1e-6)
     parser.add_argument("--time-tol", type=float, default=1e-5)
     parser.add_argument("--grid-tol", type=float, default=0.02)
@@ -195,9 +227,24 @@ def main() -> None:
     )
     parser.add_argument("--work-dir", type=Path, default=Path(".study-output/v02"))
     parser.add_argument("--output", type=Path, default=Path("results/v02-study.json"))
+    parser.add_argument("--mpiexec", default=os.environ.get("MPIEXEC", "mpiexec"))
+    parser.add_argument(
+        "--mpi-flags",
+        default=os.environ.get("MPI_FLAGS", "--use-hwthread-cpus"),
+        help="space-separated flags passed to mpiexec",
+    )
+    parser.add_argument(
+        "--mpi-n",
+        type=int,
+        default=int(os.environ.get("MPI_N", "8")),
+        help="maximum number of MPI ranks for each Dedalus run",
+    )
     args = parser.parse_args()
 
     grids = args.grids or [(8, 8, 24), (12, 12, 36), (16, 16, 48)]
+    if args.mpi_n <= 0:
+        parser.error("--mpi-n must be positive")
+    mpi_flags = args.mpi_flags.split()
     cases: list[dict[str, Any]] = []
     for grid in grids:
         report, stop_time, history = converge_grid(
@@ -208,10 +255,14 @@ def main() -> None:
             tolerance=args.time_tol,
             scalar_dt=args.scalar_dt,
             root=args.work_dir,
+            mpiexec=args.mpiexec,
+            mpi_flags=mpi_flags,
+            mpi_n=args.mpi_n,
         )
         cases.append(
             {
                 "grid": list(grid),
+                "mpi_ranks": mpi_ranks_for_grid(grid, args.mpi_n),
                 "converged_stop_time": stop_time,
                 "time_convergence_history": history,
                 "final_scalars": {
