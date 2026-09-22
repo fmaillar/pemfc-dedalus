@@ -35,7 +35,7 @@ def butler_volmer_orr_current_density(
     c = np.asarray(c_o2)
     eta = cathode_overpotential(phi_s, phi_m, p.equilibrium_potential)
     activity = c / p.oxygen_inlet_concentration
-    return (
+    net = (
         p.j0_vol
         * activity**p.oxygen_reaction_order
         * (
@@ -43,6 +43,8 @@ def butler_volmer_orr_current_density(
             - np.exp(p.beta_anodic * eta)
         )
     )
+    eps = 1e-6 * p.j0_vol
+    return 0.5 * (net + np.sqrt(net**2 + eps**2))
 
 
 def oxygen_consumption_from_current(
