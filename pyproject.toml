@@ -48,5 +48,5 @@ pretty = true
 exclude = ["build/", "dist/"]
 
 [[tool.mypy.overrides]]
-module = ["dedalus.*", "h5py", "h5py.*"]
+module = ["dedalus.*", "h5py"]
 ignore_missing_imports = true
