@@ -17,7 +17,8 @@ def test_open_cathode_operating_parameters_are_physical():
     assert 0.0 < p.oxygen_mole_fraction < 1.0
     assert p.pressure == 101325.0
     assert 0.0 <= p.relative_humidity <= 1.0
-    assert p.tech.oxidant_temp_min_c <= p.oxidant_inlet_temperature - 273.15 <= p.tech.oxidant_temp_max_c
+    inlet_temp_c = p.oxidant_inlet_temperature - 273.15
+    assert p.tech.oxidant_temp_min_c <= inlet_temp_c <= p.tech.oxidant_temp_max_c
     assert abs((p.stack_temperature - 273.15) - p.target_stack_temperature_c) < 1e-6
     assert 0.0 < p.porosity_cl < p.porosity_gdl < 1.0
 
