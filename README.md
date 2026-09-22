@@ -11,6 +11,28 @@ The target architecture is a **forced-air open-cathode, dead-end-anode PEMFC**:
 - anode water / inert accumulation will later be handled with explicit purge events;
 - the present models are built incrementally so each physical block can be validated.
 
+
+## Physical target configuration
+
+The repository now distinguishes the Ballard 1020ACS **technology/family reference**
+from the user's actual stack configuration.
+
+Current provisional user-stack configuration:
+
+- nominal electrical power: 200 W;
+- provisional cell count: 10 cells (to be corrected when physically counted / confirmed);
+- open cathode, near-atmospheric pressure;
+- cathode air supplies oxygen and removes heat;
+- dead-end dry-H2 anode;
+- Ballard-family H2 pressure target: 0.36 barg;
+- runtime purge target: 20 mL/cell every 2300 A.s, with <=500 ms purge duration;
+- provisional nominal point from interpolation of the manual BOL curve: about 26.0 A and 0.768 V/cell, giving about 200 W for 10 cells;
+- normal-operation optimum stack temperature follows the manual fit Topt[C] = 26.01 + 0.53 I[A].
+
+The exact active area and internal GDL/CL/membrane dimensions are not disclosed in
+the product manual.  They remain explicit modelling assumptions and must not be
+confused with the 351 mm x 103 mm external stack envelope.
+
 ## Implemented models
 
 ### V0.1 — cathode O2 diffusion/reaction validation
