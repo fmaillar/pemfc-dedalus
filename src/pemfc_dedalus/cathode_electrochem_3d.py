@@ -39,6 +39,7 @@ def build_solver(
     nz: int,
     stop_time: float,
     output_dir: Path,
+    scalar_dt: float | None = None,
 ):
     coords = d3.CartesianCoordinates("x", "y", "z")
     dist = d3.Distributor(coords, dtype=np.float64)
@@ -237,9 +238,10 @@ def build_solver(
     snapshots.add_task(j_orr, name="j_orr")
     snapshots.add_task(chi_cl, name="chi_cl")
 
+    scalar_write_dt = scalar_dt if scalar_dt is not None else max(stop_time / 50.0, 1e-7)
     scalars = solver.evaluator.add_file_handler(
         str(output_dir / "scalars"),
-        sim_dt=max(stop_time / 50.0, 1e-7),
+        sim_dt=scalar_write_dt,
         max_writes=100,
     )
     scalars.add_task(d3.Average(c), name="mean_c_o2")
@@ -258,6 +260,7 @@ def run(
     stop_time: float = 2.0e-3,
     max_dt: float = 2.0e-6,
     output_dir: str | Path = "output-electrochem",
+    scalar_dt: float | None = None,
 ) -> None:
     params = CathodeParameters()
     solver = build_solver(
@@ -267,6 +270,7 @@ def run(
         nz=nz,
         stop_time=stop_time,
         output_dir=Path(output_dir),
+        scalar_dt=scalar_dt,
     )
 
     logger.info("Starting V0.2 3D open-cathode electrochemistry model")
@@ -328,6 +332,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--stop-time", type=float, default=2.0e-3)
     parser.add_argument("--max-dt", type=float, default=2.0e-6)
     parser.add_argument("--output-dir", default="output-electrochem")
+    parser.add_argument(
+        "--scalar-dt",
+        type=float,
+        default=None,
+        help="fixed scalar output cadence; default scales with stop time",
+    )
     return parser
 
 
@@ -341,6 +351,7 @@ def main() -> None:
         stop_time=args.stop_time,
         max_dt=args.max_dt,
         output_dir=args.output_dir,
+        scalar_dt=args.scalar_dt,
     )
 
 
