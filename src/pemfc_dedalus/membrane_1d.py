@@ -92,7 +92,8 @@ def build_solver(
     conductivity_factor = np.exp(
         1268.0 * (1.0 / 303.0 - 1.0 / params.stack_temperature)
     )
-    sigma_m = 100.0 * (0.005139 * lam - 0.00326) * conductivity_factor
+    sigma_raw = 100.0 * (0.005139 * lam - 0.00326) * conductivity_factor
+    sigma_m = 0.5 * (sigma_raw + np.abs(sigma_raw))
     n_drag = lam / 22.0
 
     snapshots = solver.evaluator.add_file_handler(
