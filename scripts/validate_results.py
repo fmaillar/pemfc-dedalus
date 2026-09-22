@@ -15,6 +15,7 @@ from typing import Any
 import h5py
 import numpy as np
 
+from pemfc_dedalus.membrane import membrane_water_content_from_activity
 from pemfc_dedalus.parameters import CathodeParameters
 
 
@@ -164,8 +165,8 @@ def validate(model: str, root: Path) -> dict:
             )
 
     if model == "v02":
-        required = ("phi_s", "phi_m", "eta", "j_orr")
-        for name in required:
+        required_v02 = ("phi_s", "phi_m", "eta", "j_orr")
+        for name in required_v02:
             add_check(checks, f"required field {name} present", name in fields)
 
         j = fields.get("j_orr")
@@ -267,6 +268,69 @@ def validate(model: str, root: Path) -> dict:
                 "> 0 A (domain integral)",
             )
 
+    if model == "v03":
+        required_v03 = ("lambda", "sigma_m", "n_drag")
+        for name in required_v03:
+            add_check(checks, f"required field {name} present", name in fields)
+
+        lam = fields.get("lambda")
+        lambda_anode = membrane_water_content_from_activity(
+            p.anode_relative_humidity
+        ).item()
+        lambda_cathode = membrane_water_content_from_activity(
+            p.relative_humidity
+        ).item()
+        if lam:
+            lam_min, lam_max = lam.get("min"), lam.get("max")
+            add_check(
+                checks,
+                "membrane water content has finite extrema",
+                lam_min is not None and lam_max is not None,
+                [lam_min, lam_max],
+                "finite",
+            )
+            if lam_min is not None and lam_max is not None:
+                span = max(lambda_cathode - lambda_anode, 1.0)
+                tol = 1e-3 * span
+                add_check(
+                    checks,
+                    "membrane water content remains within boundary range",
+                    lam_min >= lambda_anode - tol and lam_max <= lambda_cathode + tol,
+                    [lam_min, lam_max],
+                    [lambda_anode - tol, lambda_cathode + tol],
+                )
+
+        sigma = fields.get("sigma_m")
+        if sigma:
+            sigma_min = sigma.get("min")
+            sigma_max = sigma.get("max")
+            add_check(
+                checks,
+                "membrane proton conductivity has finite extrema",
+                sigma_min is not None and sigma_max is not None,
+                [sigma_min, sigma_max],
+                "finite",
+            )
+            if sigma_min is not None and sigma_max is not None:
+                negative_fraction = max(0.0, -sigma_min) / max(abs(sigma_max), 1e-30)
+                add_check(
+                    checks,
+                    "membrane conductivity negative spectral undershoot is limited",
+                    negative_fraction <= 0.01,
+                    negative_fraction,
+                    "<= 0.01 of positive peak",
+                )
+
+        drag = fields.get("n_drag")
+        if drag and drag.get("min") is not None:
+            add_check(
+                checks,
+                "electro-osmotic drag coefficient is non-negative",
+                drag["min"] >= -1e-10,
+                drag["min"],
+                ">= approximately 0",
+            )
+
     return {
         "schema_version": 1,
         "generated_utc": datetime.now(UTC).isoformat(),
@@ -293,7 +357,7 @@ def validate(model: str, root: Path) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=("v01", "v02"), required=True)
+    parser.add_argument("--model", choices=("v01", "v02", "v03"), required=True)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()

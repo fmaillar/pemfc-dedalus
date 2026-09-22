@@ -6,7 +6,8 @@ OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 \
-        study-v02 validate-results validate-v01 validate-v02 results push-results clean-results
+        study-v02 study-v03 validate-results validate-v01 validate-v02 validate-v03 results \
+        push-results clean-results
 
 help:
 	@printf '%s\n' \
@@ -17,6 +18,7 @@ help:
 	  'make typecheck        run mypy' \
 	  'make smoke            run tiny Dedalus V0.1 and V0.2 smoke tests' \
 	  'make study-v02        run V0.2 time/grid convergence study' \
+	  'make study-v03        run V0.3 membrane time/grid convergence study' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -59,12 +61,18 @@ smoke-v03:
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
 	  pemfc-membrane-1d --nz 32 --stop-time 0.01 --max-dt 0.0001 \
 	  --output-dir .test-output/v03
+	$(PYTHON) scripts/validate_results.py --model v03 \
+	  --input .test-output/v03 --output results/smoke-v03.json
 
 study-v02:
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
 	  $(PYTHON) scripts/run_v02_study.py
 
-validate-results: validate-v01 validate-v02
+study-v03:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	  $(PYTHON) scripts/run_v03_study.py
+
+validate-results: validate-v01 validate-v02 validate-v03
 
 results: validate-results
 
@@ -77,6 +85,11 @@ validate-v02:
 	@test -d output-electrochem || { echo 'output-electrochem/ missing; run V0.2 first'; exit 1; }
 	$(PYTHON) scripts/validate_results.py --model v02 --input output-electrochem \
 	  --output results/v02-latest.json
+
+validate-v03:
+	@test -d output-membrane || { echo 'output-membrane/ missing; run V0.3 first'; exit 1; }
+	$(PYTHON) scripts/validate_results.py --model v03 --input output-membrane \
+	  --output results/v03-latest.json
 
 push-results:
 	@test -d results || { echo 'results/ missing'; exit 1; }
