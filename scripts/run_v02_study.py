@@ -44,6 +44,7 @@ def run_and_validate(
     grid: tuple[int, int, int],
     stop_time: float,
     max_dt: float,
+    scalar_dt: float,
     root: Path,
 ) -> dict[str, Any]:
     """Run one V0.2 case and return its validation report."""
@@ -72,6 +73,8 @@ def run_and_validate(
             str(max_dt),
             "--output-dir",
             str(output_dir),
+            "--scalar-dt",
+            str(scalar_dt),
         ],
         env=env,
     )
@@ -107,6 +110,7 @@ def converge_grid(
     max_stop_time: float,
     max_dt: float,
     tolerance: float,
+    scalar_dt: float,
     root: Path,
 ) -> tuple[dict[str, Any], float, list[dict[str, Any]]]:
     """Repeat a run with increasing horizon until scalar changes converge."""
@@ -117,6 +121,7 @@ def converge_grid(
             grid=grid,
             stop_time=stop_time,
             max_dt=max_dt,
+            scalar_dt=scalar_dt,
             root=root,
         )
         changes = scalar_relative_changes(report)
@@ -182,6 +187,12 @@ def main() -> None:
     parser.add_argument("--max-dt", type=float, default=1e-6)
     parser.add_argument("--time-tol", type=float, default=1e-5)
     parser.add_argument("--grid-tol", type=float, default=0.02)
+    parser.add_argument(
+        "--scalar-dt",
+        type=float,
+        default=1e-5,
+        help="fixed scalar sampling interval used by the convergence criterion",
+    )
     parser.add_argument("--work-dir", type=Path, default=Path(".study-output/v02"))
     parser.add_argument("--output", type=Path, default=Path("results/v02-study.json"))
     args = parser.parse_args()
@@ -195,6 +206,7 @@ def main() -> None:
             max_stop_time=args.max_stop_time,
             max_dt=args.max_dt,
             tolerance=args.time_tol,
+            scalar_dt=args.scalar_dt,
             root=args.work_dir,
         )
         cases.append(
