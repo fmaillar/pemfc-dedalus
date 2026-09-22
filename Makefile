@@ -5,7 +5,7 @@ MPI_N ?= 8
 OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 
-.PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 \
+.PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 \
         study-v02 validate-results validate-v01 validate-v02 results push-results clean-results
 
 help:
@@ -35,7 +35,7 @@ lint:
 typecheck:
 	$(PYTHON) -m mypy src tests scripts
 
-smoke: smoke-v01 smoke-v02
+smoke: smoke-v01 smoke-v02 smoke-v03
 
 smoke-v01:
 	rm -rf .test-output/v01
@@ -53,6 +53,12 @@ smoke-v02:
 	  --output-dir .test-output/v02
 	$(PYTHON) scripts/validate_results.py --model v02 \
 	  --input .test-output/v02 --output results/smoke-v02.json
+
+smoke-v03:
+	rm -rf .test-output/v03
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	  pemfc-membrane-1d --nz 32 --stop-time 0.01 --max-dt 0.0001 \
+	  --output-dir .test-output/v03
 
 study-v02:
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
