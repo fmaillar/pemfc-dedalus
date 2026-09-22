@@ -11,6 +11,7 @@ import csv
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -40,6 +41,16 @@ def main() -> None:
     parser.add_argument("--max-dt", type=float, default=1.0e-6)
     parser.add_argument("--scalar-dt", type=float, default=1.0e-5)
     parser.add_argument("--mpi-n", type=int, default=int(os.environ.get("MPI_N", "8")))
+    parser.add_argument(
+        "--rh-values",
+        default=",".join(str(value) for value in DEFAULT_RH),
+        help="comma-separated relative humidities as fractions",
+    )
+    parser.add_argument(
+        "--voltages",
+        default=",".join(str(value) for value in DEFAULT_VOLTAGES),
+        help="comma-separated cathode solid potentials [V]",
+    )
     parser.add_argument("--mpiexec", default=os.environ.get("MPIEXEC", "mpiexec"))
     parser.add_argument(
         "--mpi-flags",
@@ -67,9 +78,13 @@ def main() -> None:
 
     rows: list[dict[str, Any]] = []
     mpi_flags = args.mpi_flags.split()
+    rh_values = tuple(float(value) for value in args.rh_values.split(","))
+    voltages = tuple(float(value) for value in args.voltages.split(","))
 
-    for rh in DEFAULT_RH:
-        for voltage in DEFAULT_VOLTAGES:
+    for rh in rh_values:
+        if not 0.0 <= rh <= 1.0:
+            parser.error("all --rh-values entries must be between 0 and 1")
+        for voltage in voltages:
             name = case_name(rh, voltage)
             root = args.work_dir / name
             report_path = root / "report.json"
@@ -116,7 +131,7 @@ def main() -> None:
                 )
                 run_command(
                     [
-                        "python",
+                        sys.executable,
                         "scripts/validate_results.py",
                         "--model",
                         "v04",
@@ -156,8 +171,8 @@ def main() -> None:
                 "grid": [args.nx, args.ny, args.nz],
                 "mpi_ranks": args.mpi_n,
                 "stop_time_s": args.stop_time,
-                "relative_humidities": list(DEFAULT_RH),
-                "cathode_solid_potentials_v": list(DEFAULT_VOLTAGES),
+                "relative_humidities": list(rh_values),
+                "cathode_solid_potentials_v": list(voltages),
                 "cases": rows,
             }
             args.json_output.parent.mkdir(parents=True, exist_ok=True)
@@ -190,7 +205,7 @@ def main() -> None:
 
     print(f"Wrote {args.json_output}")
     print(f"Wrote {args.csv_output}")
-    print(f"completed cases: {len(rows)} / {len(DEFAULT_RH) * len(DEFAULT_VOLTAGES)}")
+    print(f"completed cases: {len(rows)} / {len(rh_values) * len(voltages)}")
 
 
 if __name__ == "__main__":
