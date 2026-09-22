@@ -37,7 +37,7 @@ smoke-v02:
 	rm -rf .test-output/v02
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
 	  pemfc-cathode-electrochem-3d --nx 8 --ny 8 --nz 24 \
-	  --stop-time 0.00002 --max-dt 0.000002 \
+	  --stop-time 0.00005 --max-dt 0.000001 \
 	  --output-dir .test-output/v02
 	$(PYTHON) scripts/validate_results.py --model v02 \
 	  --input .test-output/v02 --output results/smoke-v02.json
