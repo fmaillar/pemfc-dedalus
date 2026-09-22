@@ -1,0 +1,1231 @@
+{
+  "cases": [
+    {
+      "converged_stop_time": 0.0064,
+      "final_scalars": {
+        "mean_c_o2": 7.453598747269733,
+        "mean_eta": -0.41217272145167544,
+        "total_reaction_current": 0.00448090812538681
+      },
+      "grid": [
+        8,
+        8,
+        24
+      ],
+      "relative_to_finest": {
+        "mean_c_o2": 0.00032050466478568174,
+        "mean_eta": 0.0006596013312684062,
+        "total_reaction_current": 0.042758137054969836
+      },
+      "time_convergence_history": [
+        {
+          "metric": 0.0016580599372042345,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0013931121823992695,
+            "mean_eta": 3.922856195915638e-05,
+            "total_reaction_current": 0.0016580599372042345
+          },
+          "stop_time": 5e-05
+        },
+        {
+          "metric": 0.0010986936207151704,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0009758425990268826,
+            "mean_eta": 3.108729073272876e-05,
+            "total_reaction_current": 0.0010986936207151704
+          },
+          "stop_time": 0.0001
+        },
+        {
+          "metric": 0.000705952712146397,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.000705952712146397,
+            "mean_eta": 1.9384326695626555e-05,
+            "total_reaction_current": 0.00022667259884729803
+          },
+          "stop_time": 0.0002
+        },
+        {
+          "metric": 0.0005250078734451728,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0005250078734451728,
+            "mean_eta": 8.116778079155015e-06,
+            "total_reaction_current": 0.00047724082177150607
+          },
+          "stop_time": 0.0004
+        },
+        {
+          "metric": 0.0005219892360163661,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0003486786247119228,
+            "mean_eta": 1.074359917362808e-06,
+            "total_reaction_current": 0.0005219892360163661
+          },
+          "stop_time": 0.0008
+        },
+        {
+          "metric": 0.00026356519934797953,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.00015963710086087823,
+            "mean_eta": 8.971540299555637e-07,
+            "total_reaction_current": 0.00026356519934797953
+          },
+          "stop_time": 0.0016
+        },
+        {
+          "metric": 6.030117747211735e-05,
+          "relative_last_step_change": {
+            "mean_c_o2": 3.36254166773571e-05,
+            "mean_eta": 1.0558347344807385e-06,
+            "total_reaction_current": 6.030117747211735e-05
+          },
+          "stop_time": 0.0032
+        },
+        {
+          "metric": 4.6490880706664136e-06,
+          "relative_last_step_change": {
+            "mean_c_o2": 1.4126076835532432e-06,
+            "mean_eta": 1.5830259240029e-06,
+            "total_reaction_current": 4.6490880706664136e-06
+          },
+          "stop_time": 0.0064
+        }
+      ],
+      "validation": {
+        "checks": [
+          {
+            "limit": 1.0,
+            "name": "c_o2: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "chi_cl: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "eta: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "j_orr: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "phi_m: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "phi_s: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": "finite",
+            "name": "oxygen concentration has finite extrema",
+            "pass": true,
+            "value": [
+              6.853321007024271,
+              8.156902905192526
+            ]
+          },
+          {
+            "limit": ">= approximately 0",
+            "name": "oxygen concentration non-negative",
+            "pass": true,
+            "value": 6.853321007024271
+          },
+          {
+            "limit": 8.565747247663799,
+            "name": "oxygen concentration not above open-air boundary by >5%",
+            "pass": true,
+            "value": 8.156902905192526
+          },
+          {
+            "limit": null,
+            "name": "required field phi_s present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field phi_m present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field eta present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field j_orr present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": "finite",
+            "name": "ORR current has finite extrema",
+            "pass": true,
+            "value": [
+              -633903.746345433,
+              186643349.91257247
+            ]
+          },
+          {
+            "limit": "> 0",
+            "name": "ORR current is active",
+            "pass": true,
+            "value": 186643349.91257247
+          },
+          {
+            "limit": "<= 0.05 of positive peak",
+            "name": "ORR negative spectral undershoot is limited",
+            "pass": true,
+            "value": 0.0033963371673427765
+          },
+          {
+            "limit": "finite",
+            "name": "mean cathode overpotential is finite",
+            "pass": true,
+            "value": -0.4126745076069655
+          },
+          {
+            "limit": "< 0 V",
+            "name": "mean cathode overpotential is cathodic",
+            "pass": true,
+            "value": -0.4126745076069655
+          },
+          {
+            "limit": "finite",
+            "name": "solid potential has finite extrema",
+            "pass": true,
+            "value": [
+              0.7675739748356554,
+              0.7679995820986911
+            ]
+          },
+          {
+            "limit": "[-0.5, 2.0] V",
+            "name": "solid potential remains in broad physical range",
+            "pass": true,
+            "value": [
+              0.7675739748356554,
+              0.7679995820986911
+            ]
+          },
+          {
+            "limit": "finite",
+            "name": "protonic potential has finite extrema",
+            "pass": true,
+            "value": [
+              -0.004275521928966764,
+              0.008988211752454706
+            ]
+          },
+          {
+            "limit": "[-1.0, 1.0] V",
+            "name": "protonic potential remains in broad physical range",
+            "pass": true,
+            "value": [
+              -0.004275521928966764,
+              0.008988211752454706
+            ]
+          },
+          {
+            "limit": "> 0 A (domain integral)",
+            "name": "integrated reaction current is positive",
+            "pass": true,
+            "value": 0.00448090812538681
+          }
+        ],
+        "fields_last_write": {
+          "c_o2": {
+            "finite_fraction": 1.0,
+            "max": 8.156902905192526,
+            "mean": 7.454258148690209,
+            "min": 6.853321007024271,
+            "p01": 6.896546288988922,
+            "p50": 7.454339442575627,
+            "p99": 8.10524787549607,
+            "size": 1536,
+            "std": 0.31248301355672714
+          },
+          "chi_cl": {
+            "finite_fraction": 1.0,
+            "max": 0.9999922904718566,
+            "mean": 0.15605788163007125,
+            "min": -1.2067170179763664e-16,
+            "p01": -1.1623297810348098e-16,
+            "p50": 7.869335773664436e-17,
+            "p99": 0.9999832311969996,
+            "size": 24,
+            "std": 0.35154442978661965
+          },
+          "eta": {
+            "finite_fraction": 1.0,
+            "max": -0.408093812289426,
+            "mean": -0.4126745076069655,
+            "min": -0.4209886500386588,
+            "p01": -0.4208674192303546,
+            "p50": -0.412555116531684,
+            "p99": -0.4081438471926669,
+            "size": 1536,
+            "std": 0.0021085752965428147
+          },
+          "j_orr": {
+            "finite_fraction": 1.0,
+            "max": 186643349.91257247,
+            "mean": 27456376.198601067,
+            "min": -633903.746345433,
+            "p01": -617097.7919856791,
+            "p50": 30111.836553989844,
+            "p99": 183955278.46421996,
+            "size": 1536,
+            "std": 61688629.90944401
+          },
+          "phi_m": {
+            "finite_fraction": 1.0,
+            "max": 0.008988211752454706,
+            "mean": 0.000468814842255746,
+            "min": -0.004275521928966764,
+            "p01": -0.004222069451371556,
+            "p50": 0.00020726176529562432,
+            "p99": 0.008866984211887318,
+            "size": 1536,
+            "std": 0.0021404978168880753
+          },
+          "phi_s": {
+            "finite_fraction": 1.0,
+            "max": 0.7679995820986911,
+            "mean": 0.7677943072352901,
+            "min": 0.7675739748356554,
+            "p01": 0.7675765085094376,
+            "p50": 0.7677957282300196,
+            "p99": 0.7679995788350062,
+            "size": 1536,
+            "std": 0.00014622798678912653
+          }
+        },
+        "generated_utc": "2026-09-22T17:11:13.171206+00:00",
+        "git_commit": "8e3ab3912b16d5b61613c1b778f40c268550a6fa",
+        "host": {
+          "hostname": "m710s",
+          "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+          "python": "3.13.5"
+        },
+        "input": {
+          "root": ".study-output/v02/8x8x24",
+          "scalars": ".study-output/v02/8x8x24/scalars/scalars_s7.h5",
+          "scalars_sha256": "13432062c904d8983d06c1b463efaf3c9795b5bbba1c9f4c2feb95c80f83d47f",
+          "snapshots": ".study-output/v02/8x8x24/snapshots/snapshots_s1.h5",
+          "snapshots_sha256": "1ff62031c65872e64a6a9aa8b72a65251f796f776ca01b1ed6866671d1e5898c"
+        },
+        "model": "v02",
+        "pass": true,
+        "scalar_series": {
+          "final_sim_time": 0.006390000000000524,
+          "mean_c_o2": {
+            "finite_fraction": 1.0,
+            "first": 7.4540982987979705,
+            "last": 7.453598747269733,
+            "max": 7.4540982987979705,
+            "mean": 7.453832777481972,
+            "min": 7.453598747269733,
+            "p01": 7.453602853583968,
+            "p50": 7.453824313983627,
+            "p99": 7.454092298925744,
+            "relative_last_step_change": 1.4126076835532432e-06,
+            "size": 40,
+            "std": 0.00014771397885340293
+          },
+          "mean_eta": {
+            "finite_fraction": 1.0,
+            "first": -0.41219739215765794,
+            "last": -0.41217272145167544,
+            "max": -0.41217272145167544,
+            "mean": -0.41218518436376544,
+            "min": -0.41219739215765794,
+            "p01": -0.4121971529978527,
+            "p50": -0.4121852530481852,
+            "p99": -0.4121729759189157,
+            "relative_last_step_change": 1.5830259240029e-06,
+            "size": 40,
+            "std": 7.3017759138163165e-06
+          },
+          "mean_j_orr_vol": {
+            "finite_fraction": 1.0,
+            "first": 10570332.711498277,
+            "last": 10568179.541006625,
+            "max": 10570332.711498277,
+            "mean": 10569214.295396049,
+            "min": 10568179.541006625,
+            "p01": 10568198.702641623,
+            "p50": 10569191.807129703,
+            "p99": 10570308.520247271,
+            "relative_last_step_change": 4.649088070759914e-06,
+            "size": 40,
+            "std": 636.7682009967888
+          },
+          "sim_time": {
+            "finite_fraction": 1.0,
+            "max": 0.006390000000000524,
+            "mean": 0.006195000000000498,
+            "min": 0.006000000000000472,
+            "p01": 0.006003900000000472,
+            "p50": 0.006195000000000498,
+            "p99": 0.0063861000000005235,
+            "size": 40,
+            "std": 0.00011543396380616727
+          },
+          "total_reaction_current": {
+            "finite_fraction": 1.0,
+            "first": 0.004481821069675271,
+            "last": 0.00448090812538681,
+            "max": 0.004481821069675271,
+            "mean": 0.004481346861247925,
+            "min": 0.00448090812538681,
+            "p01": 0.00448091624992005,
+            "p50": 0.004481337326222993,
+            "p99": 0.004481810812584843,
+            "relative_last_step_change": 4.6490880706664136e-06,
+            "size": 40,
+            "std": 2.69989717222469e-07
+          }
+        },
+        "schema_version": 1
+      }
+    },
+    {
+      "converged_stop_time": 0.0064,
+      "final_scalars": {
+        "mean_c_o2": 7.455835109507535,
+        "mean_eta": -0.41236183566461404,
+        "total_reaction_current": 0.004310505227961946
+      },
+      "grid": [
+        12,
+        12,
+        36
+      ],
+      "relative_to_finest": {
+        "mean_c_o2": 2.0562911938859887e-05,
+        "mean_eta": 0.00020108124219903983,
+        "total_reaction_current": 0.00310345034965358
+      },
+      "time_convergence_history": [
+        {
+          "metric": 0.0015914147840705233,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0013905988850316324,
+            "mean_eta": 4.089212964378907e-05,
+            "total_reaction_current": 0.0015914147840705233
+          },
+          "stop_time": 5e-05
+        },
+        {
+          "metric": 0.0010067552887801719,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0009731420151980792,
+            "mean_eta": 3.2103351616662924e-05,
+            "total_reaction_current": 0.0010067552887801719
+          },
+          "stop_time": 0.0001
+        },
+        {
+          "metric": 0.0007025780143372121,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0007025780143372121,
+            "mean_eta": 1.9438957007137164e-05,
+            "total_reaction_current": 0.0001780809151974228
+          },
+          "stop_time": 0.0002
+        },
+        {
+          "metric": 0.0005215333352414284,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0005215333352414284,
+            "mean_eta": 7.682973222627598e-06,
+            "total_reaction_current": 0.0004555420389878704
+          },
+          "stop_time": 0.0004
+        },
+        {
+          "metric": 0.0004905474800478517,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0003465668047186581,
+            "mean_eta": 1.0425441601110831e-06,
+            "total_reaction_current": 0.0004905474800478517
+          },
+          "stop_time": 0.0008
+        },
+        {
+          "metric": 0.0002453268682999072,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.00015917523279413584,
+            "mean_eta": 2.181259018456345e-07,
+            "total_reaction_current": 0.0002453268682999072
+          },
+          "stop_time": 0.0016
+        },
+        {
+          "metric": 5.2349971344959276e-05,
+          "relative_last_step_change": {
+            "mean_c_o2": 3.377521815710381e-05,
+            "mean_eta": 2.704647595692819e-07,
+            "total_reaction_current": 5.2349971344959276e-05
+          },
+          "stop_time": 0.0032
+        },
+        {
+          "metric": 1.4656541736081903e-06,
+          "relative_last_step_change": {
+            "mean_c_o2": 1.4656541736081903e-06,
+            "mean_eta": 3.850511227023844e-07,
+            "total_reaction_current": 9.244525119826746e-07
+          },
+          "stop_time": 0.0064
+        }
+      ],
+      "validation": {
+        "checks": [
+          {
+            "limit": 1.0,
+            "name": "c_o2: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "chi_cl: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "eta: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "j_orr: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "phi_m: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "phi_s: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": "finite",
+            "name": "oxygen concentration has finite extrema",
+            "pass": true,
+            "value": [
+              6.852923689091124,
+              8.15743377391854
+            ]
+          },
+          {
+            "limit": ">= approximately 0",
+            "name": "oxygen concentration non-negative",
+            "pass": true,
+            "value": 6.852923689091124
+          },
+          {
+            "limit": 8.565747247663799,
+            "name": "oxygen concentration not above open-air boundary by >5%",
+            "pass": true,
+            "value": 8.15743377391854
+          },
+          {
+            "limit": null,
+            "name": "required field phi_s present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field phi_m present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field eta present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field j_orr present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": "finite",
+            "name": "ORR current has finite extrema",
+            "pass": true,
+            "value": [
+              -104669.82318889153,
+              186766457.45856163
+            ]
+          },
+          {
+            "limit": "> 0",
+            "name": "ORR current is active",
+            "pass": true,
+            "value": 186766457.45856163
+          },
+          {
+            "limit": "<= 0.05 of positive peak",
+            "name": "ORR negative spectral undershoot is limited",
+            "pass": true,
+            "value": 0.0005604315925525059
+          },
+          {
+            "limit": "finite",
+            "name": "mean cathode overpotential is finite",
+            "pass": true,
+            "value": -0.41260861077138056
+          },
+          {
+            "limit": "< 0 V",
+            "name": "mean cathode overpotential is cathodic",
+            "pass": true,
+            "value": -0.41260861077138056
+          },
+          {
+            "limit": "finite",
+            "name": "solid potential has finite extrema",
+            "pass": true,
+            "value": [
+              0.7675025436275926,
+              0.7679997739005348
+            ]
+          },
+          {
+            "limit": "[-0.5, 2.0] V",
+            "name": "solid potential remains in broad physical range",
+            "pass": true,
+            "value": [
+              0.7675025436275926,
+              0.7679997739005348
+            ]
+          },
+          {
+            "limit": "finite",
+            "name": "protonic potential has finite extrema",
+            "pass": true,
+            "value": [
+              -0.0020010036217209416,
+              0.0028844731954489338
+            ]
+          },
+          {
+            "limit": "[-1.0, 1.0] V",
+            "name": "protonic potential remains in broad physical range",
+            "pass": true,
+            "value": [
+              -0.0020010036217209416,
+              0.0028844731954489338
+            ]
+          },
+          {
+            "limit": "> 0 A (domain integral)",
+            "name": "integrated reaction current is positive",
+            "pass": true,
+            "value": 0.004310505227961946
+          }
+        ],
+        "fields_last_write": {
+          "c_o2": {
+            "finite_fraction": 1.0,
+            "max": 8.15743377391854,
+            "mean": 7.456527650210796,
+            "min": 6.852923689091124,
+            "p01": 6.915069568149552,
+            "p50": 7.456595550448679,
+            "p99": 8.091237237234852,
+            "size": 5184,
+            "std": 0.31220744135842154
+          },
+          "chi_cl": {
+            "finite_fraction": 1.0,
+            "max": 0.9999932036053442,
+            "mean": 0.1526559587423785,
+            "min": -1.8041124150158794e-16,
+            "p01": -1.7450528429753747e-16,
+            "p50": 2.3512787582832123e-17,
+            "p99": 0.9999902567832528,
+            "size": 36,
+            "std": 0.3486885553677421
+          },
+          "eta": {
+            "finite_fraction": 1.0,
+            "max": -0.4104332649669898,
+            "mean": -0.41260861077138056,
+            "min": -0.4153433917581427,
+            "p01": -0.4152677189347503,
+            "p50": -0.41222454738207964,
+            "p99": -0.41046586289086956,
+            "size": 5184,
+            "std": 0.0010105685767430466
+          },
+          "j_orr": {
+            "finite_fraction": 1.0,
+            "max": 186766457.45856163,
+            "mean": 27063188.034733385,
+            "min": -104669.82318889153,
+            "p01": -99709.55959088683,
+            "p50": 3044.7348367508366,
+            "p99": 184683305.68227494,
+            "size": 5184,
+            "std": 61748412.029284716
+          },
+          "phi_m": {
+            "finite_fraction": 1.0,
+            "max": 0.0028844731954489338,
+            "mean": 0.00037162327414143515,
+            "min": -0.0020010036217209416,
+            "p01": -0.001961733479358226,
+            "p50": 1.0852067783796141e-05,
+            "p99": 0.0028160277459826316,
+            "size": 5184,
+            "std": 0.0009870622732562218
+          },
+          "phi_s": {
+            "finite_fraction": 1.0,
+            "max": 0.7679997739005348,
+            "mean": 0.7677630125027608,
+            "min": 0.7675025436275926,
+            "p01": 0.7675053402308982,
+            "p50": 0.7677651425411454,
+            "p99": 0.7679997708917352,
+            "size": 5184,
+            "std": 0.00016892927090338307
+          }
+        },
+        "generated_utc": "2026-09-22T17:15:05.445111+00:00",
+        "git_commit": "8e3ab3912b16d5b61613c1b778f40c268550a6fa",
+        "host": {
+          "hostname": "m710s",
+          "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+          "python": "3.13.5"
+        },
+        "input": {
+          "root": ".study-output/v02/12x12x36",
+          "scalars": ".study-output/v02/12x12x36/scalars/scalars_s7.h5",
+          "scalars_sha256": "156eadcd2f49d9df44e206c1832bec79489a1f54a774bf3fac215bfc05be5ada",
+          "snapshots": ".study-output/v02/12x12x36/snapshots/snapshots_s1.h5",
+          "snapshots_sha256": "886363cb1915bc2e44d552304c604b74e28b1e136b8b93154b96ad0ac24d358d"
+        },
+        "model": "v02",
+        "pass": true,
+        "scalar_series": {
+          "final_sim_time": 0.006390000000000524,
+          "mean_c_o2": {
+            "finite_fraction": 1.0,
+            "first": 7.456351417490306,
+            "last": 7.455835109507535,
+            "max": 7.456351417490306,
+            "mean": 7.4560773088225485,
+            "min": 7.455835109507535,
+            "p01": 7.455839371301115,
+            "p50": 7.456068732768836,
+            "p99": 7.456345237030015,
+            "relative_last_step_change": 1.4656541736081903e-06,
+            "size": 40,
+            "std": 0.00015266956418417206
+          },
+          "mean_eta": {
+            "finite_fraction": 1.0,
+            "first": -0.41236786873373743,
+            "last": -0.41236183566461404,
+            "max": -0.41236183566461404,
+            "mean": -0.4123648785101812,
+            "min": -0.41236786873373743,
+            "p01": -0.4123678099664541,
+            "p50": -0.4123648926785661,
+            "p99": -0.4123618975889653,
+            "relative_last_step_change": 3.850511227023844e-07,
+            "size": 40,
+            "std": 1.7856506098937896e-06
+          },
+          "mean_j_orr_vol": {
+            "finite_fraction": 1.0,
+            "first": 10166852.36764511,
+            "last": 10166285.915004594,
+            "max": 10166852.36764511,
+            "mean": 10166533.79215568,
+            "min": 10166285.915004594,
+            "p01": 10166289.580321528,
+            "p50": 10166514.790640177,
+            "p99": 10166844.451446572,
+            "relative_last_step_change": 9.24452511591976e-07,
+            "size": 40,
+            "std": 167.78156059411964
+          },
+          "sim_time": {
+            "finite_fraction": 1.0,
+            "max": 0.006390000000000524,
+            "mean": 0.006195000000000498,
+            "min": 0.006000000000000472,
+            "p01": 0.006003900000000472,
+            "p50": 0.006195000000000498,
+            "p99": 0.0063861000000005235,
+            "size": 40,
+            "std": 0.00011543396380616727
+          },
+          "total_reaction_current": {
+            "finite_fraction": 1.0,
+            "first": 0.004310745403881527,
+            "last": 0.004310505227961946,
+            "max": 0.004310745403881527,
+            "mean": 0.004310610327874008,
+            "min": 0.004310505227961946,
+            "p01": 0.004310506782056326,
+            "p50": 0.004310602271231432,
+            "p99": 0.004310742047413348,
+            "relative_last_step_change": 9.244525119826746e-07,
+            "size": 40,
+            "std": 7.113938169219406e-08
+          }
+        },
+        "schema_version": 1
+      }
+    },
+    {
+      "converged_stop_time": 0.0064,
+      "final_scalars": {
+        "mean_c_o2": 7.455988426340963,
+        "mean_eta": -0.41244477057141904,
+        "total_reaction_current": 0.004297169176777755
+      },
+      "grid": [
+        16,
+        16,
+        48
+      ],
+      "relative_to_finest": {
+        "mean_c_o2": 0.0,
+        "mean_eta": 0.0,
+        "total_reaction_current": 0.0
+      },
+      "time_convergence_history": [
+        {
+          "metric": 0.0016540907316178225,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0013904273108764431,
+            "mean_eta": 4.461938148440653e-05,
+            "total_reaction_current": 0.0016540907316178225
+          },
+          "stop_time": 5e-05
+        },
+        {
+          "metric": 0.0010423384458868633,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0009729416630296777,
+            "mean_eta": 3.509765556457963e-05,
+            "total_reaction_current": 0.0010423384458868633
+          },
+          "stop_time": 0.0001
+        },
+        {
+          "metric": 0.0007023162899169011,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0007023162899169011,
+            "mean_eta": 2.115730199160048e-05,
+            "total_reaction_current": 0.0002122360826432983
+          },
+          "stop_time": 0.0002
+        },
+        {
+          "metric": 0.0005212871254973601,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.0005212871254973601,
+            "mean_eta": 8.32346310957803e-06,
+            "total_reaction_current": 0.00042849542707388736
+          },
+          "stop_time": 0.0004
+        },
+        {
+          "metric": 0.00048530808862301913,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.00034644888476722684,
+            "mean_eta": 1.20072233163536e-06,
+            "total_reaction_current": 0.00048530808862301913
+          },
+          "stop_time": 0.0008
+        },
+        {
+          "metric": 0.0002463254869366325,
+          "relative_last_step_change": {
+            "mean_c_o2": 0.00015916247451885324,
+            "mean_eta": 9.695350151728121e-08,
+            "total_reaction_current": 0.0002463254869366325
+          },
+          "stop_time": 0.0016
+        },
+        {
+          "metric": 5.375865311579067e-05,
+          "relative_last_step_change": {
+            "mean_c_o2": 3.3782163722672114e-05,
+            "mean_eta": 8.453804860029908e-08,
+            "total_reaction_current": 5.375865311579067e-05
+          },
+          "stop_time": 0.0032
+        },
+        {
+          "metric": 2.465753616088523e-06,
+          "relative_last_step_change": {
+            "mean_c_o2": 1.4578006613358928e-06,
+            "mean_eta": 7.316893846384243e-08,
+            "total_reaction_current": 2.465753616088523e-06
+          },
+          "stop_time": 0.0064
+        }
+      ],
+      "validation": {
+        "checks": [
+          {
+            "limit": 1.0,
+            "name": "c_o2: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "chi_cl: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "eta: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "j_orr: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "phi_m: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "phi_s: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": "finite",
+            "name": "oxygen concentration has finite extrema",
+            "pass": true,
+            "value": [
+              6.852781482369918,
+              8.1576179397088
+            ]
+          },
+          {
+            "limit": ">= approximately 0",
+            "name": "oxygen concentration non-negative",
+            "pass": true,
+            "value": 6.852781482369918
+          },
+          {
+            "limit": 8.565747247663799,
+            "name": "oxygen concentration not above open-air boundary by >5%",
+            "pass": true,
+            "value": 8.1576179397088
+          },
+          {
+            "limit": null,
+            "name": "required field phi_s present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field phi_m present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field eta present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field j_orr present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": "finite",
+            "name": "ORR current has finite extrema",
+            "pass": true,
+            "value": [
+              -35253.833038589124,
+              187940528.6655061
+            ]
+          },
+          {
+            "limit": "> 0",
+            "name": "ORR current is active",
+            "pass": true,
+            "value": 187940528.6655061
+          },
+          {
+            "limit": "<= 0.05 of positive peak",
+            "name": "ORR negative spectral undershoot is limited",
+            "pass": true,
+            "value": 0.00018757972688974073
+          },
+          {
+            "limit": "finite",
+            "name": "mean cathode overpotential is finite",
+            "pass": true,
+            "value": -0.41241661147568237
+          },
+          {
+            "limit": "< 0 V",
+            "name": "mean cathode overpotential is cathodic",
+            "pass": true,
+            "value": -0.41241661147568237
+          },
+          {
+            "limit": "finite",
+            "name": "solid potential has finite extrema",
+            "pass": true,
+            "value": [
+              0.7674118545463808,
+              0.7679998534669269
+            ]
+          },
+          {
+            "limit": "[-0.5, 2.0] V",
+            "name": "solid potential remains in broad physical range",
+            "pass": true,
+            "value": [
+              0.7674118545463808,
+              0.7679998534669269
+            ]
+          },
+          {
+            "limit": "finite",
+            "name": "protonic potential has finite extrema",
+            "pass": true,
+            "value": [
+              -0.0031808801791845987,
+              0.002832227460682103
+            ]
+          },
+          {
+            "limit": "[-1.0, 1.0] V",
+            "name": "protonic potential remains in broad physical range",
+            "pass": true,
+            "value": [
+              -0.0031808801791845987,
+              0.002832227460682103
+            ]
+          },
+          {
+            "limit": "> 0 A (domain integral)",
+            "name": "integrated reaction current is positive",
+            "pass": true,
+            "value": 0.004297169176777755
+          }
+        ],
+        "fields_last_write": {
+          "c_o2": {
+            "finite_fraction": 1.0,
+            "max": 8.1576179397088,
+            "mean": 7.456676280450348,
+            "min": 6.852781482369918,
+            "p01": 6.9125787477686895,
+            "p50": 7.456739853747953,
+            "p99": 8.093268194561789,
+            "size": 12288,
+            "std": 0.3121841476882464
+          },
+          "chi_cl": {
+            "finite_fraction": 1.0,
+            "max": 0.999993497037889,
+            "mean": 0.15237215694634723,
+            "min": -1.655136260252793e-16,
+            "p01": -1.6482092248101475e-16,
+            "p50": 1.6027047884688538e-17,
+            "p99": 0.9999917424697834,
+            "size": 48,
+            "std": 0.34981581898274333
+          },
+          "eta": {
+            "finite_fraction": 1.0,
+            "max": -0.40881927359398534,
+            "mean": -0.41241661147568237,
+            "min": -0.4153645113807375,
+            "p01": -0.4153076390700894,
+            "p50": -0.4122747227026627,
+            "p99": -0.4089422238096123,
+            "size": 12288,
+            "std": 0.0011473798919027247
+          },
+          "j_orr": {
+            "finite_fraction": 1.0,
+            "max": 187940528.6655061,
+            "mean": 27075199.34809496,
+            "min": -35253.833038589124,
+            "p01": -32356.571085691812,
+            "p50": 2302.3075975263746,
+            "p99": 185073834.87430194,
+            "size": 12288,
+            "std": 62115919.168013155
+          },
+          "phi_m": {
+            "finite_fraction": 1.0,
+            "max": 0.002832227460682103,
+            "mean": 0.0001397917539199757,
+            "min": -0.0031808801791845987,
+            "p01": -0.003057926341220211,
+            "p50": 1.6223059856668515e-05,
+            "p99": 0.002787532144904362,
+            "size": 12288,
+            "std": 0.0010129820077695378
+          },
+          "phi_s": {
+            "finite_fraction": 1.0,
+            "max": 0.7679998534669269,
+            "mean": 0.7677231802782373,
+            "min": 0.7674118545463808,
+            "p01": 0.767416346810981,
+            "p50": 0.7677262835209271,
+            "p99": 0.7679998498494246,
+            "size": 12288,
+            "std": 0.0001978479607944153
+          }
+        },
+        "generated_utc": "2026-09-22T17:23:30.756409+00:00",
+        "git_commit": "8e3ab3912b16d5b61613c1b778f40c268550a6fa",
+        "host": {
+          "hostname": "m710s",
+          "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+          "python": "3.13.5"
+        },
+        "input": {
+          "root": ".study-output/v02/16x16x48",
+          "scalars": ".study-output/v02/16x16x48/scalars/scalars_s7.h5",
+          "scalars_sha256": "7d15da08f838dc550c64749ba990103af55c4fe0191bdfdc58511e3dabf2d0e9",
+          "snapshots": ".study-output/v02/16x16x48/snapshots/snapshots_s1.h5",
+          "snapshots_sha256": "e829298e29568c7f5e29d0bf1b58e97ff01b8bca9a10742861e24d9c319727dd"
+        },
+        "model": "v02",
+        "pass": true,
+        "scalar_series": {
+          "final_sim_time": 0.006390000000000524,
+          "mean_c_o2": {
+            "finite_fraction": 1.0,
+            "first": 7.456502571672202,
+            "last": 7.455988426340963,
+            "max": 7.456502571672202,
+            "mean": 7.45622952480681,
+            "min": 7.455988426340963,
+            "p01": 7.455992665385458,
+            "p50": 7.456220938248738,
+            "p99": 7.456496411615956,
+            "relative_last_step_change": 1.4578006613358928e-06,
+            "size": 40,
+            "std": 0.00015203044933692465
+          },
+          "mean_eta": {
+            "finite_fraction": 1.0,
+            "first": -0.4124459353659631,
+            "last": -0.41244477057141904,
+            "max": -0.41244477057141904,
+            "mean": -0.41244535494695234,
+            "min": -0.4124459353659631,
+            "p01": -0.41244592383363776,
+            "p50": -0.4124453560130369,
+            "p99": -0.412444782340896,
+            "relative_last_step_change": 7.316893846384243e-08,
+            "size": 40,
+            "std": 3.4474499590792336e-07
+          },
+          "mean_j_orr_vol": {
+            "finite_fraction": 1.0,
+            "first": 10136006.071771184,
+            "last": 10134832.964098485,
+            "max": 10136006.071771184,
+            "mean": 10135384.407320347,
+            "min": 10134832.964098485,
+            "p01": 10134842.710198885,
+            "p50": 10135365.533848304,
+            "p99": 10135992.103527896,
+            "relative_last_step_change": 2.4657536155951103e-06,
+            "size": 40,
+            "std": 346.88878011260465
+          },
+          "sim_time": {
+            "finite_fraction": 1.0,
+            "max": 0.006390000000000524,
+            "mean": 0.006195000000000498,
+            "min": 0.006000000000000472,
+            "p01": 0.006003900000000472,
+            "p50": 0.006195000000000498,
+            "p99": 0.0063861000000005235,
+            "size": 40,
+            "std": 0.00011543396380616727
+          },
+          "total_reaction_current": {
+            "finite_fraction": 1.0,
+            "first": 0.0042976665744309805,
+            "last": 0.004297169176777755,
+            "max": 0.0042976665744309805,
+            "mean": 0.004297402988703826,
+            "min": 0.004297169176777755,
+            "p01": 0.004297173309124325,
+            "p50": 0.00429739498635168,
+            "p99": 0.004297660651895827,
+            "relative_last_step_change": 2.465753616088523e-06,
+            "size": 40,
+            "std": 1.470808427681598e-07
+          }
+        },
+        "schema_version": 1
+      }
+    }
+  ],
+  "generated_utc": "2026-09-22T17:23:30.790891+00:00",
+  "grid_converged": true,
+  "grid_metric_penultimate_to_finest": 0.00310345034965358,
+  "grid_tolerance": 0.02,
+  "schema_version": 1,
+  "time_tolerance": 1e-05
+}
