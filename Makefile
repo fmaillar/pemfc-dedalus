@@ -6,7 +6,7 @@ OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
-        study-v02 study-v03 validate-results validate-v01 validate-v02 validate-v03 results \
+        study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
 help:
@@ -19,6 +19,7 @@ help:
 	  'make smoke            run tiny Dedalus V0.1-V0.4 smoke tests' \
 	  'make study-v02        run V0.2 time/grid convergence study' \
 	  'make study-v03        run V0.3 membrane time/grid convergence study' \
+	  'make study-v04        run V0.4 hydrated cathode convergence study' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -80,6 +81,10 @@ study-v02:
 study-v03:
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
 	  $(PYTHON) scripts/run_v03_study.py
+
+study-v04:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	  $(PYTHON) scripts/run_v04_study.py
 
 validate-results: validate-v01 validate-v02 validate-v03
 
