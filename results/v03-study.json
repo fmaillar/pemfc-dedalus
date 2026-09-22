@@ -1,0 +1,772 @@
+{
+  "cases": [
+    {
+      "converged_stop_time": 6.4,
+      "final_scalars": {
+        "mean_lambda": 1.7245607129257452,
+        "mean_sigma_m": 0.6717084344355171
+      },
+      "nz": 32,
+      "relative_to_finest": {
+        "mean_lambda": 6.437714928236107e-16,
+        "mean_sigma_m": 0.0001406443332029165
+      },
+      "time_convergence_history": [
+        {
+          "metric": 0.00025041864509184515,
+          "relative_last_step_change": {
+            "mean_lambda": 0.00019196893370805967,
+            "mean_sigma_m": 0.00025041864509184515
+          },
+          "stop_time": 0.05
+        },
+        {
+          "metric": 0.00023527837137818082,
+          "relative_last_step_change": {
+            "mean_lambda": 0.0001750373004385231,
+            "mean_sigma_m": 0.00023527837137818082
+          },
+          "stop_time": 0.1
+        },
+        {
+          "metric": 0.0002166244457576901,
+          "relative_last_step_change": {
+            "mean_lambda": 0.00015827296396884744,
+            "mean_sigma_m": 0.0002166244457576901
+          },
+          "stop_time": 0.2
+        },
+        {
+          "metric": 0.0001834114720051898,
+          "relative_last_step_change": {
+            "mean_lambda": 0.00013212752591742263,
+            "mean_sigma_m": 0.0001834114720051898
+          },
+          "stop_time": 0.4
+        },
+        {
+          "metric": 0.0001340072118327508,
+          "relative_last_step_change": {
+            "mean_lambda": 9.590582662360145e-05,
+            "mean_sigma_m": 0.0001340072118327508
+          },
+          "stop_time": 0.8
+        },
+        {
+          "metric": 7.179427307978647e-05,
+          "relative_last_step_change": {
+            "mean_lambda": 5.123042270042302e-05,
+            "mean_sigma_m": 7.179427307978647e-05
+          },
+          "stop_time": 1.6
+        },
+        {
+          "metric": 2.025787799290366e-05,
+          "relative_last_step_change": {
+            "mean_lambda": 1.4427542114958572e-05,
+            "mean_sigma_m": 2.025787799290366e-05
+          },
+          "stop_time": 3.2
+        },
+        {
+          "metric": 1.6209060725442966e-06,
+          "relative_last_step_change": {
+            "mean_lambda": 1.1536161957110078e-06,
+            "mean_sigma_m": 1.6209060725442966e-06
+          },
+          "stop_time": 6.4
+        }
+      ],
+      "validation": {
+        "checks": [
+          {
+            "limit": 1.0,
+            "name": "lambda: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "n_drag: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "sigma_m: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": null,
+            "name": "required field lambda present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field sigma_m present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field n_drag present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": "finite",
+            "name": "membrane water content has finite extrema",
+            "pass": true,
+            "value": [
+              0.04493309656290201,
+              3.4832798182883966
+            ]
+          },
+          {
+            "limit": [
+              0.039557499999999995,
+              3.488942499999998
+            ],
+            "name": "membrane water content remains within boundary range",
+            "pass": true,
+            "value": [
+              0.04493309656290201,
+              3.4832798182883966
+            ]
+          },
+          {
+            "limit": "finite",
+            "name": "membrane proton conductivity has finite extrema",
+            "pass": true,
+            "value": [
+              -0.0035144239833203653,
+              1.6726412059171083
+            ]
+          },
+          {
+            "limit": "<= 0.01 of positive peak",
+            "name": "membrane conductivity negative spectral undershoot is limited",
+            "pass": true,
+            "value": 0.0021011224468749164
+          },
+          {
+            "limit": ">= approximately 0",
+            "name": "electro-osmotic drag coefficient is non-negative",
+            "pass": true,
+            "value": 0.002042413480131941
+          }
+        ],
+        "fields_last_write": {
+          "lambda": {
+            "finite_fraction": 1.0,
+            "max": 3.4832798182883966,
+            "mean": 1.7344802819475214,
+            "min": 0.04493309656290201,
+            "p01": 0.049720321200466516,
+            "p50": 1.7048816269394003,
+            "p99": 3.477785782662797,
+            "size": 32,
+            "std": 1.2170458210454176
+          },
+          "n_drag": {
+            "finite_fraction": 1.0,
+            "max": 0.15833090083129076,
+            "mean": 0.07884001281579643,
+            "min": 0.002042413480131941,
+            "p01": 0.0022600146000212335,
+            "p50": 0.07749461940633638,
+            "p99": 0.15808117193921806,
+            "size": 32,
+            "std": 0.05532026459297352
+          },
+          "sigma_m": {
+            "finite_fraction": 1.0,
+            "max": 1.6726412059171083,
+            "mean": 0.7100651608647486,
+            "min": -0.0035144239833203653,
+            "p01": -0.0027520195625593555,
+            "p50": 0.6284817507051934,
+            "p99": 1.669427563219486,
+            "size": 32,
+            "std": 0.6370332404112957
+          }
+        },
+        "generated_utc": "2026-09-22T22:07:07.019658+00:00",
+        "git_commit": "bac7d49460dd7d16fe67dd74e7ba0eedfafa4f2d",
+        "host": {
+          "hostname": "m710s",
+          "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+          "python": "3.13.5"
+        },
+        "input": {
+          "root": ".study-output/v03/nz32",
+          "scalars": ".study-output/v03/nz32/scalars/scalars_s7.h5",
+          "scalars_sha256": "6b532b1af61a8bd6fd562b08bc528cb92c7622280669d00fa1e1523fc8cb30a0",
+          "snapshots": ".study-output/v03/nz32/snapshots/snapshots_s1.h5",
+          "snapshots_sha256": "f9efaa8d17929eb901bebb9f47a1ae6555fc74f977442fcbf0833e76fdd0622f"
+        },
+        "model": "v03",
+        "pass": true,
+        "scalar_series": {
+          "final_sim_time": 6.399999999999908,
+          "mean_lambda": {
+            "finite_fraction": 1.0,
+            "first": 1.7246539320000611,
+            "last": 1.7245607129257452,
+            "max": 1.7246539320000611,
+            "mean": 1.7246049331214428,
+            "min": 1.7245607129257452,
+            "p01": 1.7245615087182127,
+            "p50": 1.7246036480764668,
+            "p99": 1.7246528490676598,
+            "relative_last_step_change": 1.1536161957110078e-06,
+            "size": 41,
+            "std": 2.755615369279757e-05
+          },
+          "mean_sigma_m": {
+            "finite_fraction": 1.0,
+            "first": 0.6717594501066061,
+            "last": 0.6717084344355171,
+            "max": 0.6717594501066061,
+            "mean": 0.6717326346646669,
+            "min": 0.6717084344355171,
+            "p01": 0.6717088699460292,
+            "p50": 0.6717319314026778,
+            "p99": 0.6717588574540447,
+            "relative_last_step_change": 1.6209060725442966e-06,
+            "size": 41,
+            "std": 1.5080558175705544e-05
+          },
+          "sim_time": {
+            "finite_fraction": 1.0,
+            "max": 6.399999999999908,
+            "mean": 6.199999999999912,
+            "min": 5.9999999999999165,
+            "p01": 6.003999999999916,
+            "p50": 6.199999999999912,
+            "p99": 6.395999999999908,
+            "size": 41,
+            "std": 0.1183215956619898
+          }
+        },
+        "schema_version": 1
+      }
+    },
+    {
+      "converged_stop_time": 6.4,
+      "final_scalars": {
+        "mean_lambda": 1.724560712925745,
+        "mean_sigma_m": 0.6718023598278408
+      },
+      "nz": 48,
+      "relative_to_finest": {
+        "mean_lambda": 5.150171942588885e-16,
+        "mean_sigma_m": 8.334012046977217e-07
+      },
+      "time_convergence_history": [
+        {
+          "metric": 0.0002478065643668307,
+          "relative_last_step_change": {
+            "mean_lambda": 0.00019196893361282278,
+            "mean_sigma_m": 0.0002478065643668307
+          },
+          "stop_time": 0.05
+        },
+        {
+          "metric": 0.00023300698151175768,
+          "relative_last_step_change": {
+            "mean_lambda": 0.0001750373004331004,
+            "mean_sigma_m": 0.00023300698151175768
+          },
+          "stop_time": 0.1
+        },
+        {
+          "metric": 0.00021476611306358808,
+          "relative_last_step_change": {
+            "mean_lambda": 0.00015827296396846865,
+            "mean_sigma_m": 0.00021476611306358808
+          },
+          "stop_time": 0.2
+        },
+        {
+          "metric": 0.00018201512598866728,
+          "relative_last_step_change": {
+            "mean_lambda": 0.00013212752591792925,
+            "mean_sigma_m": 0.00018201512598866728
+          },
+          "stop_time": 0.4
+        },
+        {
+          "metric": 0.00013303322598860162,
+          "relative_last_step_change": {
+            "mean_lambda": 9.590582662372881e-05,
+            "mean_sigma_m": 0.00013303322598860162
+          },
+          "stop_time": 0.8
+        },
+        {
+          "metric": 7.127261771590485e-05,
+          "relative_last_step_change": {
+            "mean_lambda": 5.123042270042301e-05,
+            "mean_sigma_m": 7.127261771590485e-05
+          },
+          "stop_time": 1.6
+        },
+        {
+          "metric": 2.010983841781278e-05,
+          "relative_last_step_change": {
+            "mean_lambda": 1.44275421153442e-05,
+            "mean_sigma_m": 2.010983841781278e-05
+          },
+          "stop_time": 3.2
+        },
+        {
+          "metric": 1.6090333842341692e-06,
+          "relative_last_step_change": {
+            "mean_lambda": 1.1536161963547793e-06,
+            "mean_sigma_m": 1.6090333842341692e-06
+          },
+          "stop_time": 6.4
+        }
+      ],
+      "validation": {
+        "checks": [
+          {
+            "limit": 1.0,
+            "name": "lambda: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "n_drag: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "sigma_m: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": null,
+            "name": "required field lambda present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field sigma_m present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field n_drag present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": "finite",
+            "name": "membrane water content has finite extrema",
+            "pass": true,
+            "value": [
+              0.04385922986019675,
+              3.4845131194962944
+            ]
+          },
+          {
+            "limit": [
+              0.039557499999999995,
+              3.488942499999998
+            ],
+            "name": "membrane water content remains within boundary range",
+            "pass": true,
+            "value": [
+              0.04385922986019675,
+              3.4845131194962944
+            ]
+          },
+          {
+            "limit": "finite",
+            "name": "membrane proton conductivity has finite extrema",
+            "pass": true,
+            "value": [
+              -0.0004866207330810647,
+              1.6733751862493236
+            ]
+          },
+          {
+            "limit": "<= 0.01 of positive peak",
+            "name": "membrane conductivity negative spectral undershoot is limited",
+            "pass": true,
+            "value": 0.00029080192958506136
+          },
+          {
+            "limit": ">= approximately 0",
+            "name": "electro-osmotic drag coefficient is non-negative",
+            "pass": true,
+            "value": 0.001993601357281688
+          }
+        ],
+        "fields_last_write": {
+          "lambda": {
+            "finite_fraction": 1.0,
+            "max": 3.4845131194962944,
+            "mean": 1.7344802819475216,
+            "min": 0.04385922986019675,
+            "p01": 0.0470878812135201,
+            "p50": 1.7048022089575483,
+            "p99": 3.4808060499158526,
+            "size": 48,
+            "std": 1.2170458210454176
+          },
+          "n_drag": {
+            "finite_fraction": 1.0,
+            "max": 0.15838695997710428,
+            "mean": 0.07884001281579643,
+            "min": 0.001993601357281688,
+            "p01": 0.002140358236978199,
+            "p50": 0.07749100949807038,
+            "p99": 0.1582184568143569,
+            "size": 48,
+            "std": 0.055320264592973525
+          },
+          "sigma_m": {
+            "finite_fraction": 1.0,
+            "max": 1.6733751862493236,
+            "mean": 0.7101429311281621,
+            "min": -0.0004866207330810647,
+            "p01": -0.0002860638422697496,
+            "p50": 0.6284752956475461,
+            "p99": 1.6711982784311605,
+            "size": 48,
+            "std": 0.6369474562799599
+          }
+        },
+        "generated_utc": "2026-09-22T22:07:18.467864+00:00",
+        "git_commit": "bac7d49460dd7d16fe67dd74e7ba0eedfafa4f2d",
+        "host": {
+          "hostname": "m710s",
+          "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+          "python": "3.13.5"
+        },
+        "input": {
+          "root": ".study-output/v03/nz48",
+          "scalars": ".study-output/v03/nz48/scalars/scalars_s7.h5",
+          "scalars_sha256": "1ab038c1b790a59c41f585e5f4ff064be3157d701c0bc5529b4e960efd6e4d95",
+          "snapshots": ".study-output/v03/nz48/snapshots/snapshots_s1.h5",
+          "snapshots_sha256": "07276e8a89a7c0ad1dbdd68934e6d1f765a1ee8948a418aa9d3b258595d16cd7"
+        },
+        "model": "v03",
+        "pass": true,
+        "scalar_series": {
+          "final_sim_time": 6.399999999999908,
+          "mean_lambda": {
+            "finite_fraction": 1.0,
+            "first": 1.7246539320000662,
+            "last": 1.724560712925745,
+            "max": 1.7246539320000662,
+            "mean": 1.7246049331214464,
+            "min": 1.724560712925745,
+            "p01": 1.724561508718213,
+            "p50": 1.7246036480764708,
+            "p99": 1.7246528490676647,
+            "relative_last_step_change": 1.1536161963547793e-06,
+            "size": 41,
+            "std": 2.7556153694321964e-05
+          },
+          "mean_sigma_m": {
+            "finite_fraction": 1.0,
+            "first": 0.6718530089045364,
+            "last": 0.6718023598278408,
+            "max": 0.6718530089045364,
+            "mean": 0.671826386156146,
+            "min": 0.6718023598278408,
+            "p01": 0.6718027922088106,
+            "p50": 0.67182568794774,
+            "p99": 0.6718524205107272,
+            "relative_last_step_change": 1.6090333842341692e-06,
+            "size": 41,
+            "std": 1.4972190531708319e-05
+          },
+          "sim_time": {
+            "finite_fraction": 1.0,
+            "max": 6.399999999999908,
+            "mean": 6.199999999999912,
+            "min": 5.9999999999999165,
+            "p01": 6.003999999999916,
+            "p50": 6.199999999999912,
+            "p99": 6.395999999999908,
+            "size": 41,
+            "std": 0.1183215956619898
+          }
+        },
+        "schema_version": 1
+      }
+    },
+    {
+      "converged_stop_time": 6.4,
+      "final_scalars": {
+        "mean_lambda": 1.724560712925744,
+        "mean_sigma_m": 0.6718029197092034
+      },
+      "nz": 64,
+      "relative_to_finest": {
+        "mean_lambda": 0.0,
+        "mean_sigma_m": 0.0
+      },
+      "time_convergence_history": [
+        {
+          "metric": 0.00025041642880752323,
+          "relative_last_step_change": {
+            "mean_lambda": 0.00019196893361269682,
+            "mean_sigma_m": 0.00025041642880752323
+          },
+          "stop_time": 0.05
+        },
+        {
+          "metric": 0.00023526624812018098,
+          "relative_last_step_change": {
+            "mean_lambda": 0.0001750373004332264,
+            "mean_sigma_m": 0.00023526624812018098
+          },
+          "stop_time": 0.1
+        },
+        {
+          "metric": 0.00021661081592531272,
+          "relative_last_step_change": {
+            "mean_lambda": 0.0001582729639688475,
+            "mean_sigma_m": 0.00021661081592531272
+          },
+          "stop_time": 0.2
+        },
+        {
+          "metric": 0.0001833999466403353,
+          "relative_last_step_change": {
+            "mean_lambda": 0.00013212752591767595,
+            "mean_sigma_m": 0.0001833999466403353
+          },
+          "stop_time": 0.4
+        },
+        {
+          "metric": 0.0001325336297742482,
+          "relative_last_step_change": {
+            "mean_lambda": 9.590582662334688e-05,
+            "mean_sigma_m": 0.0001325336297742482
+          },
+          "stop_time": 0.8
+        },
+        {
+          "metric": 7.1005051148955e-05,
+          "relative_last_step_change": {
+            "mean_lambda": 5.123042270042304e-05,
+            "mean_sigma_m": 7.1005051148955e-05
+          },
+          "stop_time": 1.6
+        },
+        {
+          "metric": 2.003391211068347e-05,
+          "relative_last_step_change": {
+            "mean_lambda": 1.4427542115344177e-05,
+            "mean_sigma_m": 2.003391211068347e-05
+          },
+          "stop_time": 3.2
+        },
+        {
+          "metric": 1.6029442972801966e-06,
+          "relative_last_step_change": {
+            "mean_lambda": 1.1536161960972713e-06,
+            "mean_sigma_m": 1.6029442972801966e-06
+          },
+          "stop_time": 6.4
+        }
+      ],
+      "validation": {
+        "checks": [
+          {
+            "limit": 1.0,
+            "name": "lambda: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "n_drag: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": 1.0,
+            "name": "sigma_m: all values finite",
+            "pass": true,
+            "value": 1.0
+          },
+          {
+            "limit": null,
+            "name": "required field lambda present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field sigma_m present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": null,
+            "name": "required field n_drag present",
+            "pass": true,
+            "value": null
+          },
+          {
+            "limit": "finite",
+            "name": "membrane water content has finite extrema",
+            "pass": true,
+            "value": [
+              0.04348333172584962,
+              3.484944853514482
+            ]
+          },
+          {
+            "limit": [
+              0.039557499999999995,
+              3.488942499999998
+            ],
+            "name": "membrane water content remains within boundary range",
+            "pass": true,
+            "value": [
+              0.04348333172584962,
+              3.484944853514482
+            ]
+          },
+          {
+            "limit": "finite",
+            "name": "membrane proton conductivity has finite extrema",
+            "pass": true,
+            "value": [
+              -0.0006297513622524308,
+              1.6736290804516734
+            ]
+          },
+          {
+            "limit": "<= 0.01 of positive peak",
+            "name": "membrane conductivity negative spectral undershoot is limited",
+            "pass": true,
+            "value": 0.0003762789315793172
+          },
+          {
+            "limit": ">= approximately 0",
+            "name": "electro-osmotic drag coefficient is non-negative",
+            "pass": true,
+            "value": 0.001976515078447691
+          }
+        ],
+        "fields_last_write": {
+          "lambda": {
+            "finite_fraction": 1.0,
+            "max": 3.484944853514482,
+            "mean": 1.734480281947521,
+            "min": 0.04348333172584962,
+            "p01": 0.0459184529386911,
+            "p50": 1.704774396013962,
+            "p99": 3.482148442948392,
+            "size": 64,
+            "std": 1.217045821045418
+          },
+          "n_drag": {
+            "finite_fraction": 1.0,
+            "max": 0.1584065842506583,
+            "mean": 0.07884001281579642,
+            "min": 0.001976515078447691,
+            "p01": 0.0020872024063041455,
+            "p50": 0.07748974527336193,
+            "p99": 0.1582794746794724,
+            "size": 64,
+            "std": 0.05532026459297355
+          },
+          "sigma_m": {
+            "finite_fraction": 1.0,
+            "max": 1.6736290804516734,
+            "mean": 0.710143109710112,
+            "min": -0.0006297513622524308,
+            "p01": -0.0004146318986483178,
+            "p50": 0.6284599610080056,
+            "p99": 1.6719856486047393,
+            "size": 64,
+            "std": 0.6369475027827417
+          }
+        },
+        "generated_utc": "2026-09-22T22:07:30.007161+00:00",
+        "git_commit": "bac7d49460dd7d16fe67dd74e7ba0eedfafa4f2d",
+        "host": {
+          "hostname": "m710s",
+          "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+          "python": "3.13.5"
+        },
+        "input": {
+          "root": ".study-output/v03/nz64",
+          "scalars": ".study-output/v03/nz64/scalars/scalars_s7.h5",
+          "scalars_sha256": "b2d376d4a858e2c1114de14adc9a39a579129a228cf0ca951702ed12bff5a55a",
+          "snapshots": ".study-output/v03/nz64/snapshots/snapshots_s1.h5",
+          "snapshots_sha256": "6e8247a4736b61c2eeaebfa09a485d880fbf99b1eecbc09ed9581ee4bad6f723"
+        },
+        "model": "v03",
+        "pass": true,
+        "scalar_series": {
+          "final_sim_time": 6.399999999999908,
+          "mean_lambda": {
+            "finite_fraction": 1.0,
+            "first": 1.7246539320000664,
+            "last": 1.724560712925744,
+            "max": 1.7246539320000664,
+            "mean": 1.7246049331214457,
+            "min": 1.724560712925744,
+            "p01": 1.724561508718212,
+            "p50": 1.7246036480764688,
+            "p99": 1.7246528490676654,
+            "relative_last_step_change": 1.1536161960972713e-06,
+            "size": 41,
+            "std": 2.7556153695495636e-05
+          },
+          "mean_sigma_m": {
+            "finite_fraction": 1.0,
+            "first": 0.67185337715596,
+            "last": 0.6718029197092034,
+            "max": 0.67185337715596,
+            "mean": 0.6718268551342957,
+            "min": 0.6718029197092034,
+            "p01": 0.671803350454267,
+            "p50": 0.671826159567549,
+            "p99": 0.6718527909883293,
+            "relative_last_step_change": 1.6029442972801966e-06,
+            "size": 41,
+            "std": 1.49155434984398e-05
+          },
+          "sim_time": {
+            "finite_fraction": 1.0,
+            "max": 6.399999999999908,
+            "mean": 6.199999999999912,
+            "min": 5.9999999999999165,
+            "p01": 6.003999999999916,
+            "p50": 6.199999999999912,
+            "p99": 6.395999999999908,
+            "size": 41,
+            "std": 0.1183215956619898
+          }
+        },
+        "schema_version": 1
+      }
+    }
+  ],
+  "generated_utc": "2026-09-22T22:07:30.030927+00:00",
+  "grid_converged": true,
+  "grid_metric_penultimate_to_finest": 8.334012046977217e-07,
+  "grid_tolerance": 0.01,
+  "schema_version": 1,
+  "time_tolerance": 1e-05
+}
