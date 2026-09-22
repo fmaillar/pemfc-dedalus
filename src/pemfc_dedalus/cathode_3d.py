@@ -115,6 +115,7 @@ def build_solver(
 
     d_ref = min(params.d_o2_gdl, params.d_o2_cl)
     k_reaction = params.k_reaction
+    Lz = params.thickness_z
 
     problem = d3.IVP([c, tau1, tau2], namespace=locals())
     problem.add_equation(
