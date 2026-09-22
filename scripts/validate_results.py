@@ -180,7 +180,6 @@ def validate(model: str, root: Path) -> dict:
                 "finite",
             )
             if j_min is not None and j_max is not None:
-                scale = max(abs(j_max), 1.0)
                 add_check(
                     checks,
                     "ORR current is active",
