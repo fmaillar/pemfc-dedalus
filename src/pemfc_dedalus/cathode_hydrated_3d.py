@@ -275,10 +275,17 @@ def run(
     nz: int = 48,
     stop_time: float = 2.0e-3,
     max_dt: float = 2.0e-6,
-    output_dir: str | Path = "output-electrochem",
+    output_dir: str | Path = "output-hydrated",
     scalar_dt: float | None = None,
 ) -> None:
     params = CathodeParameters()
+    lambda_cl_value = membrane_water_content_from_activity(
+        params.relative_humidity
+    ).item()
+    sigma_m_cl_hydrated = membrane_proton_conductivity(
+        lambda_cl_value,
+        params.stack_temperature,
+    ).item()
     solver = build_solver(
         params,
         nx=nx,
@@ -353,7 +360,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--nz", type=int, default=48)
     parser.add_argument("--stop-time", type=float, default=2.0e-3)
     parser.add_argument("--max-dt", type=float, default=2.0e-6)
-    parser.add_argument("--output-dir", default="output-electrochem")
+    parser.add_argument("--output-dir", default="output-hydrated")
     parser.add_argument(
         "--scalar-dt",
         type=float,
