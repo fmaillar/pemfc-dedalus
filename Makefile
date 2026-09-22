@@ -6,7 +6,7 @@ OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
-        quick-study-v02 quick-study-v04 \
+        quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -23,6 +23,8 @@ help:
 	  'make study-v04        run V0.4 hydrated cathode convergence study' \
 	  'make quick-study-v02  run short V0.2 MPI pipeline check' \
 	  'make quick-study-v04  run short V0.4 MPI/comparison pipeline check' \
+	  'make quick-overnight-v04 preflight the overnight RH-voltage campaign' \
+	  'make overnight-v04    run fixed-grid V0.4 RH-voltage overnight campaign' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -141,3 +143,20 @@ push-results:
 
 clean-results:
 	rm -rf .test-output results/*.json
+
+
+quick-overnight-v04:
+	rm -rf .quick-overnight-output/v04
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=2 \
+	  $(PYTHON) scripts/run_v04_overnight.py \
+	  --nx 8 --ny 8 --nz 24 --stop-time 0.0002 --max-dt 0.000001 \
+	  --rh-values 0.5 --voltages 0.768 \
+	  --work-dir .quick-overnight-output/v04 \
+	  --json-output results/quick-overnight-v04.json \
+	  --csv-output results/quick-overnight-v04.csv
+
+overnight-v04:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
+	  $(PYTHON) scripts/run_v04_overnight.py
