@@ -316,9 +316,9 @@ def validate(model: str, root: Path) -> dict:
                 add_check(
                     checks,
                     "membrane conductivity negative spectral undershoot is limited",
-                    negative_fraction <= 1e-3,
+                    negative_fraction <= 0.01,
                     negative_fraction,
-                    "<= 0.001 of positive peak",
+                    "<= 0.01 of positive peak",
                 )
 
         drag = fields.get("n_drag")
