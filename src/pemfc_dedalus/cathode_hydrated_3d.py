@@ -280,12 +280,15 @@ def run(
     output_dir: str | Path = "output-hydrated",
     scalar_dt: float | None = None,
     relative_humidity: float | None = None,
+    cathode_solid_potential: float | None = None,
 ) -> None:
     params = CathodeParameters()
     if relative_humidity is not None:
         if not 0.0 <= relative_humidity <= 1.0:
             raise ValueError("relative_humidity must be between 0 and 1")
         params = replace(params, relative_humidity=relative_humidity)
+    if cathode_solid_potential is not None:
+        params = replace(params, cathode_solid_potential=cathode_solid_potential)
     lambda_cl_value = membrane_water_content_from_activity(
         params.relative_humidity
     ).item()
@@ -375,6 +378,12 @@ def _parser() -> argparse.ArgumentParser:
         help="override cathode relative humidity as a fraction in [0, 1]",
     )
     parser.add_argument(
+        "--cathode-solid-potential",
+        type=float,
+        default=None,
+        help="override cathode solid-potential boundary condition [V]",
+    )
+    parser.add_argument(
         "--scalar-dt",
         type=float,
         default=None,
@@ -395,6 +404,7 @@ def main() -> None:
         output_dir=args.output_dir,
         scalar_dt=args.scalar_dt,
         relative_humidity=args.relative_humidity,
+        cathode_solid_potential=args.cathode_solid_potential,
     )
 
 
