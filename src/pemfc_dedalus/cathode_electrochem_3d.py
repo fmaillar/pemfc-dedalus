@@ -259,6 +259,11 @@ def run(
     logger.info("grid=%dx%dx%d", nx, ny, nz)
     logger.info("open cathode: c_O2,air = %.6g mol/m^3", params.oxygen_inlet_concentration)
     logger.info(
+        "temperatures: inlet air=%.2f C, stack/MEA=%.2f C",
+        params.oxidant_inlet_temperature - 273.15,
+        params.stack_temperature - 273.15,
+    )
+    logger.info(
         "target stack: %d cells, %.0f W nominal, I=%.2f A, Topt=%.2f C",
         params.stack.n_cells,
         params.stack.rated_power_w,
