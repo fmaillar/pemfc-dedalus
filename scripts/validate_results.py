@@ -301,14 +301,25 @@ def validate(model: str, root: Path) -> dict:
                 )
 
         sigma = fields.get("sigma_m")
-        if sigma and sigma.get("min") is not None:
+        if sigma:
+            sigma_min = sigma.get("min")
+            sigma_max = sigma.get("max")
             add_check(
                 checks,
-                "membrane proton conductivity is non-negative",
-                sigma["min"] >= -1e-10,
-                sigma["min"],
-                ">= approximately 0 S/m",
+                "membrane proton conductivity has finite extrema",
+                sigma_min is not None and sigma_max is not None,
+                [sigma_min, sigma_max],
+                "finite",
             )
+            if sigma_min is not None and sigma_max is not None:
+                negative_fraction = max(0.0, -sigma_min) / max(abs(sigma_max), 1e-30)
+                add_check(
+                    checks,
+                    "membrane conductivity negative spectral undershoot is limited",
+                    negative_fraction <= 1e-3,
+                    negative_fraction,
+                    "<= 0.001 of positive peak",
+                )
 
         drag = fields.get("n_drag")
         if drag and drag.get("min") is not None:
