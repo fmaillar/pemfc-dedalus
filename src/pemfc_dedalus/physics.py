@@ -43,8 +43,7 @@ def butler_volmer_orr_current_density(
             - np.exp(p.beta_anodic * eta)
         )
     )
-    eps = 1e-6 * p.j0_vol
-    return 0.5 * (net + np.sqrt(net**2 + eps**2))
+    return 0.5 * (net + np.abs(net))
 
 
 def oxygen_consumption_from_current(
