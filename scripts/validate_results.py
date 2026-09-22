@@ -42,6 +42,13 @@ def finite_stats(data) -> dict:
     result = {
         "size": int(flat.size),
         "finite_fraction": float(finite.mean()) if flat.size else 0.0,
+        "min": None,
+        "max": None,
+        "mean": None,
+        "std": None,
+        "p01": None,
+        "p50": None,
+        "p99": None,
     }
     if finite.any():
         f = flat[finite]
@@ -50,7 +57,7 @@ def finite_stats(data) -> dict:
                 "min": float(np.min(f)),
                 "max": float(np.max(f)),
                 "mean": float(np.mean(f)),
-                "std": float(np.std(f)),
+                "std": float(np.std(f, dtype=np.float64)) if np.max(np.abs(f)) < 1e150 else None,
                 "p01": float(np.percentile(f, 1)),
                 "p50": float(np.percentile(f, 50)),
                 "p99": float(np.percentile(f, 99)),
@@ -130,20 +137,30 @@ def validate(model: str, root: Path) -> dict:
 
     c = fields.get("c_o2")
     if c:
+        c_min = c.get("min")
+        c_max = c.get("max")
         add_check(
             checks,
-            "oxygen concentration non-negative",
-            c["min"] >= -1e-8 * p.oxygen_inlet_concentration,
-            c["min"],
-            ">= approximately 0",
+            "oxygen concentration has finite extrema",
+            c_min is not None and c_max is not None,
+            [c_min, c_max],
+            "finite",
         )
-        add_check(
-            checks,
-            "oxygen concentration not above open-air boundary by >5%",
-            c["max"] <= 1.05 * p.oxygen_inlet_concentration,
-            c["max"],
-            1.05 * p.oxygen_inlet_concentration,
-        )
+        if c_min is not None and c_max is not None:
+            add_check(
+                checks,
+                "oxygen concentration non-negative",
+                c_min >= -1e-8 * p.oxygen_inlet_concentration,
+                c_min,
+                ">= approximately 0",
+            )
+            add_check(
+                checks,
+                "oxygen concentration not above open-air boundary by >5%",
+                c_max <= 1.05 * p.oxygen_inlet_concentration,
+                c_max,
+                1.05 * p.oxygen_inlet_concentration,
+            )
 
     if model == "v02":
         required = ("phi_s", "phi_m", "eta", "j_orr")
@@ -152,50 +169,87 @@ def validate(model: str, root: Path) -> dict:
 
         j = fields.get("j_orr")
         if j:
-            scale = max(abs(j.get("max", 0.0)), 1.0)
+            j_min = j.get("min")
+            j_max = j.get("max")
             add_check(
                 checks,
-                "ORR current is non-negative",
-                j["min"] >= -1e-10 * scale,
-                j["min"],
-                ">= 0 within numerical tolerance",
+                "ORR current has finite extrema",
+                j_min is not None and j_max is not None,
+                [j_min, j_max],
+                "finite",
             )
-            add_check(
-                checks,
-                "ORR current is active",
-                j["max"] > 0.0,
-                j["max"],
-                "> 0",
-            )
+            if j_min is not None and j_max is not None:
+                scale = max(abs(j_max), 1.0)
+                add_check(
+                    checks,
+                    "ORR current is non-negative",
+                    j_min >= -1e-10 * scale,
+                    j_min,
+                    ">= 0 within numerical tolerance",
+                )
+                add_check(
+                    checks,
+                    "ORR current is active",
+                    j_max > 0.0,
+                    j_max,
+                    "> 0",
+                )
 
         eta = fields.get("eta")
         if eta:
+            eta_mean = eta.get("mean")
             add_check(
                 checks,
-                "mean cathode overpotential is cathodic",
-                eta["mean"] < 0.0,
-                eta["mean"],
-                "< 0 V",
+                "mean cathode overpotential is finite",
+                eta_mean is not None,
+                eta_mean,
+                "finite",
             )
+            if eta_mean is not None:
+                add_check(
+                    checks,
+                    "mean cathode overpotential is cathodic",
+                    eta_mean < 0.0,
+                    eta_mean,
+                    "< 0 V",
+                )
 
         phi_s = fields.get("phi_s")
         phi_m = fields.get("phi_m")
         if phi_s:
+            ps_min, ps_max = phi_s.get("min"), phi_s.get("max")
             add_check(
                 checks,
-                "solid potential remains in broad physical range",
-                -0.5 <= phi_s["min"] and phi_s["max"] <= 2.0,
-                [phi_s["min"], phi_s["max"]],
-                "[-0.5, 2.0] V",
+                "solid potential has finite extrema",
+                ps_min is not None and ps_max is not None,
+                [ps_min, ps_max],
+                "finite",
             )
+            if ps_min is not None and ps_max is not None:
+                add_check(
+                    checks,
+                    "solid potential remains in broad physical range",
+                    -0.5 <= ps_min and ps_max <= 2.0,
+                    [ps_min, ps_max],
+                    "[-0.5, 2.0] V",
+                )
         if phi_m:
+            pm_min, pm_max = phi_m.get("min"), phi_m.get("max")
             add_check(
                 checks,
-                "protonic potential remains in broad physical range",
-                -1.0 <= phi_m["min"] and phi_m["max"] <= 1.0,
-                [phi_m["min"], phi_m["max"]],
-                "[-1.0, 1.0] V",
+                "protonic potential has finite extrema",
+                pm_min is not None and pm_max is not None,
+                [pm_min, pm_max],
+                "finite",
             )
+            if pm_min is not None and pm_max is not None:
+                add_check(
+                    checks,
+                    "protonic potential remains in broad physical range",
+                    -1.0 <= pm_min and pm_max <= 1.0,
+                    [pm_min, pm_max],
+                    "[-1.0, 1.0] V",
+                )
 
         total = scalars.get("total_reaction_current")
         if total and "last" in total:
