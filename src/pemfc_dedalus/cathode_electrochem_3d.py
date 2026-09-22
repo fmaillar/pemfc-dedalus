@@ -155,14 +155,22 @@ def build_solver(
     anodic_arg_raw = beta_a * eta
     cathodic_arg = bv_exp_limit * np.tanh(cathodic_arg_raw / bv_exp_limit)
     anodic_arg = bv_exp_limit * np.tanh(anodic_arg_raw / bv_exp_limit)
-    j_orr = (
-        chi_cl
-        * j0_vol
+    j_bv_net = (
+        j0_vol
         * oxygen_activity**gamma_o2
         * (
             np.exp(cathodic_arg)
             - np.exp(anodic_arg)
         )
+    )
+
+    # This cathode model represents oxygen reduction only. A transient local
+    # positive eta can make the reversible Butler-Volmer expression negative,
+    # which would imply oxygen generation. Project the net current smoothly
+    # onto its positive (ORR) branch.
+    j_positive_eps = 1e-6 * j0_vol
+    j_orr = chi_cl * 0.5 * (
+        j_bv_net + np.sqrt(j_bv_net**2 + j_positive_eps**2)
     )
     s_o2 = j_orr / (4.0 * F)
 
