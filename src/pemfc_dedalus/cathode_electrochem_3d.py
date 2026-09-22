@@ -121,7 +121,8 @@ def build_solver(
     div = d3.div
 
     lift_basis = zbasis.derivative_basis(1)
-    lift = lambda A, n: d3.Lift(A, lift_basis, n)
+    def lift(A, n):
+        return d3.Lift(A, lift_basis, n)
     ez = coords.unit_vector_fields(dist)[2]
 
     grad_c = grad(c) + ez * lift(tau_c1, -1)
