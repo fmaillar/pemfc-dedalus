@@ -8,7 +8,7 @@ import hashlib
 import json
 import platform
 import subprocess
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import h5py
@@ -263,7 +263,7 @@ def validate(model: str, root: Path) -> dict:
 
     return {
         "schema_version": 1,
-        "generated_utc": datetime.now(timezone.utc).isoformat(),
+        "generated_utc": datetime.now(UTC).isoformat(),
         "model": model,
         "git_commit": git_commit(),
         "host": {
