@@ -1,10 +1,12 @@
-"""3D open-cathode PEMFC cathode electrochemistry validation model.
+"""3D open-cathode PEMFC cathode with hydration-dependent ionomer transport.
 
-V0.2 couples:
+V0.4 couples:
   * O2 diffusion in cathode GDL + catalyst layer,
   * electronic conduction,
   * protonic conduction in the catalyst layer,
-  * concentration-dependent Butler-Volmer ORR kinetics.
+  * concentration-dependent Butler-Volmer ORR kinetics,
+  * cathode ionomer hydration from the validated V0.3 membrane relation,
+  * hydration- and temperature-dependent proton conductivity.
 
 The cathode is treated as open to an external air stream.  The air-feed
 boundary supplies oxygen; forced-air momentum and heat transfer are added in a
@@ -26,6 +28,7 @@ from pathlib import Path
 import dedalus.public as d3
 import numpy as np
 
+from .membrane import membrane_proton_conductivity, membrane_water_content_from_activity
 from .parameters import CathodeParameters
 
 logger = logging.getLogger(__name__)
@@ -95,10 +98,21 @@ def build_solver(
         + params.sigma_s_cl * chi_cl["g"]
     )
 
+    lambda_cl_value = membrane_water_content_from_activity(
+        params.relative_humidity
+    ).item()
+    sigma_m_cl_hydrated = membrane_proton_conductivity(
+        lambda_cl_value,
+        params.stack_temperature,
+    ).item()
+
+    lambda_cl = dist.Field(name="lambda_cl", bases=zbasis)
+    lambda_cl["g"] = lambda_cl_value * chi_cl["g"]
+
     sigma_m = dist.Field(name="sigma_m", bases=zbasis)
     sigma_m["g"] = (
         params.sigma_m_floor * (1.0 - chi_cl["g"])
-        + params.sigma_m_cl * chi_cl["g"]
+        + sigma_m_cl_hydrated * chi_cl["g"]
     )
 
     # Open-cathode air-feed boundary.  The smooth x/y modulation represents
@@ -238,6 +252,8 @@ def build_solver(
     snapshots.add_task(eta, name="eta")
     snapshots.add_task(j_orr, name="j_orr")
     snapshots.add_task(chi_cl, name="chi_cl")
+    snapshots.add_task(lambda_cl, name="lambda_cl")
+    snapshots.add_task(sigma_m, name="sigma_m")
 
     scalar_write_dt = scalar_dt if scalar_dt is not None else max(stop_time / 50.0, 1e-7)
     scalars = solver.evaluator.add_file_handler(
@@ -260,10 +276,17 @@ def run(
     nz: int = 48,
     stop_time: float = 2.0e-3,
     max_dt: float = 2.0e-6,
-    output_dir: str | Path = "output-electrochem",
+    output_dir: str | Path = "output-hydrated",
     scalar_dt: float | None = None,
 ) -> None:
     params = CathodeParameters()
+    lambda_cl_value = membrane_water_content_from_activity(
+        params.relative_humidity
+    ).item()
+    sigma_m_cl_hydrated = membrane_proton_conductivity(
+        lambda_cl_value,
+        params.stack_temperature,
+    ).item()
     solver = build_solver(
         params,
         nx=nx,
@@ -274,7 +297,7 @@ def run(
         scalar_dt=scalar_dt,
     )
 
-    logger.info("Starting V0.2 3D open-cathode electrochemistry model")
+    logger.info("Starting V0.4 hydrated 3D open-cathode electrochemistry model")
     logger.info("grid=%dx%dx%d", nx, ny, nz)
     logger.info("open cathode: c_O2,air = %.6g mol/m^3", params.oxygen_inlet_concentration)
     logger.info(
@@ -299,6 +322,12 @@ def run(
         "electrical BCs: phi_s(air/GDL)=%.3f V, phi_m(membrane)=%.3f V",
         params.cathode_solid_potential,
         params.membrane_proton_potential,
+    )
+    logger.info(
+        "hydrated CL: lambda=%.4f, sigma_m=%.6g S/m at RH=%.1f%%",
+        lambda_cl_value,
+        sigma_m_cl_hydrated,
+        100.0 * params.relative_humidity,
     )
 
     try:
@@ -332,7 +361,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--nz", type=int, default=48)
     parser.add_argument("--stop-time", type=float, default=2.0e-3)
     parser.add_argument("--max-dt", type=float, default=2.0e-6)
-    parser.add_argument("--output-dir", default="output-electrochem")
+    parser.add_argument("--output-dir", default="output-hydrated")
     parser.add_argument(
         "--scalar-dt",
         type=float,

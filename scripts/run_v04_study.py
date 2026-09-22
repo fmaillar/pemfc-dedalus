@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run V0.2 to pseudo-time convergence on successively refined grids."""
+"""Run V0.4 hydrated cathode to pseudo-time and grid convergence."""
 
 from __future__ import annotations
 
@@ -63,7 +63,7 @@ def run_and_validate(
     mpi_flags: list[str],
     mpi_n: int,
 ) -> dict[str, Any]:
-    """Run one V0.2 case and return its validation report."""
+    """Run one V0.4 case and return its validation report."""
     nx, ny, nz = grid
     output_dir = root / f"{nx}x{ny}x{nz}"
     report_path = output_dir / "report.json"
@@ -86,7 +86,7 @@ def run_and_validate(
             *mpi_flags,
             "-n",
             str(ranks),
-            "pemfc-cathode-electrochem-3d",
+            "pemfc-cathode-hydrated-3d",
             "--nx",
             str(nx),
             "--ny",
@@ -105,14 +105,14 @@ def run_and_validate(
         env=env,
     )
     if rc != 0:
-        raise RuntimeError(f"V0.2 solver failed for grid {nx}x{ny}x{nz}")
+        raise RuntimeError(f"V0.4 solver failed for grid {nx}x{ny}x{nz}")
 
     rc = run_command(
         [
             sys.executable,
             "scripts/validate_results.py",
             "--model",
-            "v02",
+            "v04",
             "--input",
             str(output_dir),
             "--output",
@@ -225,8 +225,14 @@ def main() -> None:
         default=1e-5,
         help="fixed scalar sampling interval used by the convergence criterion",
     )
-    parser.add_argument("--work-dir", type=Path, default=Path(".study-output/v02"))
-    parser.add_argument("--output", type=Path, default=Path("results/v02-study.json"))
+    parser.add_argument("--work-dir", type=Path, default=Path(".study-output/v04"))
+    parser.add_argument("--output", type=Path, default=Path("results/v04-study.json"))
+    parser.add_argument(
+        "--reference-v02",
+        type=Path,
+        default=Path("results/v02-study.json"),
+        help="V0.2 study JSON used for the optional finest-grid comparison",
+    )
     parser.add_argument("--mpiexec", default=os.environ.get("MPIEXEC", "mpiexec"))
     parser.add_argument(
         "--mpi-flags",
@@ -237,7 +243,7 @@ def main() -> None:
         "--mpi-n",
         type=int,
         default=int(os.environ.get("MPI_N", "8")),
-        help="maximum number of MPI ranks for each Dedalus run",
+        help="number of MPI ranks for each Dedalus run",
     )
     args = parser.parse_args()
 
@@ -277,6 +283,23 @@ def main() -> None:
         time_tolerance=args.time_tol,
         grid_tolerance=args.grid_tol,
     )
+
+    v02_path = args.reference_v02
+    if v02_path.exists():
+        v02 = json.loads(v02_path.read_text())
+        v02_finest = v02["cases"][-1]["final_scalars"]
+        v04_finest = cases[-1]["final_scalars"]
+        study["comparison_to_v02_finest"] = {
+            name: {
+                "v02": float(v02_finest[name]),
+                "v04": float(v04_finest[name]),
+                "relative_change": (
+                    float(v04_finest[name]) - float(v02_finest[name])
+                ) / max(abs(float(v02_finest[name])), 1e-30),
+            }
+            for name in DEFAULT_SCALARS
+        }
+
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(study, indent=2, sort_keys=True) + "\n")
     print(f"Wrote {args.output}")
