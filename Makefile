@@ -5,13 +5,16 @@ MPI_N ?= 8
 OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 
-.PHONY: help install test unit smoke smoke-v01 smoke-v02 \
+.PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 \
         validate-results validate-v01 validate-v02 results push-results clean-results
 
 help:
 	@printf '%s\n' \
 	  'make install          install editable package and test dependencies' \
-	  'make test             run fast unit tests' \
+	  'make test             run unit tests, Ruff and mypy' \
+	  'make unit             run pytest only' \
+	  'make lint             run Ruff checks' \
+	  'make typecheck        run mypy' \
 	  'make smoke            run tiny Dedalus V0.1 and V0.2 smoke tests' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
@@ -20,8 +23,16 @@ help:
 install:
 	$(PYTHON) -m pip install -e '.[test]'
 
-test unit:
+test check: unit lint typecheck
+
+unit:
 	$(PYTHON) -m pytest -q
+
+lint:
+	$(PYTHON) -m ruff check src tests scripts
+
+typecheck:
+	$(PYTHON) -m mypy src tests scripts
 
 smoke: smoke-v01 smoke-v02
 
