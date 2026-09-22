@@ -39,6 +39,19 @@ def run_command(args: list[str], *, env: dict[str, str]) -> int:
     return subprocess.run(args, env=env, check=False).returncode
 
 
+def mpi_ranks_for_grid(grid: tuple[int, int, int], max_ranks: int) -> int:
+    """Choose a practical MPI rank count for the grid, capped by max_ranks."""
+    nx, ny, _ = grid
+    transverse_modes = nx * ny
+    if transverse_modes <= 64:
+        desired = 2
+    elif transverse_modes <= 144:
+        desired = 4
+    else:
+        desired = 8
+    return min(desired, max_ranks)
+
+
 def run_and_validate(
     *,
     grid: tuple[int, int, int],
@@ -61,12 +74,18 @@ def run_and_validate(
     env.setdefault("OMP_NUM_THREADS", "1")
     env.setdefault("NUMEXPR_NUM_THREADS", "1")
 
+    ranks = mpi_ranks_for_grid(grid, mpi_n)
+    print(
+        f"grid {nx}x{ny}x{nz}: using {ranks} MPI ranks "
+        f"(configured maximum {mpi_n})"
+    )
+
     rc = run_command(
         [
             mpiexec,
             *mpi_flags,
             "-n",
-            str(mpi_n),
+            str(ranks),
             "pemfc-cathode-hydrated-3d",
             "--nx",
             str(nx),
@@ -243,6 +262,7 @@ def main() -> None:
         cases.append(
             {
                 "grid": list(grid),
+                "mpi_ranks": mpi_ranks_for_grid(grid, args.mpi_n),
                 "converged_stop_time": stop_time,
                 "time_convergence_history": history,
                 "final_scalars": {
