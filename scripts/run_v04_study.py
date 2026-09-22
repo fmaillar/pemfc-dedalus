@@ -227,6 +227,12 @@ def main() -> None:
     )
     parser.add_argument("--work-dir", type=Path, default=Path(".study-output/v04"))
     parser.add_argument("--output", type=Path, default=Path("results/v04-study.json"))
+    parser.add_argument(
+        "--reference-v02",
+        type=Path,
+        default=Path("results/v02-study.json"),
+        help="V0.2 study JSON used for the optional finest-grid comparison",
+    )
     parser.add_argument("--mpiexec", default=os.environ.get("MPIEXEC", "mpiexec"))
     parser.add_argument(
         "--mpi-flags",
