@@ -62,19 +62,16 @@ def build_solver(
 
     c = dist.Field(name="c_o2", bases=bases)
 
-    # Tau fields for the second-order z operator and its two boundary conditions.
     tau1 = dist.Field(name="tau1", bases=(xbasis, ybasis))
     tau2 = dist.Field(name="tau2", bases=(xbasis, ybasis))
 
     x, y, z = dist.local_grids(xbasis, ybasis, zbasis)
 
-    # Smooth CL indicator.  chi_cl ~= 0 in GDL and ~= 1 in CL.
     z_interface = params.gdl_thickness
     chi_cl = dist.Field(name="chi_cl", bases=zbasis)
     z1 = dist.local_grid(zbasis)
     chi_cl["g"] = 0.5 * (
-        1.0
-        + np.tanh((z1 - z_interface) / params.interface_width)
+        1.0 + np.tanh((z1 - z_interface) / params.interface_width)
     )
 
     porosity = dist.Field(name="porosity", bases=zbasis)
@@ -89,20 +86,16 @@ def build_solver(
         + params.d_o2_cl * chi_cl["g"]
     )
 
-    # Gently modulated gas-side O2 concentration:
-    # high under the channel, lower under the rib.  The sinusoid is deliberately
-    # smooth because Fourier bases are being used in y.
     c_in = params.oxygen_inlet_concentration
     inlet = dist.Field(name="c_inlet", bases=(xbasis, ybasis))
     x2, y2 = dist.local_grids(xbasis, ybasis)
     inlet["g"] = c_in * (
         0.90
-        + 0.10 * np.cos(2.0 * np.pi * y2 / params.length_y)
+        + 0.10
+        * np.cos(2.0 * np.pi * y2 / params.length_y)
         * (0.95 + 0.05 * np.cos(2.0 * np.pi * x2 / params.length_x))
     )
 
-    # Initial state: inlet concentration everywhere, with a tiny smooth 3D
-    # perturbation so that transverse diffusion is exercised immediately.
     c["g"] = c_in * (
         1.0
         + 1e-3
@@ -114,27 +107,21 @@ def build_solver(
     grad = d3.grad
     div = d3.div
 
-    # Lift tau terms into the highest z modes.
     lift_basis = zbasis.derivative_basis(1)
     lift = lambda A, n: d3.Lift(A, lift_basis, n)
     ez = coords.unit_vector_fields(dist)[2]
 
     grad_c = grad(c) + ez * lift(tau1, -1)
 
-    problem = d3.IVP([c, tau1, tau2], namespace=locals())
-
-    # Variable-coefficient diffusion is kept on the RHS.  A constant reference
-    # diffusion term is implicit on the LHS for stability.
     d_ref = min(params.d_o2_gdl, params.d_o2_cl)
+    k_reaction = params.k_reaction
+
+    problem = d3.IVP([c, tau1, tau2], namespace=locals())
     problem.add_equation(
         "porosity*dt(c) - d_ref*div(grad_c) + lift(tau2, -1) "
         "= div((diffusivity-d_ref)*grad_c) - k_reaction*chi_cl*c"
     )
-
-    # z=0: imposed gas-side oxygen concentration.
     problem.add_equation("c(z=0) = inlet")
-
-    # z=Lz: no O2 flux through the membrane.
     problem.add_equation("ez @ grad_c(z=Lz) = 0")
 
     solver = problem.build_solver(d3.SBDF2)
@@ -157,7 +144,10 @@ def build_solver(
         max_writes=100,
     )
     scalars.add_task(d3.Average(c), name="mean_c_o2")
-    scalars.add_task(d3.Integrate(params.k_reaction * chi_cl * c), name="o2_sink_integral")
+    scalars.add_task(
+        d3.Integrate(k_reaction * chi_cl * c),
+        name="o2_sink_integral",
+    )
 
     return solver
 
