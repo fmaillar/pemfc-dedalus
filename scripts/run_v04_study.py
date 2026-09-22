@@ -284,7 +284,7 @@ def main() -> None:
         grid_tolerance=args.grid_tol,
     )
 
-    v02_path = Path("results/v02-study.json")
+    v02_path = args.reference_v02
     if v02_path.exists():
         v02 = json.loads(v02_path.read_text())
         v02_finest = v02["cases"][-1]["final_scalars"]
