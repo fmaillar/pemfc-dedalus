@@ -144,16 +144,27 @@ def build_solver(
     phi_m_bc = params.membrane_proton_potential
     Lz = params.thickness_z
 
-    # eta < 0 for cathodic operation.  j_or r is defined positive for ORR.
+    # eta < 0 for cathodic operation. j_orr is defined positive for ORR.
+    #
+    # During pseudo-transient continuation, the potential fields can briefly
+    # overshoot. Raw Butler-Volmer exponentials can then overflow long before
+    # the physical steady state is reached. We therefore use a smooth limiter
+    # on the exponent arguments. It is effectively identity in the physical
+    # operating range, but asymptotes before floating-point overflow.
     eta = phi_s - phi_m - E_eq
     oxygen_activity = c / c_ref
+    bv_exp_limit = 40.0
+    cathodic_arg_raw = -beta_c * eta
+    anodic_arg_raw = beta_a * eta
+    cathodic_arg = bv_exp_limit * np.tanh(cathodic_arg_raw / bv_exp_limit)
+    anodic_arg = bv_exp_limit * np.tanh(anodic_arg_raw / bv_exp_limit)
     j_orr = (
         chi_cl
         * j0_vol
         * oxygen_activity**gamma_o2
         * (
-            np.exp(-beta_c * eta)
-            - np.exp(beta_a * eta)
+            np.exp(cathodic_arg)
+            - np.exp(anodic_arg)
         )
     )
     s_o2 = j_orr / (4.0 * F)
@@ -291,7 +302,19 @@ def run(
         logger.exception("Simulation failed")
         raise
     finally:
-        solver.log_stats()
+        # Dedalus' log_stats() expects the warmup timing markers to exist.
+        # Very short smoke tests (<~10 iterations) can finish before those
+        # markers are created, so avoid turning a successful smoke run into an
+        # AttributeError.
+        if hasattr(solver, "warmup_time_end") and hasattr(solver, "warmup_time_start"):
+            solver.log_stats()
+        else:
+            logger.info(
+                "Simulation finished before Dedalus warmup statistics were available "
+                "(iterations=%d, t=%.6e)",
+                solver.iteration,
+                solver.sim_time,
+            )
 
 
 def _parser() -> argparse.ArgumentParser:
