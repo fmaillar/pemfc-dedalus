@@ -1,0 +1,137 @@
+{
+  "checks": [
+    {
+      "limit": 1.0,
+      "name": "c_o2: all values finite",
+      "pass": true,
+      "value": 1.0
+    },
+    {
+      "limit": 1.0,
+      "name": "chi_cl: all values finite",
+      "pass": true,
+      "value": 1.0
+    },
+    {
+      "limit": 1.0,
+      "name": "d_eff: all values finite",
+      "pass": true,
+      "value": 1.0
+    },
+    {
+      "limit": "finite",
+      "name": "oxygen concentration has finite extrema",
+      "pass": true,
+      "value": [
+        6.6318796598061045,
+        8.238084201044929
+      ]
+    },
+    {
+      "limit": ">= approximately 0",
+      "name": "oxygen concentration non-negative",
+      "pass": true,
+      "value": 6.6318796598061045
+    },
+    {
+      "limit": 8.565747247663799,
+      "name": "oxygen concentration not above open-air boundary by >5%",
+      "pass": true,
+      "value": 8.238084201044929
+    }
+  ],
+  "fields_last_write": {
+    "c_o2": {
+      "finite_fraction": 1.0,
+      "max": 8.238084201044929,
+      "mean": 7.944909465020147,
+      "min": 6.6318796598061045,
+      "p01": 6.882497152454534,
+      "p50": 8.044393248433515,
+      "p99": 8.2218336483751,
+      "size": 1536,
+      "std": 0.2774442304684113
+    },
+    "chi_cl": {
+      "finite_fraction": 1.0,
+      "max": 0.9999922904718566,
+      "mean": 0.15605788163007125,
+      "min": -1.2067170179763664e-16,
+      "p01": -1.1623297810348098e-16,
+      "p50": 7.869335773664436e-17,
+      "p99": 0.9999832311969996,
+      "size": 24,
+      "std": 0.35154442978661965
+    },
+    "d_eff": {
+      "finite_fraction": 1.0,
+      "max": 1.1713240371477057e-05,
+      "mean": 1.0531572507034028e-05,
+      "min": 4.141314224597515e-06,
+      "p01": 4.141382821286523e-06,
+      "p50": 1.1713240371477054e-05,
+      "p99": 1.1713240371477057e-05,
+      "size": 24,
+      "std": 2.661888981599183e-06
+    }
+  },
+  "generated_utc": "2026-09-22T16:58:20.851763+00:00",
+  "git_commit": "4482a7e731bb4fe310e1a09ea9b26066a255e933",
+  "host": {
+    "hostname": "m710s",
+    "platform": "Linux-6.12.107+deb13-amd64-x86_64-with-glibc2.41",
+    "python": "3.13.5"
+  },
+  "input": {
+    "root": ".test-output/v01",
+    "scalars": ".test-output/v01/scalars/scalars_s1.h5",
+    "scalars_sha256": "bcccbe652cbdb6eff1beb4c33be9e1b180819220bff61db79dc277ef1a080e4e",
+    "snapshots": ".test-output/v01/snapshots/snapshots_s1.h5",
+    "snapshots_sha256": "479d847367515fb1ee0740ef27287f1c298861e311332da673d1569a88a008f1"
+  },
+  "model": "v01",
+  "pass": true,
+  "scalar_series": {
+    "final_sim_time": 0.00015000000000000001,
+    "mean_c_o2": {
+      "finite_fraction": 1.0,
+      "first": 8.157854521584568,
+      "last": 7.966648294685547,
+      "max": 8.157854521584568,
+      "mean": 8.037889554518646,
+      "min": 7.946726951875226,
+      "p01": 7.947324592159536,
+      "p50": 8.023488372307394,
+      "p99": 8.155528739434908,
+      "relative_last_step_change": 0.0025005927302716277,
+      "size": 4,
+      "std": 0.08599213683548096
+    },
+    "o2_sink_integral": {
+      "finite_fraction": 1.0,
+      "first": 5.1336382687887844e-08,
+      "last": 5.02486191033636e-08,
+      "max": 5.1336382687887844e-08,
+      "mean": 5.080313957488055e-08,
+      "min": 5.02486191033636e-08,
+      "p01": 5.0264311619872345e-08,
+      "p50": 5.081377825413538e-08,
+      "p99": 5.132196681288968e-08,
+      "relative_last_step_change": 0.012084599114448457,
+      "size": 4,
+      "std": 3.858782807131824e-10
+    },
+    "sim_time": {
+      "finite_fraction": 1.0,
+      "max": 0.00015000000000000001,
+      "mean": 7.500000000000001e-05,
+      "min": 0.0,
+      "p01": 1.5e-06,
+      "p50": 7.500000000000001e-05,
+      "p99": 0.0001485,
+      "size": 4,
+      "std": 5.590169943749475e-05
+    }
+  },
+  "schema_version": 1
+}
