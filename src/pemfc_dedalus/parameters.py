@@ -30,8 +30,11 @@ class CathodeParameters:
     cl_thickness: float = 12e-6
 
     # Open-cathode ambient / gas state.
-    # Near-atmospheric cathode pressure is specified by the manual.
-    temperature: float = 333.15
+    # The oxidant inlet temperature is distinct from the stack/MEA temperature.
+    # At the provisional 26.04 A nominal point, the manual fit gives
+    # Topt = 26.01 + 0.53 I = 39.8112 degC.
+    stack_temperature: float = 312.9612
+    oxidant_inlet_temperature: float = 293.15
     pressure: float = 101325.0
     oxygen_mole_fraction: float = 0.2095
     relative_humidity: float = 0.50
@@ -78,7 +81,7 @@ class CathodeParameters:
     @property
     def oxygen_inlet_concentration(self) -> float:
         return self.oxygen_mole_fraction * self.pressure / (
-            self.gas_constant * self.temperature
+            self.gas_constant * self.stack_temperature
         )
 
     @property
@@ -92,13 +95,13 @@ class CathodeParameters:
     @property
     def beta_anodic(self) -> float:
         return self.alpha_anodic * self.faraday / (
-            self.gas_constant * self.temperature
+            self.gas_constant * self.stack_temperature
         )
 
     @property
     def beta_cathodic(self) -> float:
         return self.alpha_cathodic * self.faraday / (
-            self.gas_constant * self.temperature
+            self.gas_constant * self.stack_temperature
         )
 
     @property
