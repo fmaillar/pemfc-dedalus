@@ -165,8 +165,8 @@ def validate(model: str, root: Path) -> dict:
             )
 
     if model == "v02":
-        required = ("phi_s", "phi_m", "eta", "j_orr")
-        for name in required:
+        required_v02 = ("phi_s", "phi_m", "eta", "j_orr")
+        for name in required_v02:
             add_check(checks, f"required field {name} present", name in fields)
 
         j = fields.get("j_orr")
@@ -269,8 +269,8 @@ def validate(model: str, root: Path) -> dict:
             )
 
     if model == "v03":
-        required = ("lambda", "sigma_m", "n_drag")
-        for name in required:
+        required_v03 = ("lambda", "sigma_m", "n_drag")
+        for name in required_v03:
             add_check(checks, f"required field {name} present", name in fields)
 
         lam = fields.get("lambda")
