@@ -74,6 +74,15 @@ class CathodeParameters:
 
     interface_width: float = 2.0e-6
 
+    # V0.3 hydrated-membrane validation assumptions.
+    # Internal membrane data are not disclosed by the stack manual.
+    membrane_thickness: float = 50e-6
+    membrane_dry_density: float = 2000.0
+    membrane_equivalent_weight: float = 1.10
+    membrane_water_diffusivity: float = 2.0e-10
+    anode_relative_humidity: float = 0.0
+    membrane_current_density: float = 2.15e3
+
     @property
     def thickness_z(self) -> float:
         return self.gdl_thickness + self.cl_thickness
