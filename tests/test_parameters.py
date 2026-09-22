@@ -12,10 +12,22 @@ def test_geometry_and_effective_diffusivity():
 def test_open_cathode_operating_parameters_are_physical():
     p = CathodeParameters()
 
+    assert p.stack.n_cells == 10
+    assert p.stack.rated_power_w == 200.0
     assert 0.0 < p.oxygen_mole_fraction < 1.0
-    assert p.temperature > 273.15
-    assert p.pressure > 0.0
+    assert p.pressure == 101325.0
+    assert 0.0 <= p.relative_humidity <= 1.0
+    assert p.tech.oxidant_temp_min_c <= p.temperature - 273.15 <= p.tech.oxidant_temp_max_c
     assert 0.0 < p.porosity_cl < p.porosity_gdl < 1.0
+
+
+def test_manual_derived_operating_targets():
+    p = CathodeParameters()
+
+    assert p.target_stack_temperature_c > 0.0
+    assert p.target_air_flow_slpm > p.stack.stoichiometric_air_slpm(p.stack_current_a)
+    assert p.purge_period_s == p.tech.purge_interval_as / p.stack_current_a
+    assert p.purge_volume_m3 == p.stack.n_cells * p.tech.purge_volume_per_cell_m3
 
 
 def test_electrochemistry_parameters_are_positive():
