@@ -259,6 +259,19 @@ def run(
     logger.info("grid=%dx%dx%d", nx, ny, nz)
     logger.info("open cathode: c_O2,air = %.6g mol/m^3", params.oxygen_inlet_concentration)
     logger.info(
+        "target stack: %d cells, %.0f W nominal, I=%.2f A, Topt=%.2f C",
+        params.stack.n_cells,
+        params.stack.rated_power_w,
+        params.stack_current_a,
+        params.target_stack_temperature_c,
+    )
+    logger.info(
+        "manual-derived air target floor=%.1f slpm, purge period=%.1f s, purge volume=%.0f mL",
+        params.target_air_flow_slpm,
+        params.purge_period_s,
+        params.purge_volume_m3 * 1e6,
+    )
+    logger.info(
         "electrical BCs: phi_s(air/GDL)=%.3f V, phi_m(membrane)=%.3f V",
         params.cathode_solid_potential,
         params.membrane_proton_potential,
