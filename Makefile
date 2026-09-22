@@ -6,6 +6,7 @@ OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
+        quick-study-v02 quick-study-v04 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -20,6 +21,8 @@ help:
 	  'make study-v02        run V0.2 time/grid convergence study' \
 	  'make study-v03        run V0.3 membrane time/grid convergence study' \
 	  'make study-v04        run V0.4 hydrated cathode convergence study' \
+	  'make quick-study-v02  run short V0.2 MPI pipeline check' \
+	  'make quick-study-v04  run short V0.4 MPI/comparison pipeline check' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -79,6 +82,15 @@ study-v02:
 	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
 	  $(PYTHON) scripts/run_v02_study.py
 
+quick-study-v02:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
+	  $(PYTHON) scripts/run_v02_study.py \
+	  --grid 8x8x24 --initial-stop-time 0.0002 --max-stop-time 0.0002 \
+	  --time-tol 1 --grid-tol 1 \
+	  --work-dir .quick-study-output/v02 \
+	  --output results/quick-v02-study.json
+
 study-v03:
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
 	  $(PYTHON) scripts/run_v03_study.py
@@ -87,6 +99,15 @@ study-v04:
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
 	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
 	  $(PYTHON) scripts/run_v04_study.py
+
+quick-study-v04:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
+	  $(PYTHON) scripts/run_v04_study.py \
+	  --grid 8x8x24 --initial-stop-time 0.0002 --max-stop-time 0.0002 \
+	  --time-tol 1 --grid-tol 1 \
+	  --work-dir .quick-study-output/v04 \
+	  --output results/quick-v04-study.json
 
 validate-results: validate-v01 validate-v02 validate-v03
 
