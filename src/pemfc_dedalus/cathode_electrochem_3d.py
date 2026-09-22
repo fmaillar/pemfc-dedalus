@@ -166,12 +166,10 @@ def build_solver(
 
     # This cathode model represents oxygen reduction only. A transient local
     # positive eta can make the reversible Butler-Volmer expression negative,
-    # which would imply oxygen generation. Project the net current smoothly
-    # onto its positive (ORR) branch.
-    j_positive_eps = 1e-6 * j0_vol
-    j_orr = chi_cl * 0.5 * (
-        j_bv_net + np.sqrt(j_bv_net**2 + j_positive_eps**2)
-    )
+    # which would imply oxygen generation. Keep only the positive ORR branch.
+    # The source is explicit in this IVP, so the cusp at j_bv_net=0 does not
+    # enter a Newton linearisation.
+    j_orr = chi_cl * 0.5 * (j_bv_net + np.abs(j_bv_net))
     s_o2 = j_orr / (4.0 * F)
 
     problem = d3.IVP(
