@@ -31,6 +31,7 @@ def build_solver(
     nz: int,
     stop_time: float,
     output_dir: Path,
+    scalar_dt: float | None = None,
 ):
     coords = d3.CartesianCoordinates("z")
     dist = d3.Distributor(coords, dtype=np.float64)
@@ -103,9 +104,10 @@ def build_solver(
     snapshots.add_task(sigma_m, name="sigma_m")
     snapshots.add_task(n_drag, name="n_drag")
 
+    scalar_write_dt = scalar_dt if scalar_dt is not None else max(stop_time / 50.0, 1e-5)
     scalars = solver.evaluator.add_file_handler(
         str(output_dir / "scalars"),
-        sim_dt=max(stop_time / 50.0, 1e-5),
+        sim_dt=scalar_write_dt,
         max_writes=100,
     )
     scalars.add_task(d3.Average(lam), name="mean_lambda")
@@ -120,6 +122,7 @@ def run(
     stop_time: float = 0.2,
     max_dt: float = 1e-4,
     output_dir: str | Path = "output-membrane",
+    scalar_dt: float | None = None,
 ) -> None:
     params = CathodeParameters()
     solver, lambda_anode, lambda_cathode, drag_velocity = build_solver(
@@ -127,6 +130,7 @@ def run(
         nz=nz,
         stop_time=stop_time,
         output_dir=Path(output_dir),
+        scalar_dt=scalar_dt,
     )
 
     logger.info("Starting V0.3 hydrated-membrane validation model")
@@ -164,6 +168,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--stop-time", type=float, default=0.2)
     parser.add_argument("--max-dt", type=float, default=1e-4)
     parser.add_argument("--output-dir", default="output-membrane")
+    parser.add_argument(
+        "--scalar-dt",
+        type=float,
+        default=None,
+        help="fixed scalar output cadence; default scales with stop time",
+    )
     return parser
 
 
@@ -175,6 +185,7 @@ def main() -> None:
         stop_time=args.stop_time,
         max_dt=args.max_dt,
         output_dir=args.output_dir,
+        scalar_dt=args.scalar_dt,
     )
 
 
