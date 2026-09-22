@@ -6,7 +6,7 @@ OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 \
-        validate-results validate-v01 validate-v02 results push-results clean-results
+        study-v02 validate-results validate-v01 validate-v02 results push-results clean-results
 
 help:
 	@printf '%s\n' \
@@ -16,6 +16,7 @@ help:
 	  'make lint             run Ruff checks' \
 	  'make typecheck        run mypy' \
 	  'make smoke            run tiny Dedalus V0.1 and V0.2 smoke tests' \
+	  'make study-v02        run V0.2 time/grid convergence study' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -52,6 +53,10 @@ smoke-v02:
 	  --output-dir .test-output/v02
 	$(PYTHON) scripts/validate_results.py --model v02 \
 	  --input .test-output/v02 --output results/smoke-v02.json
+
+study-v02:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	  $(PYTHON) scripts/run_v02_study.py
 
 validate-results: validate-v01 validate-v02
 
