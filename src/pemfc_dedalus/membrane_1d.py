@@ -18,7 +18,6 @@ import numpy as np
 from .membrane import (
     electro_osmotic_lambda_velocity,
     membrane_fixed_charge_concentration,
-    membrane_proton_conductivity,
     membrane_water_content_from_activity,
 )
 from .parameters import CathodeParameters
@@ -51,15 +50,17 @@ def build_solver(
     def lift(field, n):
         return d3.Lift(field, lift_basis, n)
 
-    dz = lambda field: d3.Differentiate(field, coords["z"])
+    def dz(field):
+        return d3.Differentiate(field, coords["z"])
+
     grad_lam = dz(lam) + lift(tau1, -1)
 
-    lambda_anode = float(
-        membrane_water_content_from_activity(params.anode_relative_humidity)
-    )
-    lambda_cathode = float(
-        membrane_water_content_from_activity(params.relative_humidity)
-    )
+    lambda_anode = membrane_water_content_from_activity(
+        params.anode_relative_humidity
+    ).item()
+    lambda_cathode = membrane_water_content_from_activity(
+        params.relative_humidity
+    ).item()
     fixed_charge = membrane_fixed_charge_concentration(
         params.membrane_dry_density,
         params.membrane_equivalent_weight,
@@ -87,7 +88,10 @@ def build_solver(
     solver.stop_sim_time = stop_time
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    sigma_m = membrane_proton_conductivity(lam, params.stack_temperature)
+    conductivity_factor = np.exp(
+        1268.0 * (1.0 / 303.0 - 1.0 / params.stack_temperature)
+    )
+    sigma_m = 100.0 * (0.005139 * lam - 0.00326) * conductivity_factor
     n_drag = lam / 22.0
 
     snapshots = solver.evaluator.add_file_handler(
