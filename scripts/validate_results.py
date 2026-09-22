@@ -10,6 +10,7 @@ import platform
 import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import h5py
 import numpy as np
@@ -74,8 +75,8 @@ def read_last_tasks(path: Path) -> dict:
     return out
 
 
-def read_scalar_series(path: Path) -> dict:
-    out = {}
+def read_scalar_series(path: Path) -> dict[str, Any]:
+    out: dict[str, Any] = {}
     with h5py.File(path, "r") as h5:
         times = np.asarray(h5["scales/sim_time"])
         out["sim_time"] = finite_stats(times)
