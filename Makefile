@@ -107,7 +107,8 @@ quick-study-v04:
 	  --grid 8x8x24 --initial-stop-time 0.0002 --max-stop-time 0.0002 \
 	  --time-tol 1 --grid-tol 1 \
 	  --work-dir .quick-study-output/v04 \
-	  --output results/quick-v04-study.json
+	  --output results/quick-v04-study.json \
+	  --reference-v02 results/quick-v02-study.json
 
 validate-results: validate-v01 validate-v02 validate-v03
 
