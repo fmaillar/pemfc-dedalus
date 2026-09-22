@@ -149,3 +149,62 @@ j_ORR = chi_CL * j0_vol * (c_O2/c_ref)^gamma *
 ## License
 
 No license has been selected yet.
+
+
+## Tests and result validation
+
+Fast solver-independent tests:
+
+```bash
+make test
+```
+
+Small end-to-end Dedalus smoke tests:
+
+```bash
+make smoke
+```
+
+The smoke tests run both V0.1 and V0.2 on tiny grids and write compact JSON reports
+to `results/`.
+
+After running normal simulations in `output/` and `output-electrochem/`, generate
+physics-validation reports with:
+
+```bash
+make results
+```
+
+The reports include:
+
+- the Git commit used for the run;
+- host/Python metadata;
+- SHA-256 hashes of the source HDF5 files;
+- min/max/mean/std and percentiles of the last field snapshots;
+- scalar histories and final values;
+- basic physical checks: finite fields, non-negative O2, positive ORR current,
+  cathodic overpotential, and broad potential bounds.
+
+Raw HDF5 simulation output remains ignored by Git.  Only the compact reports are
+versioned.  To publish them:
+
+```bash
+make push-results
+```
+
+That target stages and commits **only** `results/`, then pushes the current branch.
+It does not commit unrelated working-tree changes.
+
+For an individual report:
+
+```bash
+python scripts/validate_results.py \
+  --model v02 \
+  --input output-electrochem \
+  --output results/v02-latest.json
+```
+
+These automated checks are guards, not proof that the PEMFC model is physically
+validated.  The reports are intended to make convergence studies, conservation
+checks, parameter calibration, and comparisons against experimental polarization
+data reproducible.
