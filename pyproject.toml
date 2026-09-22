@@ -38,7 +38,7 @@ line-length = 100
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 warn_unused_configs = true
 warn_redundant_casts = true
 warn_unused_ignores = true
