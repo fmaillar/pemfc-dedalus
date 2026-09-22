@@ -40,7 +40,7 @@ class CathodeParameters:
     porosity_cl: float = 0.35
 
     # Operating point used by the validation model.
-    stack_current_a: float = 29.0
+    stack_current_a: float = 26.04
 
     # V0.1 pseudo-first-order sink [1/s]
     k_reaction: float = 250.0
@@ -49,7 +49,7 @@ class CathodeParameters:
     faraday: float = 96485.33212
     gas_constant: float = 8.31446261815324
     equilibrium_potential: float = 1.18
-    cathode_solid_potential: float = 0.76
+    cathode_solid_potential: float = 0.768
     membrane_proton_potential: float = 0.0
     alpha_anodic: float = 0.5
     alpha_cathodic: float = 0.5
