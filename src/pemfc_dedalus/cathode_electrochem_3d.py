@@ -129,10 +129,6 @@ def build_solver(
     grad_phi_s = grad(phi_s) + ez * lift(tau_s1, -1)
     grad_phi_m = grad(phi_m) + ez * lift(tau_m1, -1)
 
-    d_ref = min(params.d_o2_gdl, params.d_o2_cl)
-    sigma_s_ref = min(params.sigma_s_gdl, params.sigma_s_cl)
-    sigma_m_ref = params.sigma_m_floor
-
     F = params.faraday
     E_eq = params.equilibrium_potential
     beta_a = params.beta_anodic
@@ -187,22 +183,22 @@ def build_solver(
 
     # Oxygen balance.
     problem.add_equation(
-        "porosity*dt(c) - d_ref*div(grad_c) + lift(tau_c2, -1) "
-        "= div((diffusivity-d_ref)*grad_c) - s_o2"
+        "porosity*dt(c) - div(diffusivity*grad_c) + lift(tau_c2, -1) = -s_o2"
     )
 
-    # Solid-potential pseudo-transient.  Steady state:
+    # Solid-potential pseudo-transient. Steady state:
     # div(sigma_s grad(phi_s)) = j_orr.
+    # Keep the full variable-coefficient conduction operator implicit; an
+    # explicit conductivity residual is far too stiff for the CL/GDL contrast.
     problem.add_equation(
-        "C_s*dt(phi_s) - sigma_s_ref*div(grad_phi_s) + lift(tau_s2, -1) "
-        "= div((sigma_s-sigma_s_ref)*grad_phi_s) - j_orr"
+        "C_s*dt(phi_s) - div(sigma_s*grad_phi_s) + lift(tau_s2, -1) = -j_orr"
     )
 
-    # Protonic-potential pseudo-transient.  Steady state:
+    # Protonic-potential pseudo-transient. Steady state:
     # div(sigma_m grad(phi_m)) = -j_orr.
+    # The full sigma_m operator is implicit for the same stiffness reason.
     problem.add_equation(
-        "C_m*dt(phi_m) - sigma_m_ref*div(grad_phi_m) + lift(tau_m2, -1) "
-        "= div((sigma_m-sigma_m_ref)*grad_phi_m) + j_orr"
+        "C_m*dt(phi_m) - div(sigma_m*grad_phi_m) + lift(tau_m2, -1) = j_orr"
     )
 
     # O2: prescribed open-air feed at z=0; no O2 penetration into membrane.
