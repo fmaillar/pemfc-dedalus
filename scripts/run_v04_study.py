@@ -46,6 +46,9 @@ def run_and_validate(
     max_dt: float,
     scalar_dt: float,
     root: Path,
+    mpiexec: str,
+    mpi_flags: list[str],
+    mpi_n: int,
 ) -> dict[str, Any]:
     """Run one V0.4 case and return its validation report."""
     nx, ny, nz = grid
@@ -60,6 +63,10 @@ def run_and_validate(
 
     rc = run_command(
         [
+            mpiexec,
+            *mpi_flags,
+            "-n",
+            str(mpi_n),
             "pemfc-cathode-hydrated-3d",
             "--nx",
             str(nx),
@@ -112,6 +119,9 @@ def converge_grid(
     tolerance: float,
     scalar_dt: float,
     root: Path,
+    mpiexec: str,
+    mpi_flags: list[str],
+    mpi_n: int,
 ) -> tuple[dict[str, Any], float, list[dict[str, Any]]]:
     """Repeat a run with increasing horizon until scalar changes converge."""
     stop_time = initial_stop_time
@@ -123,6 +133,9 @@ def converge_grid(
             max_dt=max_dt,
             scalar_dt=scalar_dt,
             root=root,
+            mpiexec=mpiexec,
+            mpi_flags=mpi_flags,
+            mpi_n=mpi_n,
         )
         changes = scalar_relative_changes(report)
         metric = time_convergence_metric(report)
@@ -195,9 +208,24 @@ def main() -> None:
     )
     parser.add_argument("--work-dir", type=Path, default=Path(".study-output/v04"))
     parser.add_argument("--output", type=Path, default=Path("results/v04-study.json"))
+    parser.add_argument("--mpiexec", default=os.environ.get("MPIEXEC", "mpiexec"))
+    parser.add_argument(
+        "--mpi-flags",
+        default=os.environ.get("MPI_FLAGS", "--use-hwthread-cpus"),
+        help="space-separated flags passed to mpiexec",
+    )
+    parser.add_argument(
+        "--mpi-n",
+        type=int,
+        default=int(os.environ.get("MPI_N", "8")),
+        help="number of MPI ranks for each Dedalus run",
+    )
     args = parser.parse_args()
 
     grids = args.grids or [(8, 8, 24), (12, 12, 36), (16, 16, 48)]
+    if args.mpi_n <= 0:
+        parser.error("--mpi-n must be positive")
+    mpi_flags = args.mpi_flags.split()
     cases: list[dict[str, Any]] = []
     for grid in grids:
         report, stop_time, history = converge_grid(
@@ -208,6 +236,9 @@ def main() -> None:
             tolerance=args.time_tol,
             scalar_dt=args.scalar_dt,
             root=args.work_dir,
+            mpiexec=args.mpiexec,
+            mpi_flags=mpi_flags,
+            mpi_n=args.mpi_n,
         )
         cases.append(
             {
