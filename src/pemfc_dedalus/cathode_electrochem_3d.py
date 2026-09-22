@@ -201,11 +201,12 @@ def build_solver(
         "C_s*dt(phi_s) - div(sigma_s*grad_phi_s) + lift(tau_s2, -1) = -j_orr"
     )
 
-    # Protonic-potential pseudo-transient. Steady state:
-    # div(sigma_m grad(phi_m)) = -j_orr.
+    # Protonic-potential pseudo-transient. With protonic current
+    # i_m = -sigma_m grad(phi_m), positive ORR consumes protons, so
+    # div(i_m) = -j_orr and therefore div(sigma_m grad(phi_m)) = j_orr.
     # The full sigma_m operator is implicit for the same stiffness reason.
     problem.add_equation(
-        "C_m*dt(phi_m) - div(sigma_m*grad_phi_m) + lift(tau_m2, -1) = j_orr"
+        "C_m*dt(phi_m) - div(sigma_m*grad_phi_m) + lift(tau_m2, -1) = -j_orr"
     )
 
     # O2: prescribed open-air feed at z=0; no O2 penetration into membrane.
