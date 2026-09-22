@@ -8,4 +8,8 @@ build/
 dist/
 *.egg-info/
 output/
+output-*/
+output-electrochem/
+output-electrochem-*/
+.test-output/
 .DS_Store
