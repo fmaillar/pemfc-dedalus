@@ -6,7 +6,7 @@ OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
-        quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 \
+        quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -25,6 +25,7 @@ help:
 	  'make quick-study-v04  run short V0.4 MPI/comparison pipeline check' \
 	  'make quick-overnight-v04 preflight the overnight RH-voltage campaign' \
 	  'make overnight-v04    run fixed-grid V0.4 RH-voltage overnight campaign' \
+	  'make analyze-v04-rh   analyze RH-dependent polarization and sensitivity' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -160,3 +161,7 @@ overnight-v04:
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
 	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
 	  $(PYTHON) scripts/run_v04_overnight.py
+
+
+analyze-v04-rh:
+	$(PYTHON) scripts/analyze_v04_rh_sweep.py
