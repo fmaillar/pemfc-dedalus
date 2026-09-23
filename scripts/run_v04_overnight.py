@@ -139,6 +139,8 @@ def main() -> None:
                         str(root),
                         "--output",
                         str(report_path),
+                        "--relative-humidity",
+                        str(rh),
                     ],
                     env,
                 )
