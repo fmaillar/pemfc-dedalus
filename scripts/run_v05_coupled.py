@@ -101,6 +101,7 @@ def main() -> None:
     phi_m_bc = 0.0
     previous_current: float | None = None
     history: list[dict[str, Any]] = []
+    result: dict[str, Any] = {}
     converged = False
 
     for iteration in range(args.max_coupling_iterations):
