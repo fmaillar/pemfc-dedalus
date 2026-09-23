@@ -7,6 +7,7 @@ NUMEXPR_NUM_THREADS ?= 1
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
         quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh plot-v04-rh \
+        quick-v05 study-v05 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -27,6 +28,8 @@ help:
 	  'make overnight-v04    run fixed-grid V0.4 RH-voltage overnight campaign' \
 	  'make analyze-v04-rh   analyze RH-dependent polarization and sensitivity' \
 	  'make plot-v04-rh      generate PNG/PDF figures from V0.4 RH analysis' \
+	  'make quick-v05        preflight V0.5 cathode-membrane coupling' \
+	  'make study-v05        run converged V0.5 cathode-membrane coupling' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -170,3 +173,20 @@ analyze-v04-rh:
 
 plot-v04-rh:
 	$(PYTHON) scripts/plot_v04_rh_sweep.py
+
+
+quick-v05:
+	rm -rf .quick-v05
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=2 \
+	  $(PYTHON) scripts/run_v05_coupled.py \
+	  --nx 8 --ny 8 --nz 24 --membrane-nz 33 \
+	  --stop-time 0.0002 --max-dt 0.000001 --scalar-dt 0.00001 \
+	  --max-coupling-iterations 3 --current-rtol 1 --potential-atol 1 \
+	  --work-dir .quick-v05 --output results/quick-v05-coupled.json
+
+study-v05:
+	rm -rf .v05-coupling
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
+	  $(PYTHON) scripts/run_v05_coupled.py
