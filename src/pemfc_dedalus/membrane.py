@@ -115,3 +115,35 @@ def membrane_area_specific_resistance(
         conductivity_floor_s_m,
     )
     return float(np.trapezoid(1.0 / sigma, z))
+
+
+def steady_membrane_water_profile_zero_anode_flux(
+    z_m: np.ndarray,
+    *,
+    lambda_cathode: float,
+    diffusivity_m2_s: float,
+    drag_velocity_m_s: float,
+) -> np.ndarray:
+    """Return steady lambda with zero net water flux at the anode boundary.
+
+    For steady 1D transport, the total lambda flux
+        J = -D d(lambda)/dz + v lambda
+    is spatially constant. Imposing J=0 at the anode therefore gives J=0
+    throughout the membrane. With lambda fixed at the cathode boundary, the
+    solution is exponential and naturally allows back-diffused water to hydrate
+    the anode side even when the feed gas itself is dry.
+    """
+    z = np.asarray(z_m, dtype=float)
+    if z.ndim != 1 or z.size < 2:
+        raise ValueError("z_m must be a one-dimensional grid with at least two points")
+    if diffusivity_m2_s <= 0.0:
+        raise ValueError("diffusivity_m2_s must be positive")
+    length = float(z[-1] - z[0])
+    if length <= 0.0:
+        raise ValueError("z_m must be strictly increasing overall")
+    if lambda_cathode < 0.0:
+        raise ValueError("lambda_cathode must be non-negative")
+
+    return lambda_cathode * np.exp(
+        drag_velocity_m_s * (z - z[-1]) / diffusivity_m2_s
+    )
