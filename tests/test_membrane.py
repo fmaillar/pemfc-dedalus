@@ -4,9 +4,11 @@ import pytest
 from pemfc_dedalus.membrane import (
     electro_osmotic_drag_coefficient,
     electro_osmotic_lambda_velocity,
+    membrane_area_specific_resistance,
     membrane_fixed_charge_concentration,
     membrane_proton_conductivity,
     membrane_water_content_from_activity,
+    steady_membrane_water_profile,
 )
 from pemfc_dedalus.parameters import CathodeParameters
 
@@ -54,3 +56,53 @@ def test_membrane_parameter_assumptions_are_physical():
     assert p.membrane_water_diffusivity > 0.0
     assert 0.0 <= p.anode_relative_humidity <= 1.0
     assert p.membrane_current_density > 0.0
+
+
+
+def test_steady_membrane_profile_reduces_to_linear_without_drag():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 9)
+    lam = steady_membrane_water_profile(
+        z,
+        lambda_anode=1.0,
+        lambda_cathode=5.0,
+        diffusivity_m2_s=p.membrane_water_diffusivity,
+        drag_velocity_m_s=0.0,
+    )
+    assert np.allclose(lam, np.linspace(1.0, 5.0, 9))
+
+
+def test_positive_drag_biases_water_profile_toward_anode_value():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 9)
+    linear = np.linspace(1.0, 5.0, 9)
+    lam = steady_membrane_water_profile(
+        z,
+        lambda_anode=1.0,
+        lambda_cathode=5.0,
+        diffusivity_m2_s=p.membrane_water_diffusivity,
+        drag_velocity_m_s=1.0e-6,
+    )
+    assert lam[0] == pytest.approx(1.0)
+    assert lam[-1] == pytest.approx(5.0)
+    assert lam[4] < linear[4]
+
+
+def test_membrane_asr_is_positive_and_decreases_with_hydration():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 65)
+    dry = np.full_like(z, 2.0)
+    wet = np.full_like(z, 8.0)
+    asr_dry = membrane_area_specific_resistance(
+        z,
+        dry,
+        temperature_k=p.stack_temperature,
+        conductivity_floor_s_m=p.membrane_conductivity_floor,
+    )
+    asr_wet = membrane_area_specific_resistance(
+        z,
+        wet,
+        temperature_k=p.stack_temperature,
+        conductivity_floor_s_m=p.membrane_conductivity_floor,
+    )
+    assert asr_dry > asr_wet > 0.0
