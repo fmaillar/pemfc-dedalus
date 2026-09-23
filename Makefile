@@ -7,7 +7,7 @@ NUMEXPR_NUM_THREADS ?= 1
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
         quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh plot-v04-rh \
-        quick-v05 study-v05 \
+        quick-v05 study-v05 quick-sweep-v05 sweep-v05 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -30,6 +30,8 @@ help:
 	  'make plot-v04-rh      generate PNG/PDF figures from V0.4 RH analysis' \
 	  'make quick-v05        preflight V0.5 cathode-membrane coupling' \
 	  'make study-v05        run converged V0.5 cathode-membrane coupling' \
+	  'make quick-sweep-v05  preflight one V0.5 RH-voltage sweep case' \
+	  'make sweep-v05        run 3x3 V0.5 RH-voltage campaign' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -190,3 +192,22 @@ study-v05:
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
 	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
 	  $(PYTHON) scripts/run_v05_coupled.py
+
+
+quick-sweep-v05:
+	rm -rf .quick-v05-sweep
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=2 \
+	  $(PYTHON) scripts/run_v05_rh_voltage_sweep.py \
+	  --rh-values 0.5 --voltages 0.768 \
+	  --nx 8 --ny 8 --nz 24 --membrane-nz 65 \
+	  --stop-time 0.0002 --max-dt 0.000001 --scalar-dt 0.00001 \
+	  --max-coupling-iterations 10 --current-rtol 0.01 --potential-atol 0.0001 \
+	  --work-dir .quick-v05-sweep \
+	  --output-json results/quick-v05-sweep.json \
+	  --output-csv results/quick-v05-sweep.csv
+
+sweep-v05:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
+	  $(PYTHON) scripts/run_v05_rh_voltage_sweep.py
