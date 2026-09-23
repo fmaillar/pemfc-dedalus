@@ -1,0 +1,2 @@
+rh,cathode_solid_potential_v,converged,coupling_iterations,final_current_a,final_current_density_a_m2,final_phi_m_bc_v,final_target_phi_m_bc_v,final_membrane_asr_ohm_m2,final_lambda_anode,final_lambda_mean,final_lambda_cathode,final_sigma_m_mean_s_m,final_sigma_m_min_s_m,final_sigma_m_max_s_m
+0.5,0.768,True,3,0.002387331192410875,1193.6655962054374,-0.03747414234282102,-0.03740423348477678,3.133560488270894e-05,3.2261510625938605,3.3541806978862763,3.4854999999999983,1.5968543844804326,1.521685813594904,1.6739543797044156
