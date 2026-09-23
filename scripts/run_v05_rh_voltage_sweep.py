@@ -104,7 +104,7 @@ def main() -> None:
                         "--potential-atol", str(args.potential_atol),
                         "--mpi-n", str(args.mpi_n),
                         "--mpiexec", args.mpiexec,
-                        "--mpi-flags", args.mpi_flags,
+                        f"--mpi-flags={args.mpi_flags}",
                         "--work-dir", str(args.work_dir / name),
                         "--output", str(case_output),
                     ],
