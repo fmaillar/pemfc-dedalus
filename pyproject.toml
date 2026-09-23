@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pemfc-dedalus"
-version = "0.4.0"
+version = "0.5.0"
 description = "3D PEMFC multiphysics modelling with Dedalus"
 requires-python = ">=3.11"
 dependencies = [
