@@ -61,3 +61,57 @@ def electro_osmotic_lambda_velocity(
     if faraday_c_mol <= 0.0 or fixed_charge_mol_m3 <= 0.0:
         raise ValueError("Faraday constant and fixed-charge concentration must be positive")
     return current_density_a_m2 / (22.0 * faraday_c_mol * fixed_charge_mol_m3)
+
+
+def steady_membrane_water_profile(
+    z_m: np.ndarray,
+    *,
+    lambda_anode: float,
+    lambda_cathode: float,
+    diffusivity_m2_s: float,
+    drag_velocity_m_s: float,
+) -> np.ndarray:
+    """Return the steady 1D lambda profile for diffusion + EOD advection.
+
+    Solves D lambda'' - v lambda' = 0 with fixed endpoint water contents.
+    The small-Peclet limit is evaluated as a linear profile for numerical
+    stability.
+    """
+    z = np.asarray(z_m, dtype=float)
+    if z.ndim != 1 or z.size < 2:
+        raise ValueError("z_m must be a one-dimensional grid with at least two points")
+    if diffusivity_m2_s <= 0.0:
+        raise ValueError("diffusivity_m2_s must be positive")
+    length = float(z[-1] - z[0])
+    if length <= 0.0:
+        raise ValueError("z_m must be strictly increasing overall")
+
+    xi = (z - z[0]) / length
+    peclet = drag_velocity_m_s * length / diffusivity_m2_s
+    if abs(peclet) < 1.0e-8:
+        return lambda_anode + (lambda_cathode - lambda_anode) * xi
+
+    denom = np.expm1(peclet)
+    shape = np.expm1(peclet * xi) / denom
+    return lambda_anode + (lambda_cathode - lambda_anode) * shape
+
+
+def membrane_area_specific_resistance(
+    z_m: np.ndarray,
+    water_content: np.ndarray,
+    *,
+    temperature_k: float,
+    conductivity_floor_s_m: float,
+) -> float:
+    """Return membrane protonic area-specific resistance [ohm m^2]."""
+    z = np.asarray(z_m, dtype=float)
+    lam = np.asarray(water_content, dtype=float)
+    if z.shape != lam.shape:
+        raise ValueError("z_m and water_content must have identical shapes")
+    if conductivity_floor_s_m <= 0.0:
+        raise ValueError("conductivity_floor_s_m must be positive")
+    sigma = np.maximum(
+        membrane_proton_conductivity(lam, temperature_k),
+        conductivity_floor_s_m,
+    )
+    return float(np.trapezoid(1.0 / sigma, z))
