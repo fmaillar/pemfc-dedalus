@@ -6,7 +6,7 @@ OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
-        quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh \
+        quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh plot-v04-rh \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -26,6 +26,7 @@ help:
 	  'make quick-overnight-v04 preflight the overnight RH-voltage campaign' \
 	  'make overnight-v04    run fixed-grid V0.4 RH-voltage overnight campaign' \
 	  'make analyze-v04-rh   analyze RH-dependent polarization and sensitivity' \
+	  'make plot-v04-rh      generate PNG/PDF figures from V0.4 RH analysis' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -165,3 +166,7 @@ overnight-v04:
 
 analyze-v04-rh:
 	$(PYTHON) scripts/analyze_v04_rh_sweep.py
+
+
+plot-v04-rh:
+	$(PYTHON) scripts/plot_v04_rh_sweep.py
