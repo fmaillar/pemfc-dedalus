@@ -99,36 +99,44 @@ def main() -> None:
             else:
                 report = {}
 
+            snapshots_exist = any((root / "snapshots").glob("*_s*.h5"))
+            scalars_exist = any((root / "scalars").glob("*_s*.h5"))
+            outputs_exist = snapshots_exist and scalars_exist
+
             if not report:
                 root.mkdir(parents=True, exist_ok=True)
-                run_command(
-                    [
-                        args.mpiexec,
-                        *mpi_flags,
-                        "-n",
-                        str(args.mpi_n),
-                        "pemfc-cathode-hydrated-3d",
-                        "--nx",
-                        str(args.nx),
-                        "--ny",
-                        str(args.ny),
-                        "--nz",
-                        str(args.nz),
-                        "--stop-time",
-                        str(args.stop_time),
-                        "--max-dt",
-                        str(args.max_dt),
-                        "--scalar-dt",
-                        str(args.scalar_dt),
-                        "--relative-humidity",
-                        str(rh),
-                        "--cathode-solid-potential",
-                        str(voltage),
-                        "--output-dir",
-                        str(root),
-                    ],
-                    env,
-                )
+                if not outputs_exist:
+                    run_command(
+                        [
+                            args.mpiexec,
+                            *mpi_flags,
+                            "-n",
+                            str(args.mpi_n),
+                            "pemfc-cathode-hydrated-3d",
+                            "--nx",
+                            str(args.nx),
+                            "--ny",
+                            str(args.ny),
+                            "--nz",
+                            str(args.nz),
+                            "--stop-time",
+                            str(args.stop_time),
+                            "--max-dt",
+                            str(args.max_dt),
+                            "--scalar-dt",
+                            str(args.scalar_dt),
+                            "--relative-humidity",
+                            str(rh),
+                            "--cathode-solid-potential",
+                            str(voltage),
+                            "--output-dir",
+                            str(root),
+                        ],
+                        env,
+                    )
+                else:
+                    print(f"revalidate existing outputs for {name}", flush=True)
+
                 run_command(
                     [
                         sys.executable,
