@@ -119,8 +119,17 @@ def add_check(checks: list[dict], name: str, passed: bool, value=None, limit=Non
     )
 
 
-def validate(model: str, root: Path) -> dict:
+def validate(
+    model: str,
+    root: Path,
+    *,
+    relative_humidity: float | None = None,
+) -> dict:
     p = CathodeParameters()
+    if relative_humidity is not None:
+        if not 0.0 <= relative_humidity <= 1.0:
+            raise ValueError("relative_humidity must be between 0 and 1")
+        p = CathodeParameters(relative_humidity=relative_humidity)
     snap = latest_h5(root / "snapshots")
     scalar = latest_h5(root / "scalars")
 
@@ -401,9 +410,19 @@ def main() -> None:
     parser.add_argument("--model", choices=("v01", "v02", "v03", "v04"), required=True)
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument(
+        "--relative-humidity",
+        type=float,
+        default=None,
+        help="RH override used to validate V0.4 hydration-dependent bounds",
+    )
     args = parser.parse_args()
 
-    report = validate(args.model, args.input)
+    report = validate(
+        args.model,
+        args.input,
+        relative_humidity=args.relative_humidity,
+    )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     print(f"Wrote {args.output}")
