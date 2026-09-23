@@ -9,6 +9,7 @@ from pemfc_dedalus.membrane import (
     membrane_proton_conductivity,
     membrane_water_content_from_activity,
     steady_membrane_water_profile,
+    steady_membrane_water_profile_zero_anode_flux,
 )
 from pemfc_dedalus.parameters import CathodeParameters
 
@@ -106,3 +107,31 @@ def test_membrane_asr_is_positive_and_decreases_with_hydration():
         conductivity_floor_s_m=p.membrane_conductivity_floor,
     )
     assert asr_dry > asr_wet > 0.0
+
+
+
+def test_zero_anode_flux_profile_keeps_dry_feed_membrane_hydrated():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 65)
+    lam_cathode = membrane_water_content_from_activity(0.5).item()
+    profile = steady_membrane_water_profile_zero_anode_flux(
+        z,
+        lambda_cathode=lam_cathode,
+        diffusivity_m2_s=p.membrane_water_diffusivity,
+        drag_velocity_m_s=6.0e-7,
+    )
+    assert 0.0 < profile[0] < profile[-1]
+    assert profile[-1] == pytest.approx(lam_cathode)
+    assert profile[0] > 0.5 * lam_cathode
+
+
+def test_zero_flux_profile_is_uniform_without_drag():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 33)
+    profile = steady_membrane_water_profile_zero_anode_flux(
+        z,
+        lambda_cathode=4.0,
+        diffusivity_m2_s=p.membrane_water_diffusivity,
+        drag_velocity_m_s=0.0,
+    )
+    assert np.allclose(profile, 4.0)
