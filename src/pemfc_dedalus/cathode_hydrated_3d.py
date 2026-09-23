@@ -281,6 +281,7 @@ def run(
     scalar_dt: float | None = None,
     relative_humidity: float | None = None,
     cathode_solid_potential: float | None = None,
+    membrane_proton_potential: float | None = None,
 ) -> None:
     params = CathodeParameters()
     if relative_humidity is not None:
@@ -289,6 +290,8 @@ def run(
         params = replace(params, relative_humidity=relative_humidity)
     if cathode_solid_potential is not None:
         params = replace(params, cathode_solid_potential=cathode_solid_potential)
+    if membrane_proton_potential is not None:
+        params = replace(params, membrane_proton_potential=membrane_proton_potential)
     lambda_cl_value = membrane_water_content_from_activity(
         params.relative_humidity
     ).item()
@@ -384,6 +387,12 @@ def _parser() -> argparse.ArgumentParser:
         help="override cathode solid-potential boundary condition [V]",
     )
     parser.add_argument(
+        "--membrane-proton-potential",
+        type=float,
+        default=None,
+        help="override membrane-interface proton potential boundary condition [V]",
+    )
+    parser.add_argument(
         "--scalar-dt",
         type=float,
         default=None,
@@ -405,6 +414,7 @@ def main() -> None:
         scalar_dt=args.scalar_dt,
         relative_humidity=args.relative_humidity,
         cathode_solid_potential=args.cathode_solid_potential,
+        membrane_proton_potential=args.membrane_proton_potential,
     )
 
 
