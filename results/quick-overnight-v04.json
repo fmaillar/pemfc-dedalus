@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "grid": [
+    8,
+    8,
+    24
+  ],
+  "mpi_ranks": 2,
+  "stop_time_s": 0.0002,
+  "relative_humidities": [
+    0.5
+  ],
+  "cathode_solid_potentials_v": [
+    0.768
+  ],
+  "cases": [
+    {
+      "rh": 0.5,
+      "cathode_solid_potential_v": 0.768,
+      "grid": [
+        8,
+        8,
+        24
+      ],
+      "mpi_ranks": 2,
+      "stop_time_s": 0.0002,
+      "pass": true,
+      "lambda_cl_max": 3.4854731284396543,
+      "sigma_m_max_s_per_m": 1.6739415514012956,
+      "mean_c_o2_mol_per_m3": 7.946186596462238,
+      "mean_eta_v": -0.41199207760456585,
+      "total_reaction_current_a": 0.004598003626014349,
+      "j_orr_max_a_per_m3": 188698253.74679175,
+      "phi_m_min_v": -0.0025280350141882717,
+      "phi_m_max_v": 0.00038884885574844873
+    }
+  ]
+}

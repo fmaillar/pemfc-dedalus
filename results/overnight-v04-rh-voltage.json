@@ -1,0 +1,425 @@
+{
+  "schema_version": 1,
+  "grid": [
+    32,
+    32,
+    96
+  ],
+  "mpi_ranks": 8,
+  "stop_time_s": 0.0064,
+  "relative_humidities": [
+    0.1,
+    0.3,
+    0.5,
+    0.7,
+    0.9
+  ],
+  "cathode_solid_potentials_v": [
+    0.62,
+    0.7,
+    0.768,
+    0.83
+  ],
+  "cases": [
+    {
+      "rh": 0.1,
+      "cathode_solid_potential_v": 0.62,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 1.4614908919647982,
+      "sigma_m_max_s_per_m": 0.48562351695814077,
+      "mean_c_o2_mol_per_m3": 7.262713695700604,
+      "mean_eta_v": -0.5550783907813508,
+      "total_reaction_current_a": 0.020619058365522542,
+      "j_orr_max_a_per_m3": 2395403644.119728,
+      "phi_m_min_v": -0.08939637581127562,
+      "phi_m_max_v": 0.0018259236156920504
+    },
+    {
+      "rh": 0.1,
+      "cathode_solid_potential_v": 0.7,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 1.4614908919647982,
+      "sigma_m_max_s_per_m": 0.4856235169581407,
+      "mean_c_o2_mol_per_m3": 7.406148564260699,
+      "mean_eta_v": -0.4776342257963335,
+      "total_reaction_current_a": 0.008476416600132963,
+      "j_orr_max_a_per_m3": 602300660.8484715,
+      "phi_m_min_v": -0.04309219925316221,
+      "phi_m_max_v": 0.0006637473803278395
+    },
+    {
+      "rh": 0.1,
+      "cathode_solid_potential_v": 0.768,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 1.4614908919647982,
+      "sigma_m_max_s_per_m": 0.4856235169581407,
+      "mean_c_o2_mol_per_m3": 7.466630145198713,
+      "mean_eta_v": -0.41100350504080824,
+      "total_reaction_current_a": 0.003365217169491595,
+      "j_orr_max_a_per_m3": 181295073.38107264,
+      "phi_m_min_v": -0.018314980025912066,
+      "phi_m_max_v": 0.00023318262297988948
+    },
+    {
+      "rh": 0.1,
+      "cathode_solid_potential_v": 0.83,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 1.4614908919647982,
+      "sigma_m_max_s_per_m": 0.4856235169581407,
+      "mean_c_o2_mol_per_m3": 7.491469984866319,
+      "mean_eta_v": -0.3496193858943801,
+      "total_reaction_current_a": 0.0012613851997133518,
+      "j_orr_max_a_per_m3": 59669624.96420601,
+      "phi_m_min_v": -0.007037972795031309,
+      "phi_m_max_v": 8.045789318502515e-05
+    },
+    {
+      "rh": 0.3,
+      "cathode_solid_potential_v": 0.62,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 2.771482728074196,
+      "sigma_m_max_s_per_m": 1.2547439941597707,
+      "mean_c_o2_mol_per_m3": 7.166910446821987,
+      "mean_eta_v": -0.5574636436506782,
+      "total_reaction_current_a": 0.028874356432885703,
+      "j_orr_max_a_per_m3": 2373584844.4857235,
+      "phi_m_min_v": -0.05891508526739608,
+      "phi_m_max_v": 0.00463581222652111
+    },
+    {
+      "rh": 0.3,
+      "cathode_solid_potential_v": 0.7,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 2.771482728074196,
+      "sigma_m_max_s_per_m": 1.2547439941597707,
+      "mean_c_o2_mol_per_m3": 7.38224444721137,
+      "mean_eta_v": -0.47891971216251034,
+      "total_reaction_current_a": 0.010562138401725362,
+      "j_orr_max_a_per_m3": 601491150.5178531,
+      "phi_m_min_v": -0.024317173089350604,
+      "phi_m_max_v": 0.0017965632324269372
+    },
+    {
+      "rh": 0.3,
+      "cathode_solid_potential_v": 0.768,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 2.771482728074196,
+      "sigma_m_max_s_per_m": 1.2547439941597707,
+      "mean_c_o2_mol_per_m3": 7.462160053790339,
+      "mean_eta_v": -0.4115929578286693,
+      "total_reaction_current_a": 0.0037611210309438183,
+      "j_orr_max_a_per_m3": 181304493.20065352,
+      "phi_m_min_v": -0.00910622938662416,
+      "phi_m_max_v": 0.0006584715073772494
+    },
+    {
+      "rh": 0.3,
+      "cathode_solid_potential_v": 0.83,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 2.771482728074196,
+      "sigma_m_max_s_per_m": 1.2547439941597707,
+      "mean_c_o2_mol_per_m3": 7.490800170245135,
+      "mean_eta_v": -0.34985412568520735,
+      "total_reaction_current_a": 0.0013213452888535813,
+      "j_orr_max_a_per_m3": 59676957.28174647,
+      "phi_m_min_v": -0.0032604275494242975,
+      "phi_m_max_v": 0.0002339272081474604
+    },
+    {
+      "rh": 0.5,
+      "cathode_solid_potential_v": 0.62,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 3.485478278442218,
+      "sigma_m_max_s_per_m": 1.6739440099780627,
+      "mean_c_o2_mol_per_m3": 7.135478747015125,
+      "mean_eta_v": -0.558152799996319,
+      "total_reaction_current_a": 0.031568933583789316,
+      "j_orr_max_a_per_m3": 2365556046.777073,
+      "phi_m_min_v": -0.05047150008120425,
+      "phi_m_max_v": 0.004207303670323296
+    },
+    {
+      "rh": 0.5,
+      "cathode_solid_potential_v": 0.7,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 3.485478278442218,
+      "sigma_m_max_s_per_m": 1.6739440099780627,
+      "mean_c_o2_mol_per_m3": 7.375837636282842,
+      "mean_eta_v": -0.47923881525303647,
+      "total_reaction_current_a": 0.011114553602895798,
+      "j_orr_max_a_per_m3": 601241995.8477933,
+      "phi_m_min_v": -0.01975944307250853,
+      "phi_m_max_v": 0.001546463880298428
+    },
+    {
+      "rh": 0.5,
+      "cathode_solid_potential_v": 0.768,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 3.485478278442218,
+      "sigma_m_max_s_per_m": 1.6739440099780627,
+      "mean_c_o2_mol_per_m3": 7.461169780697209,
+      "mean_eta_v": -0.41172147112176627,
+      "total_reaction_current_a": 0.0038469529365034155,
+      "j_orr_max_a_per_m3": 181305946.61822844,
+      "phi_m_min_v": -0.007135139830912931,
+      "phi_m_max_v": 0.0005480220532554559
+    },
+    {
+      "rh": 0.5,
+      "cathode_solid_potential_v": 0.83,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 3.485478278442218,
+      "sigma_m_max_s_per_m": 1.6739440099780627,
+      "mean_c_o2_mol_per_m3": 7.4906674653531,
+      "mean_eta_v": -0.3499016348146832,
+      "total_reaction_current_a": 0.0013328813359984183,
+      "j_orr_max_a_per_m3": 59678523.158943094,
+      "phi_m_min_v": -0.002510744127498382,
+      "phi_m_max_v": 0.000191672156321367
+    },
+    {
+      "rh": 0.7,
+      "cathode_solid_potential_v": 0.62,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 5.331466774211645,
+      "sigma_m_max_s_per_m": 2.757758056477458,
+      "mean_c_o2_mol_per_m3": 7.081827158687322,
+      "mean_eta_v": -0.5592475554268407,
+      "total_reaction_current_a": 0.03615777592253933,
+      "j_orr_max_a_per_m3": 2350935784.88355,
+      "phi_m_min_v": -0.037413550013117684,
+      "phi_m_max_v": 0.0027329265019141215
+    },
+    {
+      "rh": 0.7,
+      "cathode_solid_potential_v": 0.7,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 5.331466774211645,
+      "sigma_m_max_s_per_m": 2.757758056477458,
+      "mean_c_o2_mol_per_m3": 7.366403923247428,
+      "mean_eta_v": -0.47969227223832694,
+      "total_reaction_current_a": 0.011924281910731844,
+      "j_orr_max_a_per_m3": 600841691.464504,
+      "phi_m_min_v": -0.013392997087248225,
+      "phi_m_max_v": 0.0008954879477334047
+    },
+    {
+      "rh": 0.7,
+      "cathode_solid_potential_v": 0.768,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 5.331466774211645,
+      "sigma_m_max_s_per_m": 2.757758056477458,
+      "mean_c_o2_mol_per_m3": 7.459861957057091,
+      "mean_eta_v": -0.4118907400593781,
+      "total_reaction_current_a": 0.003959507009860434,
+      "j_orr_max_a_per_m3": 181306121.0865684,
+      "phi_m_min_v": -0.004582185754034609,
+      "phi_m_max_v": 0.0002985924364592531
+    },
+    {
+      "rh": 0.7,
+      "cathode_solid_potential_v": 0.83,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 5.331466774211645,
+      "sigma_m_max_s_per_m": 2.757758056477458,
+      "mean_c_o2_mol_per_m3": 7.4905011029825,
+      "mean_eta_v": -0.3499620092766644,
+      "total_reaction_current_a": 0.0013472177829001156,
+      "j_orr_max_a_per_m3": 59680372.8998469,
+      "phi_m_min_v": -0.0015752103459255149,
+      "phi_m_max_v": 0.0001018215896451791
+    },
+    {
+      "rh": 0.9,
+      "cathode_solid_potential_v": 0.62,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 10.037437446525256,
+      "sigma_m_max_s_per_m": 5.520720625722401,
+      "mean_c_o2_mol_per_m3": 7.01546115496448,
+      "mean_eta_v": -0.5605069927098515,
+      "total_reaction_current_a": 0.0418213903769154,
+      "j_orr_max_a_per_m3": 2331308729.366231,
+      "phi_m_min_v": -0.023254772921500914,
+      "phi_m_max_v": 0.0014828068325563242
+    },
+    {
+      "rh": 0.9,
+      "cathode_solid_potential_v": 0.7,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 10.037437446525256,
+      "sigma_m_max_s_per_m": 5.520720625722401,
+      "mean_c_o2_mol_per_m3": 7.357047708630766,
+      "mean_eta_v": -0.4801322163894912,
+      "total_reaction_current_a": 0.012724319026031173,
+      "j_orr_max_a_per_m3": 600396640.4344953,
+      "phi_m_min_v": -0.007449859899882528,
+      "phi_m_max_v": 0.00041787533307068416
+    },
+    {
+      "rh": 0.9,
+      "cathode_solid_potential_v": 0.768,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 10.037437446525256,
+      "sigma_m_max_s_per_m": 5.520720625722401,
+      "mean_c_o2_mol_per_m3": 7.458729080511963,
+      "mean_eta_v": -0.41203992650761223,
+      "total_reaction_current_a": 0.0040564856617334956,
+      "j_orr_max_a_per_m3": 181303325.18658105,
+      "phi_m_min_v": -0.002414885546842314,
+      "phi_m_max_v": 0.0001305757622915854
+    },
+    {
+      "rh": 0.9,
+      "cathode_solid_potential_v": 0.83,
+      "grid": [
+        32,
+        32,
+        96
+      ],
+      "mpi_ranks": 8,
+      "stop_time_s": 0.0064,
+      "pass": true,
+      "lambda_cl_max": 10.037437446525256,
+      "sigma_m_max_s_per_m": 5.520720625722401,
+      "mean_c_o2_mol_per_m3": 7.4903650670895265,
+      "mean_eta_v": -0.3500131369876606,
+      "total_reaction_current_a": 0.00135886831791083,
+      "j_orr_max_a_per_m3": 59681625.263219506,
+      "phi_m_min_v": -0.0008133108637516288,
+      "phi_m_max_v": 4.348067558784111e-05
+    }
+  ]
+}
