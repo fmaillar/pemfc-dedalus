@@ -30,7 +30,7 @@ from pemfc_dedalus.membrane import (
     membrane_fixed_charge_concentration,
     membrane_proton_conductivity,
     membrane_water_content_from_activity,
-    steady_membrane_water_profile,
+    steady_membrane_water_profile_zero_anode_flux,
 )
 from pemfc_dedalus.parameters import CathodeParameters
 
@@ -85,9 +85,6 @@ def main() -> None:
         p.membrane_dry_density,
         p.membrane_equivalent_weight,
     )
-    lambda_anode = membrane_water_content_from_activity(
-        p.anode_relative_humidity
-    ).item()
     lambda_cathode = membrane_water_content_from_activity(
         p.relative_humidity
     ).item()
@@ -165,9 +162,8 @@ def main() -> None:
             p.faraday,
             fixed_charge,
         )
-        lambda_profile = steady_membrane_water_profile(
+        lambda_profile = steady_membrane_water_profile_zero_anode_flux(
             z_membrane,
-            lambda_anode=lambda_anode,
             lambda_cathode=lambda_cathode,
             diffusivity_m2_s=p.membrane_water_diffusivity,
             drag_velocity_m_s=drag_velocity,
@@ -206,7 +202,7 @@ def main() -> None:
             "current_relative_change": current_rel_change,
             "membrane_drag_velocity_m_s": drag_velocity,
             "membrane_asr_ohm_m2": asr,
-            "lambda_anode": lambda_anode,
+            "lambda_anode": float(lambda_profile[0]),
             "lambda_cathode": lambda_cathode,
             "lambda_mean": float(np.mean(lambda_profile)),
             "lambda_min": float(np.min(lambda_profile)),
@@ -227,6 +223,7 @@ def main() -> None:
             "relative_humidity": args.relative_humidity,
             "cathode_solid_potential_v": args.cathode_solid_potential,
             "membrane_conductivity_floor_s_m": p.membrane_conductivity_floor,
+            "anode_water_boundary": "zero_flux",
             "relaxation": args.relaxation,
             "current_rtol": args.current_rtol,
             "potential_atol_v": args.potential_atol,
