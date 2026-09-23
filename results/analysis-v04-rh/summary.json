@@ -1,0 +1,58 @@
+{
+  "cathode_solid_potentials_v": [
+    0.62,
+    0.7,
+    0.768,
+    0.83
+  ],
+  "grid": [
+    32,
+    32,
+    96
+  ],
+  "mpi_ranks": 8,
+  "relative_humidities": [
+    0.1,
+    0.3,
+    0.5,
+    0.7,
+    0.9
+  ],
+  "representative_area_m2": 2e-06,
+  "schema_version": 1,
+  "source": "results/overnight-v04-rh-voltage.json",
+  "summary_by_voltage": {
+    "0.620": {
+      "current_rh10_a": 0.020619058365522542,
+      "current_rh90_a": 0.0418213903769154,
+      "max_abs_dI_dRH_a_per_fraction": 0.04127649033681581,
+      "max_dlnI_dlnsigma": 0.35473999773914455,
+      "min_dlnI_dlnsigma": 0.20964981484603934,
+      "relative_gain_rh10_to_rh90": 1.0282880835550483
+    },
+    "0.700": {
+      "current_rh10_a": 0.008476416600132963,
+      "current_rh90_a": 0.012724319026031173,
+      "max_abs_dI_dRH_a_per_fraction": 0.010428609007961996,
+      "max_dlnI_dlnsigma": 0.23174846713528627,
+      "min_dlnI_dlnsigma": 0.09355875448417057,
+      "relative_gain_rh10_to_rh90": 0.5011436584926202
+    },
+    "0.768": {
+      "current_rh10_a": 0.003365217169491595,
+      "current_rh90_a": 0.0040564856617334956,
+      "max_abs_dI_dRH_a_per_fraction": 0.0019795193072611166,
+      "max_dlnI_dlnsigma": 0.11717059651885248,
+      "min_dlnI_dlnsigma": 0.034862137468053236,
+      "relative_gain_rh10_to_rh90": 0.20541571536862654
+    },
+    "0.830": {
+      "current_rh10_a": 0.0012613851997133518,
+      "current_rh90_a": 0.00135886831791083,
+      "max_abs_dI_dRH_a_per_fraction": 0.00029980044570114724,
+      "max_dlnI_dlnsigma": 0.04892255839418263,
+      "min_dlnI_dlnsigma": 0.012405690214820105,
+      "relative_gain_rh10_to_rh90": 0.07728259235928182
+    }
+  }
+}
