@@ -1176,26 +1176,26 @@ L'objectif n'est pas seulement de construire une simulation qui tourne.
 L'objectif est de construire une simulation dont on comprend pourquoi chaque
 résultat apparaît.
 
-** V0.6 — Validation de la limite V0.5
+** V0.6 — Validation de continuité avec V0.5
 
-La première validation structurante de V0.6 consiste à vérifier que la nouvelle
-condition de transfert anodique possède bien V0.5 comme limite.
-
-La condition V0.6 est :
+Après l'introduction de la condition de transfert d'eau anodique finie :
 
   -J = k_a (lambda_anode - lambda_eq,anode)
 
-Si :
+la première validation indispensable consiste à vérifier que :
 
   k_a = 0
 
-alors :
+reproduit exactement le comportement V0.5.
 
-  J = 0
+Ce test permet de distinguer :
 
-et on doit retrouver exactement la condition de bord utilisée en V0.5.
+- l'effet réel du nouveau mécanisme physique ;
+- un éventuel changement involontaire du solveur ;
+- un changement de condition numérique ;
+- une erreur introduite dans le couplage.
 
-*** Configuration du contrôle
+*** Configuration
 
 Point nominal :
 
@@ -1211,73 +1211,66 @@ Grille membrane :
 
   nz = 129
 
-Couplage :
+MPI :
+
+  8 processus
+
+Paramètres de couplage :
 
   relaxation = 0.5
   current_rtol = 0.005
   potential_atol = 5e-4 V
 
-MPI :
-
-  8 processus
-
-Paramètre testé :
+Cas testé :
 
   k_a = 0
 
-*** Résultat
+*** Résultats
 
 Le calcul converge en :
 
   5 itérations
 
-exactement comme V0.5.
-
-Résultat final V0.6 avec k_a = 0 :
+Valeurs finales :
 
   I = 0.002172164577794256 A
-
   J = 1086.082288897128 A/m²
 
   phi_m = -0.03385202724997689 V
-
   phi_target = -0.03388450232143915 V
 
   ASR = 3.119883517836156e-5 ohm m²
 
   lambda_anode = 3.248712276625678
-
+  lambda_cathode = 3.485500
   lambda_mean = 3.365728873935204
 
   sigma_mean = 1.603634532591843 S/m
-
   sigma_min = 1.534931920344649 S/m
 
-  flux anodique = 0
+  flux d'eau anodique = 0
 
-Le dernier changement relatif du courant vaut :
+Dernière variation relative du courant :
 
-  0.0014243
-  = 0.142 %
+  0.142 %
 
-donc :
+Critère :
 
   0.142 % < 0.5 %
 
-Le critère courant est satisfait.
+Dernière correction de potentiel :
 
-Le changement de potentiel relaxé final vaut :
+  0.0162 mV
 
-  1.624e-5 V
-  = 0.0162 mV
+Critère :
 
-donc très inférieur au seuil :
+  0.0162 mV < 0.5 mV
 
-  0.5 mV
+Le couplage est donc convergé.
 
 *** Comparaison directe avec V0.5
 
-Valeurs finales V0.5 :
+Valeurs V0.5 :
 
   I = 0.002172164577794316 A
   J = 1086.082288897158 A/m²
@@ -1286,7 +1279,7 @@ Valeurs finales V0.5 :
   lambda_mean = 3.365728873935201
   phi_m = -0.03385202724997674 V
 
-Valeurs finales V0.6, k_a = 0 :
+Valeurs V0.6 avec k_a = 0 :
 
   I = 0.002172164577794256 A
   J = 1086.082288897128 A/m²
@@ -1295,145 +1288,441 @@ Valeurs finales V0.6, k_a = 0 :
   lambda_mean = 3.365728873935204
   phi_m = -0.03385202724997689 V
 
-Les différences sont de l'ordre de l'arrondi flottant.
+Les différences sont au niveau de l'arrondi flottant.
 
-Par exemple, pour le courant :
+Pour le courant :
 
   |Delta I| ≈ 6e-17 A
 
-soit une différence relative d'environ :
+soit une différence relative de l'ordre de :
 
   3e-14
 
-La nouvelle implémentation reproduit donc V0.5 à la précision machine.
+Conclusion :
 
-*** Signification de ce résultat
+  V0.6 avec k_a = 0
+  reproduit V0.5 à la précision machine.
 
-Ce résultat est particulièrement important.
+*** Conséquence méthodologique
 
-Il montre que l'effet observé précédemment avec :
+Ce résultat valide la continuité entre les deux versions.
+
+La différence observée pour :
 
   k_a = 2e-6 m/s
 
-n'est pas provoqué par :
+peut donc être attribuée au nouveau mécanisme de transfert d'eau anodique.
 
-- un changement accidentel du solveur cathodique ;
-- une modification de la loi de conductivité ;
-- une modification de l'électro-osmose ;
-- une modification du calcul d'ASR ;
-- une modification du couplage à point fixe ;
-- une différence de grille ;
-- une différence de critère de convergence.
+Elle ne provient pas :
 
-Lorsque le nouveau mécanisme est désactivé, V0.6 revient exactement à V0.5.
+- d'une modification du solveur cathodique ;
+- d'une modification de la loi de conductivité ;
+- d'une modification du calcul d'ASR ;
+- d'une modification du couplage à point fixe ;
+- d'une modification de grille.
 
-La différence observée entre V0.5 et V0.6 avec k_a > 0 peut donc être attribuée
-au nouveau terme de transfert d'eau anodique.
+La nouvelle physique est donc introduite de manière contrôlée.
 
-*** Mise à jour des critères de validation
+*** Comparaison nominale V0.5 / V0.6
 
-- [X] k_a = 0 reproduit V0.5 dans le solveur couplé complet
-- [X] même lambda_anode
-- [X] même lambda_mean
-- [X] même ASR
-- [X] même phi_m
-- [X] même courant
-- [X] flux anodique nul
-
-Le contrôle interne principal de V0.6 est donc validé.
-
-*** Comparaison des deux cas nominaux actuellement disponibles
-
-Cas de référence :
-
-  k_a = 0
-
-donne :
+Référence V0.5 :
 
   lambda_anode = 3.249
   lambda_mean = 3.366
   ASR = 3.120e-5 ohm m²
   I = 2.172 mA
 
-Avec transfert anodique :
+V0.6 avec :
 
   k_a = 2e-6 m/s
 
-on obtient :
+donne :
 
   lambda_anode = 2.217
   lambda_mean = 2.844
   ASR = 3.965e-5 ohm m²
   I = 1.978 mA
 
-Effet du transfert :
+Variations :
 
   lambda_anode : -31.8 %
   lambda_mean  : -15.5 %
   ASR          : +27.1 %
   courant      : -8.94 %
 
-La causalité numérique est maintenant beaucoup plus solide :
+La chaîne physique est donc :
+
+  transfert d'eau vers l'anode
+  → assèchement de la membrane
+  → baisse de la conductivité protonique
+  → hausse de l'ASR
+  → chute protonique plus forte
+  → baisse du courant.
+
+** Restructuration de l'historique Git
+
+L'historique Git a été réorganisé afin qu'il reflète explicitement
+l'évolution scientifique du modèle.
+
+Objectif :
+
+faire de Git non seulement un historique logiciel, mais également un
+journal de développement scientifique.
+
+Chaque commit est maintenant associé à une phase :
+
+  [V0.1]
+  [V0.2]
+  [V0.3]
+  [V0.4]
+  [V0.5]
+  [V0.6]
+
+Les messages génériques de type :
+
+  Add PEMFC validation results
+
+ont été remplacés par des descriptions plus explicites lorsque nécessaire.
+
+Exemples :
+
+  [V0.4] Record V0.4 RH-voltage sweep results
+
+  [V0.5] Record V0.5 full spatial-convergence results
+
+  [V0.6] Record V0.6 nominal finite-transfer result
+
+  [V0.6] Record V0.6 zero-transfer continuity result
+
+Les versions validées disposent maintenant de tags annotés :
+
+  v0.1
+  v0.2
+  v0.3
+  v0.4
+  v0.5
+
+Chaque tag documente :
+
+- la physique ajoutée ;
+- les validations réalisées ;
+- le rôle de la version dans la progression du modèle.
+
+Une branche de sauvegarde a été conservée avant réécriture :
+
+  backup/pre-history-rewrite-20260928
+
+Elle contient l'ancien historique Git avant réorganisation.
+
+*** Principe adopté pour les futurs commits
+
+Les nouveaux commits doivent raconter le raisonnement scientifique.
+
+Format recommandé :
+
+  [V0.x] action précise
+
+Puis dans le corps :
+
+  Physics:
+  - mécanisme introduit
+
+  Numerics:
+  - grille
+  - solveur
+  - paramètres importants
+
+  Validation:
+  - tests
+  - convergence
+  - comparaison de référence
+
+  Interpretation:
+  - conséquence physique observée
+
+  Known limitations:
+  - hypothèses restantes
+  - paramètres non calibrés
+
+L'objectif est de pouvoir comprendre l'évolution du modèle en lisant :
+
+  git log --graph --decorate --format=medium
+
+sans devoir reconstruire toute la logique à partir des diffs.
+
+** État actuel
+
+À ce stade :
+
+- [X] cathode 3D
+- [X] transport O2
+- [X] électrochimie ORR
+- [X] potentiel électronique
+- [X] potentiel protonique
+- [X] membrane hydratée 1D
+- [X] conductivité dépendante de lambda
+- [X] électro-osmose
+- [X] rétro-diffusion
+- [X] résistance membrane
+- [X] couplage cathode 3D / membrane 1D
+- [X] étude RH / tension V0.5
+- [X] convergence spatiale V0.5
+- [X] transfert d'eau anodique fini
+- [X] point nominal V0.6 convergé
+- [X] continuité V0.6 -> V0.5 vérifiée à la précision machine
+- [ ] comparaison dry / nominal / wet V0.6
+- [ ] sensibilité à k_a
+- [ ] sensibilité à RH_anode
+- [ ] convergence spatiale V0.6
+- [ ] volume anodique dynamique
+- [ ] purge transitoire
+- [ ] transport H2
+- [ ] accumulation N2
+- [ ] eau liquide
+- [ ] modèle thermique
+- [ ] refroidissement cathodique
+- [ ] calibration sur données pile réelle
+
+** Prochaine étape
+
+Compléter trois régimes représentatifs avec :
+
+  k_a = 2e-6 m/s
+  RH_anode = 0
+
+Cas déjà disponible :
+
+  nominal
+  RH cathode = 0.50
+  V = 0.768 V
+
+Cas à calculer :
+
+  dry_high_load
+  RH cathode = 0.30
+  V = 0.700 V
+
+  wet_low_load
+  RH cathode = 0.90
+  V = 0.830 V
+
+But :
+
+déterminer si le transfert anodique est plus pénalisant :
+
+- en régime sec ;
+- à forte charge ;
+- ou dans des conditions humides à faible charge.
+
+Les références k_a = 0 sont déjà disponibles via V0.5.
+
+Il n'est donc pas nécessaire de recalculer ces cas à k_a = 0.
+
+** V0.6 — Campagne multi-régime à transfert anodique fini
+
+Le contrôle de continuité :
 
   k_a = 0
-  → V0.5 exactement
 
-  k_a > 0
-  → drainage
-  → assèchement
-  → ASR plus élevée
-  → courant plus faible
+a montré que V0.6 reproduit V0.5 à la précision machine.
 
-*** Décision de développement
+Le cas nominal avec transfert fini :
 
-Il n'est plus nécessaire de recalculer systématiquement V0.6 avec k_a = 0 pour
-chaque point de fonctionnement.
+  k_a = 2e-6 m/s
 
-La limite a été validée :
+a également convergé et montre un effet mesurable du drainage anodique sur
+l'hydratation, la conductivité protonique, l'ASR et le courant.
 
-- analytiquement ;
-- par tests unitaires ;
-- dans le solveur couplé complet ;
-- au niveau de la précision machine.
+La suite de V0.6 consiste donc à vérifier si cet effet dépend fortement du
+point de fonctionnement.
 
-Les résultats V0.5 existants peuvent donc servir de références k_a = 0 pour la
-suite de l'étude.
+*** Gate logiciel avant calcul
 
-Cela évite de doubler inutilement le coût des simulations.
+Avant le lancement de la campagne :
 
-La prochaine étape consiste à calculer seulement les deux nouveaux cas
-k_a = 2e-6 m/s :
+  make test
 
-1. dry_high_load
-   RH cathode = 0.30
-   V cathode = 0.700 V
+donne :
 
-2. wet_low_load
-   RH cathode = 0.90
-   V cathode = 0.830 V
+  39 passed
 
-Le point nominal est déjà disponible.
+et les contrôles Ruff et mypy passent également.
 
-On disposera alors de trois régimes permettant d'étudier si le drainage
-anodique est davantage pénalisant :
+La branche de travail est donc dans un état logiciel validé avant les nouveaux
+calculs.
 
-- à faible RH ;
+*** Paramètres communs
+
+Les trois régimes utilisent :
+
+  k_a = 2e-6 m/s
+  RH anode = 0
+
+Grille cathode :
+
+  nx = 16
+  ny = 16
+  nz = 48
+
+Grille membrane :
+
+  membrane_nz = 129
+
+Intégration temporelle cathodique :
+
+  stop_time = 0.0064 s
+  max_dt = 1e-6 s
+  scalar_dt = 1e-5 s
+
+Parallélisme :
+
+  MPI = 8 processus
+
+Couplage partitionné :
+
+  relaxation = 0.5
+  max_coupling_iterations = 8
+  current_rtol = 0.005
+  potential_atol = 5e-4 V
+
+*** Régimes étudiés
+
+**** dry_high_load
+
+Conditions :
+
+  RH cathode = 0.30
+  V cathode = 0.700 V
+
+Sortie prévue :
+
+  results/v06-dry-high-load.json
+
+Répertoire de calcul :
+
+  .v06-dry-high-load
+
+État :
+
+  [ ] calcul terminé
+  [ ] couplage convergé
+  [ ] validation cathode passée
+
+**** nominal
+
+Conditions :
+
+  RH cathode = 0.50
+  V cathode = 0.768 V
+
+Sortie :
+
+  results/v06-coupled-membrane.json
+
+État :
+
+  [X] calcul terminé
+  [X] couplage convergé
+  [X] validation cathode passée
+
+Résultats principaux :
+
+  I = 1.9780668 mA
+  J = 989.0334 A/m²
+
+  lambda_anode = 2.2165
+  lambda_mean = 2.8443
+
+  ASR = 3.9647e-5 ohm m²
+
+Comparé à V0.5 :
+
+  courant      : -8.94 %
+  lambda_anode : -31.8 %
+  lambda_mean  : -15.5 %
+  ASR          : +27.1 %
+
+**** wet_low_load
+
+Conditions :
+
+  RH cathode = 0.90
+  V cathode = 0.830 V
+
+Sortie prévue :
+
+  results/v06-wet-low-load.json
+
+Répertoire de calcul :
+
+  .v06-wet-low-load
+
+État :
+
+  [ ] calcul terminé
+  [ ] couplage convergé
+  [ ] validation cathode passée
+
+*** Comparaison prévue
+
+Pour chacun des trois régimes, les résultats V0.5 existants servent de
+référence :
+
+  k_a = 0
+
+Il n'est donc pas nécessaire de recalculer ces références avec V0.6.
+
+Les grandeurs comparées seront :
+
+- courant total I ;
+- densité de courant J ;
+- lambda_anode ;
+- lambda_mean ;
+- lambda_min ;
+- conductivité protonique moyenne ;
+- conductivité protonique minimale ;
+- ASR membrane ;
+- potentiel protonique de bord ;
+- flux d'eau anodique ;
+- nombre d'itérations du couplage ;
+- résidus de convergence.
+
+La question physique est :
+
+  l'effet du transfert d'eau vers l'anode dépend-il fortement du régime de
+  fonctionnement ?
+
+En particulier, il faut déterminer si la pénalité est plus importante :
+
+- à faible humidité cathodique ;
 - à forte charge ;
-- ou au contraire dans les conditions humides à faible charge.
+- au point nominal ;
+- ou si une forte humidité cathodique compense largement le drainage anodique.
 
-*** État de la matrice V0.6
+La chaîne causale recherchée reste :
 
-Références k_a = 0 :
+  transfert anodique
+  -> profil lambda
+  -> conductivité protonique
+  -> ASR
+  -> chute protonique
+  -> courant.
 
-- [X] dry_high_load : disponible en V0.5
-- [X] nominal       : continuité V0.6 explicitement vérifiée
-- [X] wet_low_load  : disponible en V0.5
+*** Critère de passage à l'étape suivante
 
-Cas k_a = 2e-6 :
+La campagne sera considérée comme exploitable lorsque :
 
-- [ ] dry_high_load
-- [X] nominal
-- [ ] wet_low_load
+- [ ] dry_high_load converge ;
+- [X] nominal converge ;
+- [ ] wet_low_load converge ;
+- [ ] les validations cathodiques passent pour les trois cas ;
+- [ ] les trois cas ont été comparés quantitativement aux références V0.5.
 
-Il ne reste donc que deux simulations nouvelles pour compléter cette première
-comparaison multi-régime.
+Après cette étape, la prochaine question V0.6 sera la sensibilité au coefficient :
+
+  k_a
+
+afin de vérifier que les conclusions ne dépendent pas uniquement de la valeur
+provisoire :
+
+  k_a = 2e-6 m/s.
