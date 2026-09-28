@@ -3,11 +3,14 @@
 Each coupling iteration:
 1. solves the V0.4 cathode for a membrane-interface proton potential,
 2. obtains representative current density from the integrated cathode current,
-3. computes steady membrane water transport with diffusion + electro-osmotic drag + finite anode transfer,
+3. computes steady membrane water transport with diffusion + electro-osmotic
+drag + finite anode transfer,
 4. integrates membrane protonic area-specific resistance,
 5. updates the cathode membrane-interface proton potential.
 
-This remains a quasi-steady partitioned coupling. V0.6 replaces the V0.5 zero-anode-flux boundary with a finite Robin transfer condition toward an anode-gas equilibrium hydration.
+This remains a quasi-steady partitioned coupling. V0.6 replaces the V0.
+zero-anode-flux boundary with a finite Robin transfer condition toward an
+anode-gas equilibrium hydration.
 """
 
 from __future__ import annotations
@@ -23,12 +26,12 @@ from typing import Any
 import numpy as np
 
 from pemfc_dedalus.membrane import (
+    anode_water_removal_flux_lambda_m_s,
     electro_osmotic_lambda_velocity,
     membrane_area_specific_resistance,
     membrane_fixed_charge_concentration,
     membrane_proton_conductivity,
     membrane_water_content_from_activity,
-    anode_water_removal_flux_lambda_m_s,
     steady_membrane_water_profile_anode_transfer,
 )
 from pemfc_dedalus.parameters import CathodeParameters
