@@ -16,7 +16,6 @@ import sys
 from pathlib import Path
 from typing import Any
 
-
 POINTS = (
     (0.30, 0.700, "dry_high_load"),
     (0.50, 0.768, "nominal"),
