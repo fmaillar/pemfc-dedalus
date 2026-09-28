@@ -147,3 +147,78 @@ def steady_membrane_water_profile_zero_anode_flux(
     return lambda_cathode * np.exp(
         drag_velocity_m_s * (z - z[-1]) / diffusivity_m2_s
     )
+
+
+def steady_membrane_water_profile_anode_transfer(
+    z_m: np.ndarray,
+    *,
+    lambda_cathode: float,
+    lambda_anode_equilibrium: float,
+    diffusivity_m2_s: float,
+    drag_velocity_m_s: float,
+    anode_transfer_coefficient_m_s: float,
+) -> np.ndarray:
+    """Return steady lambda with finite water transfer to the anode gas.
+
+    The membrane coordinate increases from anode to cathode. The steady total
+    lambda flux is J = -D d(lambda)/dz + v lambda, while the anode boundary
+    removes water toward the gas according to
+    -J = k_a (lambda_anode - lambda_anode_equilibrium).
+
+    k_a is a phenomenological interfacial conductance in lambda-space. It is
+    an explicit modelling parameter, not a Ballard-manual value. Setting
+    k_a = 0 recovers the V0.5 zero-anode-flux boundary exactly.
+    """
+    z = np.asarray(z_m, dtype=float)
+    if z.ndim != 1 or z.size < 2:
+        raise ValueError("z_m must be a one-dimensional grid with at least two points")
+    if diffusivity_m2_s <= 0.0:
+        raise ValueError("diffusivity_m2_s must be positive")
+    if anode_transfer_coefficient_m_s < 0.0:
+        raise ValueError("anode_transfer_coefficient_m_s must be non-negative")
+    if lambda_cathode < 0.0 or lambda_anode_equilibrium < 0.0:
+        raise ValueError("membrane water contents must be non-negative")
+
+    length = float(z[-1] - z[0])
+    if length <= 0.0:
+        raise ValueError("z_m must be strictly increasing overall")
+
+    peclet = drag_velocity_m_s * length / diffusivity_m2_s
+    if abs(peclet) < 1.0e-8:
+        transfer_number = anode_transfer_coefficient_m_s * length / diffusivity_m2_s
+        lambda_anode = (
+            lambda_cathode
+            + transfer_number * lambda_anode_equilibrium
+        ) / (1.0 + transfer_number)
+    else:
+        beta = np.exp(-peclet)
+        transfer_number = (
+            anode_transfer_coefficient_m_s
+            * (1.0 - beta)
+            / drag_velocity_m_s
+        )
+        lambda_anode = (
+            beta * lambda_cathode
+            + transfer_number * lambda_anode_equilibrium
+        ) / (1.0 + transfer_number)
+
+    return steady_membrane_water_profile(
+        z,
+        lambda_anode=float(lambda_anode),
+        lambda_cathode=lambda_cathode,
+        diffusivity_m2_s=diffusivity_m2_s,
+        drag_velocity_m_s=drag_velocity_m_s,
+    )
+
+
+def anode_water_removal_flux_lambda_m_s(
+    lambda_anode: float,
+    lambda_anode_equilibrium: float,
+    anode_transfer_coefficient_m_s: float,
+) -> float:
+    """Return positive lambda-space water flux removed into the anode gas [m/s]."""
+    if anode_transfer_coefficient_m_s < 0.0:
+        raise ValueError("anode_transfer_coefficient_m_s must be non-negative")
+    return anode_transfer_coefficient_m_s * (
+        lambda_anode - lambda_anode_equilibrium
+    )
