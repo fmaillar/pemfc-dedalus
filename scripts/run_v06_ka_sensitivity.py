@@ -161,7 +161,7 @@ def main() -> None:
     parser.add_argument("--max-dt", type=float, default=1.0e-6)
     parser.add_argument("--scalar-dt", type=float, default=1.0e-5)
     parser.add_argument("--anode-relative-humidity", type=float, default=0.0)
-    parser.add_argument("--max-coupling-iterations", type=int, default=8)
+    parser.add_argument("--max-coupling-iterations", type=int, default=12)
     parser.add_argument("--relaxation", type=float, default=0.5)
     parser.add_argument("--current-rtol", type=float, default=5.0e-3)
     parser.add_argument("--potential-atol", type=float, default=5.0e-4)
@@ -233,9 +233,25 @@ def main() -> None:
                         "existing_v06_reference",
                     )
                 else:
+                    data: dict[str, Any] | None = None
                     if case_output.exists():
-                        print(f"reusing {case_output}", flush=True)
-                    else:
+                        candidate = json.loads(case_output.read_text())
+                        if bool(candidate.get("converged")):
+                            print(f"reusing converged {case_output}", flush=True)
+                            data = candidate
+                        else:
+                            print(
+                                f"{case_output} exists but is unconverged; retrying",
+                                flush=True,
+                            )
+
+                    if data is None:
+                        attempt = 0
+                        work_dir = case_dir / "iterations"
+                        while work_dir.exists():
+                            attempt += 1
+                            work_dir = case_dir / f"iterations-retry-{attempt:02d}"
+
                         run_command(
                             [
                                 sys.executable,
@@ -276,13 +292,14 @@ def main() -> None:
                                 args.mpiexec,
                                 f"--mpi-flags={args.mpi_flags}",
                                 "--work-dir",
-                                str(case_dir / "iterations"),
+                                str(work_dir),
                                 "--output",
                                 str(case_output),
                             ],
                             env,
                         )
-                    data = json.loads(case_output.read_text())
+                        data = json.loads(case_output.read_text())
+
                     row = v06_result_to_summary(regime, k_value, data, "computed_v06")
 
             rows.append(row)
