@@ -13,3 +13,22 @@ output-electrochem/
 output-electrochem-*/
 .test-output/
 .DS_Store
+
+# Local PEMFC simulation work directories
+.overnight-output/
+.quick-overnight-output/
+.quick-study-output/
+.quick-v05-grid/
+.quick-v05-strict/
+.quick-v05-sweep/
+.quick-v05/
+.quick-v06/
+.study-output/
+.v05-coupling/
+.v05-grid-study/
+.v05-sweep/
+.v06-continuity-nominal/
+.v06-coupling/
+
+# Local simulation logs
+overnight-v04.log
