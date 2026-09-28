@@ -1,0 +1,1177 @@
+* Journal de recherche — Modélisation 3D d'une PEMFC avec Dedalus
+
+** Vision générale du projet
+
+L'objectif du projet est de construire progressivement un modèle numérique
+multiphysique d'une pile PEMFC, suffisamment détaillé pour représenter les
+mécanismes physiques importants tout en restant numériquement contrôlable.
+
+Le système cible est une pile de type Ballard 200 W, à cathode ouverte et anode
+hydrogène en mode dead-end avec purge périodique.
+
+L'objectif final n'est pas simplement d'obtenir une courbe courant-tension.
+Le but est de construire un modèle capable de représenter spatialement et
+dynamiquement les phénomènes suivants :
+
+- transport de l'oxygène dans la cathode ;
+- diffusion dans la GDL ;
+- transport dans la couche catalytique ;
+- réaction électrochimique ORR ;
+- conduction électronique dans la phase solide ;
+- conduction protonique dans l'ionomère ;
+- hydratation de la membrane ;
+- diffusion de l'eau dans la membrane ;
+- électro-osmose ;
+- rétro-diffusion de l'eau ;
+- échanges d'eau avec l'anode ;
+- fonctionnement dead-end de l'anode ;
+- purge périodique ;
+- accumulation éventuelle d'eau liquide ;
+- transport thermique ;
+- refroidissement par l'air de la cathode ouverte ;
+- influence du débit d'air ;
+- couplage avec la température ;
+- à terme, phénomènes transitoires complets.
+
+L'idée directrice est de ne jamais introduire toute la physique en une seule
+fois.
+
+Une simulation multiphysique complexe peut donner des résultats visuellement
+plausibles tout en étant fausse pour des raisons numériques ou conceptuelles.
+Le développement doit donc progresser par niveaux, chaque nouveau mécanisme
+étant testé indépendamment avant d'être couplé aux précédents.
+
+Principe méthodologique retenu :
+
+  physique simple
+  → tests unitaires
+  → simulation courte
+  → validation physique
+  → convergence numérique
+  → ajout d'une nouvelle physique
+
+Chaque version doit posséder une limite identifiable permettant de retrouver
+la version précédente.
+
+Cela permet de distinguer :
+
+- une vraie conséquence physique ;
+- un changement dû à un paramètre ;
+- un problème de convergence ;
+- un artefact de discrétisation ;
+- une erreur d'implémentation.
+
+** Système physique de référence
+
+Le modèle est construit autour d'une pile de type FCgen / FCvelocity 1020ACS.
+
+Les données utilisées proviennent autant que possible du manuel Ballard.
+
+Données de référence disponibles :
+
+- puissance nominale : environ 200 W ;
+- courant de fonctionnement considéré : environ 26.04 A ;
+- nombre de cellules provisoire : 10 ;
+- tension cellule nominale utilisée : environ 0.768 V ;
+- température optimale au point nominal :
+    T_opt ≈ 39.81 °C ;
+- cathode ouverte ;
+- refroidissement assuré par le flux d'air cathodique ;
+- anode hydrogène dead-end ;
+- purge périodique ;
+- volume de purge :
+    environ 20 mL par cellule,
+    soit environ 200 mL pour 10 cellules ;
+- intervalle de purge dérivé du manuel :
+    environ 2300 A.s ;
+- au point nominal :
+    période de purge ≈ 88.3 s.
+
+Le manuel donne également une relation empirique pour la température optimale :
+
+  T_opt [°C] = 26.01 + 0.53 I
+
+Au courant nominal :
+
+  I = 26.04 A
+
+donc :
+
+  T_opt ≈ 39.81 °C
+
+Le débit stœchiométrique d'air nécessaire à la réaction est beaucoup plus faible
+que le débit réellement utilisé dans une cathode ouverte.
+
+Une distinction importante a donc été introduite entre :
+
+- débit d'air nécessaire à l'oxygène ;
+- débit d'air nécessaire au refroidissement.
+
+Le seuil d'air calculé initialement autour de 216 slpm correspond à un choix
+conservatif de stœchiométrie élevée et ne doit pas être interprété comme le
+débit physique exact du ventilateur.
+
+** Choix de Dedalus
+
+Dedalus a été choisi comme infrastructure de résolution.
+
+Motivations :
+
+- formulation spectrale ;
+- bonne adaptation aux PDE multiphysiques ;
+- possibilité de domaines 1D, 2D et 3D ;
+- prise en charge MPI ;
+- possibilité d'ajouter progressivement les champs physiques ;
+- contrôle relativement explicite des équations.
+
+Environnement :
+
+- Debian 13 ;
+- Python 3.13 ;
+- Dedalus 3.0.5 ;
+- mpi4py ;
+- OpenMPI.
+
+La machine principale utilisée pour les calculs est le m710s.
+
+Les premiers benchmarks montrent que :
+
+- 4 processus MPI correspondent aux quatre cœurs physiques ;
+- 8 processus sont possibles avec les threads logiques ;
+- 8 processus diminuent légèrement le temps mur ;
+- 4 processus restent meilleurs en efficacité CPU.
+
+Pour les études longues, priorité donnée au temps mur :
+
+  MPI_N = 8
+
+avec :
+
+  OMP_NUM_THREADS=1
+  NUMEXPR_NUM_THREADS=1
+
+** Stratégie de construction du modèle
+
+Le plan initial de développement est découpé en étapes.
+
+*** Étape 1 — transport d'oxygène seul
+
+Construire un domaine cathodique 3D simple.
+
+Objectifs :
+
+- vérifier Dedalus ;
+- vérifier la géométrie ;
+- tester MPI ;
+- vérifier les conditions aux limites ;
+- établir un premier pipeline de résultats ;
+- créer les premiers tests.
+
+*** Étape 2 — électrochimie
+
+Ajouter :
+
+- potentiel électronique phi_s ;
+- potentiel protonique phi_m ;
+- surtension ;
+- réaction Butler-Volmer ;
+- consommation d'oxygène.
+
+Objectif :
+
+obtenir un système cathodique couplé transport + électrochimie.
+
+*** Étape 3 — membrane hydratée
+
+Isoler d'abord la membrane en 1D.
+
+Ajouter :
+
+- teneur en eau lambda ;
+- conductivité protonique dépendant de lambda ;
+- électro-osmose ;
+- diffusion de l'eau ;
+- relation Springer.
+
+Objectif :
+
+valider séparément la physique de membrane avant de la coupler au modèle 3D.
+
+*** Étape 4 — hydratation cathodique
+
+Relier l'humidité cathodique à la conductivité protonique de la couche
+catalytique.
+
+Objectif :
+
+introduire un premier lien entre l'état hydrique et l'électrochimie.
+
+*** Étape 5 — couplage membrane / cathode
+
+Faire communiquer :
+
+  cathode 3D
+  ↕
+  membrane 1D
+
+Objectif :
+
+faire dépendre la tension protonique interfaciale de la résistance réelle de la
+membrane.
+
+*** Étape 6 — eau côté anode
+
+Abandonner progressivement l'hypothèse simplifiée de flux d'eau nul côté anode.
+
+Objectif :
+
+faire apparaître un vrai drainage ou une vraie accumulation d'eau côté anode.
+
+*** Étapes futures
+
+- dynamique de purge ;
+- volume anodique ;
+- humidité anodique dynamique ;
+- flux de H2 ;
+- accumulation d'azote ;
+- eau liquide ;
+- transport thermique ;
+- débit d'air ;
+- refroidissement ;
+- géométrie plus réaliste ;
+- calibration sur une vraie courbe de polarisation.
+
+** V0.1 — Cathode 3D avec transport d'oxygène
+
+La première version devait rester volontairement minimale.
+
+Le domaine représente un petit patch de cathode :
+
+  Lx = 2 mm
+  Ly = 1 mm
+
+avec :
+
+- GDL ≈ 200 µm ;
+- couche catalytique ≈ 12 µm.
+
+Ces dimensions internes ne proviennent pas du manuel Ballard.
+Elles sont des hypothèses explicites de modélisation.
+
+Le domaine utilise :
+
+- Fourier réel dans x ;
+- Fourier réel dans y ;
+- Chebyshev dans z.
+
+La première physique introduite est la concentration en oxygène.
+
+Le transport est diffusif avec des coefficients effectifs différents dans :
+
+- la GDL ;
+- la couche catalytique.
+
+La réaction est représentée initialement par un puits pseudo-premier ordre.
+
+Cette version n'a pas vocation à être physiquement complète.
+
+Son rôle est essentiellement numérique :
+
+- vérifier le maillage ;
+- vérifier les sorties HDF5 ;
+- vérifier MPI ;
+- contrôler les temps de calcul ;
+- construire les premiers outils de validation.
+
+Premier enseignement :
+
+la stratégie consistant à construire un modèle simple avant de complexifier le
+système fonctionne bien avec Dedalus.
+
+** V0.2 — Couplage transport / électrochimie
+
+La version suivante ajoute trois champs principaux :
+
+- c_O2 ;
+- phi_s ;
+- phi_m.
+
+La réaction est remplacée par une formulation électrochimique de type
+Butler-Volmer.
+
+La surtension locale est construite à partir de :
+
+  eta = phi_s - phi_m - E_eq
+
+La réaction volumique ORR dépend :
+
+- de la surtension ;
+- de la concentration en oxygène ;
+- d'un courant d'échange volumique j0.
+
+Le courant d'échange utilisé reste un paramètre de calibration.
+
+La microstructure réelle de la couche catalytique n'étant pas connue,
+l'objectif n'est pas encore de prédire exactement la pile Ballard.
+
+*** Problème de signe dans l'équation protonique
+
+Une erreur importante a été identifiée au cours du développement.
+
+La relation :
+
+  i_m = -sigma_m grad(phi_m)
+
+et la consommation de protons par l'ORR donnent :
+
+  div(i_m) = -j_ORR
+
+donc :
+
+  div(sigma_m grad(phi_m)) = +j_ORR
+
+Le signe initial utilisé dans la pseudo-dynamique protonique était incorrect.
+
+Cette erreur a été corrigée dans V0.2 puis répercutée dans les versions
+suivantes.
+
+Cet épisode a confirmé l'importance de vérifier les équations à partir des lois
+de conservation plutôt que de se fier uniquement à la stabilité numérique.
+
+*** Convergence spatiale V0.2
+
+Trois grilles ont été étudiées :
+
+  8×8×24
+  12×12×36
+  16×16×48
+
+Résultats principaux après correction :
+
+8×8×24 :
+  c_O2 ≈ 7.45632
+  eta ≈ -0.412195
+  I ≈ 0.004250 A
+
+12×12×36 :
+  c_O2 ≈ 7.45874
+  eta ≈ -0.412102
+  I ≈ 0.004060 A
+
+16×16×48 :
+  c_O2 ≈ 7.45893
+  eta ≈ -0.412102
+  I ≈ 0.004046 A
+
+L'écart de grille devient faible.
+
+La convergence numérique apparaît suffisante pour utiliser 16×16×48 comme
+grille standard intermédiaire.
+
+** V0.3 — Membrane hydratée 1D
+
+Avant de coupler l'eau au modèle 3D, décision prise de développer une membrane
+1D séparée.
+
+Cette étape permet de vérifier indépendamment :
+
+- hydratation ;
+- conductivité ;
+- électro-osmose ;
+- diffusion.
+
+*** Teneur en eau
+
+La relation Springer est utilisée :
+
+  lambda(a) =
+    0.043
+    + 17.81 a
+    - 39.85 a²
+    + 36 a³
+
+avec :
+
+  0 <= a <= 1
+
+où a représente l'activité de l'eau.
+
+*** Conductivité protonique
+
+La conductivité dépend fortement de lambda.
+
+Relation de type Springer :
+
+  sigma =
+    (0.005139 lambda - 0.00326)
+    exp[1268 (1/303 - 1/T)]
+
+La relation initiale est exprimée en S/cm puis convertie en S/m.
+
+Cette dépendance est essentielle :
+
+  membrane sèche
+  → conductivité faible
+  → résistance élevée
+  → perte ohmique importante.
+
+*** Electro-osmose
+
+Le coefficient de drag est pris comme :
+
+  n_drag = lambda / 22
+
+Le courant protonique transporte donc de l'eau de l'anode vers la cathode.
+
+En parallèle, la diffusion peut transporter l'eau dans le sens opposé.
+
+Le bilan entre :
+
+- électro-osmose ;
+- diffusion ;
+
+détermine le profil d'hydratation dans la membrane.
+
+*** Résultats V0.3
+
+Avec une grille membrane fine :
+
+  nz = 64
+
+on obtient notamment :
+
+  lambda_mean ≈ 1.7246
+  sigma_mean ≈ 0.6718 S/m
+
+La solution est stable et convergée.
+
+Cette étape valide les relations constitutives avant leur utilisation dans le
+couplage complet.
+
+** V0.4 — Cathode 3D hydratée
+
+La V0.4 introduit une première dépendance de l'électrochimie à l'humidité.
+
+La RH cathodique est transformée en teneur en eau via Springer.
+
+Cette valeur est utilisée pour ajuster la conductivité protonique de la couche
+catalytique.
+
+Ce modèle reste simplifié :
+
+la membrane n'est pas encore résolue dynamiquement dans le modèle cathodique.
+
+La RH impose essentiellement un état d'hydratation représentatif de la CL.
+
+*** Sweep RH / tension
+
+Un sweep complet est réalisé.
+
+RH :
+
+  10 %
+  30 %
+  50 %
+  70 %
+  90 %
+
+Tensions :
+
+  0.62 V
+  0.70 V
+  0.768 V
+  0.83 V
+
+20 cas au total.
+
+Tous les cas passent la validation.
+
+Exemple des teneurs en eau :
+
+RH 10 % :
+  lambda ≈ 1.46
+
+RH 30 % :
+  lambda ≈ 2.77
+
+RH 50 % :
+  lambda ≈ 3.49
+
+RH 70 % :
+  lambda ≈ 5.33
+
+RH 90 % :
+  lambda ≈ 10.04
+
+La conductivité augmente fortement avec RH.
+
+Le courant augmente également.
+
+Cela confirme qualitativement la chaîne :
+
+  RH ↑
+  → lambda ↑
+  → sigma_m ↑
+  → pertes protoniques ↓
+  → courant ↑
+
+*** Convergence spatiale V0.4
+
+La convergence spatiale reste excellente.
+
+L'écart entre les grilles fines est de l'ordre de quelques dixièmes de pourcent.
+
+Conclusion :
+
+la nouvelle physique d'hydratation ne détruit pas la convergence spatiale
+obtenue en V0.2.
+
+** V0.5 — Couplage membrane / cathode
+
+La V0.5 marque un changement important.
+
+Jusqu'ici, l'hydratation de la membrane n'influençait pas directement la
+condition de potentiel protonique appliquée à la cathode.
+
+L'idée est alors de construire un couplage partitionné :
+
+  cathode 3D
+  → courant
+  → membrane 1D
+  → ASR membrane
+  → chute de potentiel protonique
+  → nouvelle cathode 3D
+
+Le processus est itératif.
+
+*** Algorithme de couplage
+
+À chaque itération :
+
+1. résoudre la cathode 3D ;
+2. intégrer le courant ;
+3. calculer la densité de courant :
+
+     J = I / A
+
+4. calculer l'électro-osmose ;
+5. calculer le profil lambda(z) ;
+6. calculer sigma(lambda) ;
+7. intégrer l'ASR membrane :
+
+     ASR = integral dz / sigma
+
+8. calculer la cible :
+
+     phi_m,target = -J ASR
+
+9. relaxer :
+
+     phi_m,next =
+       (1-r) phi_m
+       + r phi_m,target
+
+10. recommencer jusqu'à convergence.
+
+La V0.5 est donc un couplage :
+
+  quasi-stationnaire
+  partitionné
+  à point fixe.
+
+Ce n'est pas encore un modèle monolithique.
+
+*** Première tentative de condition anodique
+
+Une première idée consistait à imposer une hydratation anodique fixe,
+correspondant à une alimentation sèche.
+
+Cette approche donne une membrane beaucoup trop sèche et une résistance
+anormalement élevée.
+
+Décision :
+
+ne pas utiliser une valeur fixe arbitraire de lambda côté anode.
+
+*** Hypothèse zéro-flux
+
+La condition retenue pour V0.5 est :
+
+  flux d'eau net à l'anode = 0
+
+entre deux purges.
+
+Dans le modèle stationnaire :
+
+  J_water =
+    -D d(lambda)/dz
+    + v lambda
+
+avec :
+
+  J_water = 0
+
+La solution devient exponentielle.
+
+Cette approximation représente une anode dead-end idéale entre deux événements
+de purge.
+
+Elle permet notamment à la rétro-diffusion cathode → anode de maintenir
+l'hydratation côté anode.
+
+Mais elle reste volontairement simplifiée.
+
+*** Premier résultat nominal
+
+Au point :
+
+  RH cathode = 0.5
+  V = 0.768 V
+
+V0.5 donne environ :
+
+  I = 2.17 mA
+  J = 1086 A/m²
+  ASR ≈ 3.12e-5 ohm m²
+  lambda_anode ≈ 3.25
+  lambda_mean ≈ 3.37
+
+Comparé à V0.4, le courant diminue fortement.
+
+Cette baisse provient essentiellement de l'introduction explicite de la chute
+ohmique de la membrane.
+
+Ce résultat montre qu'une membrane représentée seulement par une conductivité
+locale dans la CL sous-estime fortement les pertes protoniques globales.
+
+*** Sweep V0.5 RH / tension
+
+Une matrice 3×3 est étudiée.
+
+RH :
+
+  0.3
+  0.5
+  0.9
+
+Tension :
+
+  0.70 V
+  0.768 V
+  0.83 V
+
+9 cas.
+
+Tous convergent.
+
+Résultat général :
+
+la pénalité membrane est plus forte :
+
+- à faible RH ;
+- à forte charge.
+
+Exemples de réduction de courant V0.4 → V0.5 :
+
+RH 30 % :
+  V=0.70  → environ -67.5 %
+  V=0.768 → environ -48.7 %
+  V=0.83  → environ -28.5 %
+
+RH 50 % :
+  V=0.70  → environ -63.8 %
+  V=0.768 → environ -43.5 %
+  V=0.83  → environ -23.8 %
+
+RH 90 % :
+  V=0.70  → environ -44.8 %
+  V=0.768 → environ -22.8 %
+  V=0.83  → environ -9.4 %
+
+Interprétation :
+
+à forte charge, le courant protonique augmente.
+
+Donc :
+
+  J ↑
+  → chute ohmique J·ASR ↑
+  → phi_m plus négatif
+  → surtension cathodique moins favorable
+  → courant ↓
+
+À faible RH, l'ASR est également plus élevée.
+
+Les deux effets se renforcent.
+
+*** Convergence spatiale V0.5
+
+Trois régimes représentatifs sont étudiés :
+
+dry_high_load :
+  RH = 0.3
+  V = 0.700 V
+
+nominal :
+  RH = 0.5
+  V = 0.768 V
+
+wet_low_load :
+  RH = 0.9
+  V = 0.830 V
+
+Grilles :
+
+  16×16×48
+  24×24×72
+  32×32×96
+
+Les variations entre les deux grilles les plus fines restent extrêmement
+faibles.
+
+Courant 24 → 32 :
+
+dry_high_load :
+  ≈ 0.013 %
+
+nominal :
+  ≈ 0.0085 %
+
+wet_low_load :
+  ≈ 0.010 %
+
+Conclusion :
+
+  16×16×48
+
+est suffisant pour les campagnes paramétriques.
+
+  32×32×96
+
+reste la grille de validation.
+
+La forte pénalité observée en V0.5 n'est donc pas un artefact spatial.
+
+*** Validation finale V0.5
+
+Avant merge :
+
+  pytest : 35 passed
+  Ruff : OK
+  mypy : OK
+
+La V0.5 est mergée dans main.
+
+Cette version devient la nouvelle référence du projet.
+
+** Réflexion après V0.5
+
+À ce stade, le modèle contient déjà :
+
+- cathode 3D ;
+- diffusion O2 ;
+- potentiel électronique ;
+- potentiel protonique ;
+- ORR ;
+- hydratation de la membrane ;
+- électro-osmose ;
+- rétro-diffusion ;
+- résistance membrane ;
+- couplage cathode / membrane.
+
+Mais une hypothèse devient clairement limitante :
+
+  J_water,anode = 0
+
+Cette condition suppose qu'aucune eau ne quitte la membrane par l'anode entre
+les purges.
+
+Physiquement, cela est trop restrictif.
+
+Même en mode dead-end, l'anode peut échanger de l'eau avec :
+
+- le gaz ;
+- les parois ;
+- le volume anodique ;
+- la purge ;
+- éventuellement un flux résiduel.
+
+La prochaine version doit donc introduire une condition de transfert d'eau
+anodique finie.
+
+** V0.6 — Transport d'eau côté anode
+
+Objectif :
+
+remplacer :
+
+  J_water,anode = 0
+
+par :
+
+  -J = k_a (lambda_anode - lambda_eq,anode)
+
+où :
+
+  k_a
+  = coefficient de transfert d'eau côté anode ;
+
+  lambda_eq,anode
+  = hydratation d'équilibre imposée par RH_anode.
+
+Cette condition est de type Robin.
+
+Elle représente un échange fini entre :
+
+- membrane ;
+- environnement anodique.
+
+*** Raisonnement derrière cette condition
+
+On veut conserver deux propriétés essentielles.
+
+Premièrement :
+
+  k_a = 0
+
+doit redonner exactement V0.5.
+
+Cela fournit une limite de continuité extrêmement utile pour la validation.
+
+Deuxièmement :
+
+si :
+
+  lambda_anode > lambda_eq,anode
+
+alors l'eau doit quitter la membrane.
+
+Le flux de retrait est donc positif.
+
+Cette condition introduit une nouvelle physique tout en conservant un contrôle
+direct sur son intensité.
+
+*** Paramètre k_a
+
+Valeur provisoire choisie :
+
+  k_a = 2e-6 m/s
+
+Cette valeur n'est pas donnée par Ballard.
+
+Elle est volontairement considérée comme :
+
+  paramètre de modèle
+
+et non :
+
+  donnée expérimentale.
+
+La logique actuelle n'est pas de rechercher immédiatement la "bonne valeur".
+
+Il faut d'abord vérifier que le modèle répond correctement lorsqu'on fait varier
+k_a.
+
+*** Tests unitaires V0.6
+
+Les tests vérifient notamment :
+
+- k_a = 0 reproduit exactement la condition V0.5 ;
+- k_a > 0 draine la membrane ;
+- la limite sans drag électro-osmotique est correcte ;
+- le flux de retrait est positif lorsque lambda_anode > lambda_eq.
+
+Tous les tests passent.
+
+*** Driver V0.6
+
+Un driver séparé est créé.
+
+V0.5 reste donc intacte.
+
+Paramètres nouveaux :
+
+  --anode-relative-humidity
+  --anode-water-transfer-coefficient
+
+Les résultats enregistrent maintenant :
+
+- lambda_anode ;
+- lambda_mean ;
+- ASR ;
+- sigma ;
+- flux d'eau anodique.
+
+*** Quick run V0.6
+
+Premier préflight :
+
+  RH cathode = 0.50
+  RH anode = 0
+  V = 0.768 V
+  k_a = 2e-6 m/s
+  grille = 8×8×24
+
+La simulation converge en 4 itérations.
+
+Le courant évolue :
+
+  4.598 mA
+  → 1.983 mA
+  → 2.141 mA
+  → 2.161 mA
+
+Le potentiel protonique évolue :
+
+  0
+  → -47.94 mV
+  → -43.63 mV
+  → -43.10 mV
+
+Un overshoot initial existe.
+
+Mais il est amorti.
+
+Aucune oscillation persistante n'apparaît.
+
+Conclusion :
+
+le nouveau couplage est numériquement stable dans ce premier test.
+
+*** Simulation nominale V0.6
+
+Grille :
+
+  16×16×48
+
+Membrane :
+
+  nz = 129
+
+MPI :
+
+  8
+
+Conditions :
+
+  RH cathode = 0.50
+  RH anode = 0
+  V = 0.768 V
+  k_a = 2e-6 m/s
+
+Convergence :
+
+  3 itérations
+
+Dernière variation relative de courant :
+
+  0.424 %
+
+Seuil :
+
+  0.5 %
+
+Résidu potentiel :
+
+  ≈ 0.073 mV
+
+Seuil :
+
+  0.5 mV
+
+Le couplage est donc convergé.
+
+*** Comparaison V0.5 / V0.6 au point nominal
+
+V0.5 :
+
+  I = 2.172 mA
+  J = 1086 A/m²
+  ASR = 3.120e-5 ohm m²
+  lambda_anode = 3.249
+  lambda_mean = 3.366
+  sigma_mean = 1.604 S/m
+  sigma_min = 1.535 S/m
+  phi_m ≈ -33.85 mV
+
+V0.6 :
+
+  I = 1.978 mA
+  J = 989 A/m²
+  ASR = 3.965e-5 ohm m²
+  lambda_anode = 2.217
+  lambda_mean = 2.844
+  sigma_mean = 1.297 S/m
+  sigma_min = 0.929 S/m
+  phi_m ≈ -39.29 mV
+
+Variations :
+
+  courant :
+    -8.94 %
+
+  ASR :
+    +27.1 %
+
+  lambda_anode :
+    -31.8 %
+
+  lambda_mean :
+    -15.5 %
+
+  sigma_mean :
+    -19.1 %
+
+  sigma_min :
+    -39.5 %
+
+  |phi_m| :
+    +16.1 %
+
+Le nouveau mécanisme produit donc exactement la chaîne physique recherchée :
+
+  transfert d'eau vers l'anode
+  → assèchement côté anode
+  → baisse d'hydratation moyenne
+  → baisse de conductivité
+  → hausse de résistance membrane
+  → augmentation de la chute protonique
+  → baisse du courant.
+
+*** Vérification du conductivity floor
+
+Floor :
+
+  sigma_floor = 0.05 S/m
+
+Valeur minimale V0.6 nominal :
+
+  sigma_min ≈ 0.929 S/m
+
+Le floor reste très éloigné de la solution réelle.
+
+Conclusion :
+
+la baisse de conductivité n'est pas créée artificiellement par la
+régularisation numérique.
+
+** État actuel du projet
+
+À ce stade :
+
+- [X] cathode 3D
+- [X] transport O2
+- [X] électrochimie
+- [X] potentiel électronique
+- [X] potentiel protonique
+- [X] membrane hydratée
+- [X] électro-osmose
+- [X] rétro-diffusion
+- [X] conductivité dépendant de lambda
+- [X] résistance membrane
+- [X] couplage cathode / membrane
+- [X] dépendance RH
+- [X] convergence spatiale V0.5
+- [X] transfert d'eau anodique fini
+- [X] premier cas V0.6 convergé
+- [ ] contrôle V0.6 avec k_a = 0
+- [ ] matrice dry / nominal / wet V0.6
+- [ ] sensibilité à k_a
+- [ ] sensibilité à RH_anode
+- [ ] convergence spatiale V0.6
+- [ ] dynamique du volume anodique
+- [ ] purge transitoire
+- [ ] transport H2
+- [ ] accumulation N2
+- [ ] eau liquide
+- [ ] modèle thermique
+- [ ] débit d'air physique
+- [ ] refroidissement cathodique
+- [ ] calibration quantitative sur la pile réelle
+
+** Prochaine étape immédiate
+
+Le prochain test doit être le contrôle de continuité :
+
+  V0.6
+  k_a = 0
+
+au point nominal.
+
+Ce résultat doit reproduire V0.5.
+
+Il faut comparer :
+
+- courant ;
+- densité de courant ;
+- lambda_anode ;
+- lambda_mean ;
+- ASR ;
+- phi_m ;
+- flux anodique.
+
+Attendu :
+
+  flux anodique = 0
+
+et toutes les autres grandeurs doivent être identiques à V0.5 à l'erreur
+numérique près.
+
+Ce test est important parce qu'il vérifiera non seulement la formule analytique,
+mais l'ensemble de la chaîne :
+
+  cathode
+  → courant
+  → membrane
+  → ASR
+  → potentiel
+  → cathode.
+
+** Pensée de développement actuelle
+
+Le projet a progressivement changé de nature.
+
+Au départ, le problème était principalement :
+
+  "faire fonctionner un modèle 3D PEMFC dans Dedalus".
+
+Puis il est devenu :
+
+  "faire fonctionner correctement les équations électrochimiques".
+
+Ensuite :
+
+  "introduire une membrane physiquement cohérente".
+
+Puis :
+
+  "faire communiquer la membrane et la cathode".
+
+Aujourd'hui, la question devient :
+
+  "faire émerger progressivement les mécanismes système réels de la pile".
+
+La difficulté principale n'est donc plus uniquement numérique.
+
+Elle devient de plus en plus physique :
+
+- quelles conditions aux limites représentent réellement une anode dead-end ?
+- comment modéliser l'eau entre deux purges ?
+- quelle dynamique se produit pendant une purge ?
+- comment l'eau produite à la cathode influence-t-elle la membrane ?
+- comment la température modifie-t-elle ces échanges ?
+- quelle part du débit cathodique sert à l'oxygène ?
+- quelle part sert au refroidissement ?
+- quels paramètres peuvent être obtenus du manuel ?
+- quels paramètres doivent être calibrés ?
+- quels paramètres doivent rester explicitement considérés comme hypothèses ?
+
+La règle de développement reste donc :
+
+  ne jamais ajouter une nouvelle physique sans conserver une limite simple,
+  testable et comparable à la version précédente.
+
+L'objectif n'est pas seulement de construire une simulation qui tourne.
+
+L'objectif est de construire une simulation dont on comprend pourquoi chaque
+résultat apparaît.
