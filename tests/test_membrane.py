@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from pemfc_dedalus.membrane import (
+    anode_water_removal_flux_lambda_m_s,
     electro_osmotic_drag_coefficient,
     electro_osmotic_lambda_velocity,
     membrane_area_specific_resistance,
@@ -9,6 +10,7 @@ from pemfc_dedalus.membrane import (
     membrane_proton_conductivity,
     membrane_water_content_from_activity,
     steady_membrane_water_profile,
+    steady_membrane_water_profile_anode_transfer,
     steady_membrane_water_profile_zero_anode_flux,
 )
 from pemfc_dedalus.parameters import CathodeParameters
@@ -135,3 +137,84 @@ def test_zero_flux_profile_is_uniform_without_drag():
         drag_velocity_m_s=0.0,
     )
     assert np.allclose(profile, 4.0)
+
+
+def test_anode_transfer_zero_coefficient_recovers_v05_zero_flux():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 65)
+    lam_cathode = membrane_water_content_from_activity(0.5).item()
+    velocity = 6.0e-7
+
+    v05 = steady_membrane_water_profile_zero_anode_flux(
+        z,
+        lambda_cathode=lam_cathode,
+        diffusivity_m2_s=p.membrane_water_diffusivity,
+        drag_velocity_m_s=velocity,
+    )
+    v06 = steady_membrane_water_profile_anode_transfer(
+        z,
+        lambda_cathode=lam_cathode,
+        lambda_anode_equilibrium=membrane_water_content_from_activity(
+            p.anode_relative_humidity
+        ).item(),
+        diffusivity_m2_s=p.membrane_water_diffusivity,
+        drag_velocity_m_s=velocity,
+        anode_transfer_coefficient_m_s=0.0,
+    )
+    assert np.allclose(v06, v05)
+
+
+def test_finite_anode_transfer_drains_membrane_toward_dry_feed():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 65)
+    lam_cathode = membrane_water_content_from_activity(0.5).item()
+    lam_equilibrium = membrane_water_content_from_activity(0.0).item()
+    velocity = 6.0e-7
+
+    zero_flux = steady_membrane_water_profile_zero_anode_flux(
+        z,
+        lambda_cathode=lam_cathode,
+        diffusivity_m2_s=p.membrane_water_diffusivity,
+        drag_velocity_m_s=velocity,
+    )
+    finite_transfer = steady_membrane_water_profile_anode_transfer(
+        z,
+        lambda_cathode=lam_cathode,
+        lambda_anode_equilibrium=lam_equilibrium,
+        diffusivity_m2_s=p.membrane_water_diffusivity,
+        drag_velocity_m_s=velocity,
+        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
+    )
+
+    assert lam_equilibrium < finite_transfer[0] < zero_flux[0]
+    assert finite_transfer[-1] == pytest.approx(lam_cathode)
+    assert np.mean(finite_transfer) < np.mean(zero_flux)
+
+
+def test_anode_transfer_zero_drag_has_expected_robin_limit():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 33)
+    lam_cathode = 4.0
+    lam_equilibrium = 1.0
+    k = p.anode_water_transfer_coefficient
+
+    profile = steady_membrane_water_profile_anode_transfer(
+        z,
+        lambda_cathode=lam_cathode,
+        lambda_anode_equilibrium=lam_equilibrium,
+        diffusivity_m2_s=p.membrane_water_diffusivity,
+        drag_velocity_m_s=0.0,
+        anode_transfer_coefficient_m_s=k,
+    )
+    transfer_number = k * p.membrane_thickness / p.membrane_water_diffusivity
+    expected_anode = (
+        lam_cathode + transfer_number * lam_equilibrium
+    ) / (1.0 + transfer_number)
+
+    assert profile[0] == pytest.approx(expected_anode)
+    assert profile[-1] == pytest.approx(lam_cathode)
+
+
+def test_anode_water_removal_flux_is_positive_above_equilibrium():
+    flux = anode_water_removal_flux_lambda_m_s(3.0, 1.0, 2.0e-6)
+    assert flux == pytest.approx(4.0e-6)
