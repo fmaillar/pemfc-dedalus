@@ -1,0 +1,155 @@
+* Git history as research history
+
+This repository treats Git history as part of the scientific record.
+
+The rewritten history is organized around validated model phases rather than
+only software actions. Each commit message records:
+
+- the model phase (V0.1 ... V0.6);
+- the role of the change in the research workflow;
+- whether it introduces physics, validation, study infrastructure, a correction,
+  or a numerical result.
+
+The file trees are not changed by the history rewrite. Only commit messages and
+commit identities are regenerated.
+
+** Version landmarks
+
+*** V0.1 — 3D oxygen-transport cathode baseline
+
+Purpose:
+establish the Dedalus 3D cathode, oxygen transport, basic reaction sink, tests,
+and stable namespace/boundary handling before adding electrochemistry.
+
+Annotated tag:
+
+  v0.1
+
+*** V0.2 — coupled cathode electrochemistry
+
+Adds:
+
+- electronic potential;
+- protonic potential;
+- ORR Butler-Volmer kinetics;
+- Ballard-derived operating references;
+- validation workflow;
+- spatial convergence.
+
+Annotated tag:
+
+  v0.2
+
+*** V0.3 — hydrated membrane
+
+Adds:
+
+- Springer membrane water content;
+- hydration-dependent proton conductivity;
+- electro-osmotic drag;
+- 1D membrane solver;
+- convergence diagnostics.
+
+Annotated tag:
+
+  v0.3
+
+*** V0.4 — hydrated cathode and RH study
+
+Adds:
+
+- RH-dependent cathode ionomer hydration;
+- corrected protonic charge-conservation sign;
+- spatial convergence;
+- RH/voltage sweep;
+- polarization and conductivity-sensitivity analysis.
+
+Annotated tag:
+
+  v0.4
+
+*** V0.5 — partitioned cathode/membrane coupling
+
+Adds:
+
+- cathode current to membrane current-density feedback;
+- membrane water profile;
+- membrane ASR;
+- proton-potential feedback;
+- zero-anode-water-flux dead-end approximation;
+- RH/voltage sweep;
+- spatial convergence.
+
+Annotated tag:
+
+  v0.5
+
+*** V0.6 — finite anode water transfer
+
+Current development branch:
+
+  v06-anode-water-transport
+
+Adds:
+
+- finite Robin-type membrane-to-anode water transfer;
+- explicit anode RH;
+- explicit transfer coefficient k_a;
+- continuity limit k_a = 0 recovering V0.5;
+- nominal finite-transfer validation.
+
+V0.6 is still under development and therefore has no final v0.6 tag yet.
+
+** Safety copy
+
+The exact pre-rewrite remote history is preserved at:
+
+  backup/pre-history-rewrite-20260928
+
+This branch must not be deleted until the rewritten history has been inspected
+and accepted.
+
+** Reading the history
+
+Recommended commands:
+
+#+begin_src sh
+git log --graph --decorate --oneline --all
+git log --graph --decorate --format=medium --all
+git show v0.5
+#+end_src
+
+The short graph gives the development structure.
+
+The medium/full log gives the scientific commentary associated with every
+commit.
+
+** Policy for future versions
+
+For each new model version:
+
+1. branch from the last validated main;
+2. add one identifiable physical mechanism;
+3. preserve a limiting case that recovers the previous version;
+4. add unit/regression tests;
+5. run quick/preflight simulation;
+6. run controlled sensitivity or convergence studies;
+7. commit numerical evidence with a specific result description;
+8. pass pytest, Ruff and mypy;
+9. merge through a version PR;
+10. create an annotated version tag only after validation.
+
+Generic messages such as:
+
+  Add PEMFC validation results
+
+should no longer be used.
+
+Prefer messages such as:
+
+  [V0.6] Record nominal finite-transfer validation
+  [V0.6] Verify k_a=0 continuity with V0.5
+  [V0.6] Add anode-transfer sensitivity study
+
+The Git history should make the physical reasoning legible without requiring
+the reader to reconstruct it from file diffs alone.
