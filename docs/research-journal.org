@@ -1175,3 +1175,265 @@ L'objectif n'est pas seulement de construire une simulation qui tourne.
 
 L'objectif est de construire une simulation dont on comprend pourquoi chaque
 résultat apparaît.
+
+** V0.6 — Validation de la limite V0.5
+
+La première validation structurante de V0.6 consiste à vérifier que la nouvelle
+condition de transfert anodique possède bien V0.5 comme limite.
+
+La condition V0.6 est :
+
+  -J = k_a (lambda_anode - lambda_eq,anode)
+
+Si :
+
+  k_a = 0
+
+alors :
+
+  J = 0
+
+et on doit retrouver exactement la condition de bord utilisée en V0.5.
+
+*** Configuration du contrôle
+
+Point nominal :
+
+  RH cathode = 0.50
+  RH anode = 0
+  V cathode = 0.768 V
+
+Grille cathode :
+
+  16×16×48
+
+Grille membrane :
+
+  nz = 129
+
+Couplage :
+
+  relaxation = 0.5
+  current_rtol = 0.005
+  potential_atol = 5e-4 V
+
+MPI :
+
+  8 processus
+
+Paramètre testé :
+
+  k_a = 0
+
+*** Résultat
+
+Le calcul converge en :
+
+  5 itérations
+
+exactement comme V0.5.
+
+Résultat final V0.6 avec k_a = 0 :
+
+  I = 0.002172164577794256 A
+
+  J = 1086.082288897128 A/m²
+
+  phi_m = -0.03385202724997689 V
+
+  phi_target = -0.03388450232143915 V
+
+  ASR = 3.119883517836156e-5 ohm m²
+
+  lambda_anode = 3.248712276625678
+
+  lambda_mean = 3.365728873935204
+
+  sigma_mean = 1.603634532591843 S/m
+
+  sigma_min = 1.534931920344649 S/m
+
+  flux anodique = 0
+
+Le dernier changement relatif du courant vaut :
+
+  0.0014243
+  = 0.142 %
+
+donc :
+
+  0.142 % < 0.5 %
+
+Le critère courant est satisfait.
+
+Le changement de potentiel relaxé final vaut :
+
+  1.624e-5 V
+  = 0.0162 mV
+
+donc très inférieur au seuil :
+
+  0.5 mV
+
+*** Comparaison directe avec V0.5
+
+Valeurs finales V0.5 :
+
+  I = 0.002172164577794316 A
+  J = 1086.082288897158 A/m²
+  ASR = 3.119883517836160e-5 ohm m²
+  lambda_anode = 3.248712276625672
+  lambda_mean = 3.365728873935201
+  phi_m = -0.03385202724997674 V
+
+Valeurs finales V0.6, k_a = 0 :
+
+  I = 0.002172164577794256 A
+  J = 1086.082288897128 A/m²
+  ASR = 3.119883517836156e-5 ohm m²
+  lambda_anode = 3.248712276625678
+  lambda_mean = 3.365728873935204
+  phi_m = -0.03385202724997689 V
+
+Les différences sont de l'ordre de l'arrondi flottant.
+
+Par exemple, pour le courant :
+
+  |Delta I| ≈ 6e-17 A
+
+soit une différence relative d'environ :
+
+  3e-14
+
+La nouvelle implémentation reproduit donc V0.5 à la précision machine.
+
+*** Signification de ce résultat
+
+Ce résultat est particulièrement important.
+
+Il montre que l'effet observé précédemment avec :
+
+  k_a = 2e-6 m/s
+
+n'est pas provoqué par :
+
+- un changement accidentel du solveur cathodique ;
+- une modification de la loi de conductivité ;
+- une modification de l'électro-osmose ;
+- une modification du calcul d'ASR ;
+- une modification du couplage à point fixe ;
+- une différence de grille ;
+- une différence de critère de convergence.
+
+Lorsque le nouveau mécanisme est désactivé, V0.6 revient exactement à V0.5.
+
+La différence observée entre V0.5 et V0.6 avec k_a > 0 peut donc être attribuée
+au nouveau terme de transfert d'eau anodique.
+
+*** Mise à jour des critères de validation
+
+- [X] k_a = 0 reproduit V0.5 dans le solveur couplé complet
+- [X] même lambda_anode
+- [X] même lambda_mean
+- [X] même ASR
+- [X] même phi_m
+- [X] même courant
+- [X] flux anodique nul
+
+Le contrôle interne principal de V0.6 est donc validé.
+
+*** Comparaison des deux cas nominaux actuellement disponibles
+
+Cas de référence :
+
+  k_a = 0
+
+donne :
+
+  lambda_anode = 3.249
+  lambda_mean = 3.366
+  ASR = 3.120e-5 ohm m²
+  I = 2.172 mA
+
+Avec transfert anodique :
+
+  k_a = 2e-6 m/s
+
+on obtient :
+
+  lambda_anode = 2.217
+  lambda_mean = 2.844
+  ASR = 3.965e-5 ohm m²
+  I = 1.978 mA
+
+Effet du transfert :
+
+  lambda_anode : -31.8 %
+  lambda_mean  : -15.5 %
+  ASR          : +27.1 %
+  courant      : -8.94 %
+
+La causalité numérique est maintenant beaucoup plus solide :
+
+  k_a = 0
+  → V0.5 exactement
+
+  k_a > 0
+  → drainage
+  → assèchement
+  → ASR plus élevée
+  → courant plus faible
+
+*** Décision de développement
+
+Il n'est plus nécessaire de recalculer systématiquement V0.6 avec k_a = 0 pour
+chaque point de fonctionnement.
+
+La limite a été validée :
+
+- analytiquement ;
+- par tests unitaires ;
+- dans le solveur couplé complet ;
+- au niveau de la précision machine.
+
+Les résultats V0.5 existants peuvent donc servir de références k_a = 0 pour la
+suite de l'étude.
+
+Cela évite de doubler inutilement le coût des simulations.
+
+La prochaine étape consiste à calculer seulement les deux nouveaux cas
+k_a = 2e-6 m/s :
+
+1. dry_high_load
+   RH cathode = 0.30
+   V cathode = 0.700 V
+
+2. wet_low_load
+   RH cathode = 0.90
+   V cathode = 0.830 V
+
+Le point nominal est déjà disponible.
+
+On disposera alors de trois régimes permettant d'étudier si le drainage
+anodique est davantage pénalisant :
+
+- à faible RH ;
+- à forte charge ;
+- ou au contraire dans les conditions humides à faible charge.
+
+*** État de la matrice V0.6
+
+Références k_a = 0 :
+
+- [X] dry_high_load : disponible en V0.5
+- [X] nominal       : continuité V0.6 explicitement vérifiée
+- [X] wet_low_load  : disponible en V0.5
+
+Cas k_a = 2e-6 :
+
+- [ ] dry_high_load
+- [X] nominal
+- [ ] wet_low_load
+
+Il ne reste donc que deux simulations nouvelles pour compléter cette première
+comparaison multi-régime.
