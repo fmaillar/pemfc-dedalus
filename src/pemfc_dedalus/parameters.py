@@ -80,6 +80,9 @@ class CathodeParameters:
     membrane_dry_density: float = 2000.0
     membrane_equivalent_weight: float = 1.10
     membrane_water_diffusivity: float = 2.0e-10
+    # Regularization for the dry-end Springer conductivity singularity.
+    # This assumption must be sensitivity-tested in V0.5.
+    membrane_conductivity_floor: float = 5.0e-2
     anode_relative_humidity: float = 0.0
     membrane_current_density: float = 2.15e3
 
