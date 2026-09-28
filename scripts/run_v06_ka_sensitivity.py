@@ -223,6 +223,7 @@ def main() -> None:
                     and existing_reference.exists()
                 )
 
+                data: dict[str, Any] | None
                 if use_existing_reference:
                     print(f"reusing validated reference {existing_reference}", flush=True)
                     data = json.loads(existing_reference.read_text())
@@ -233,7 +234,7 @@ def main() -> None:
                         "existing_v06_reference",
                     )
                 else:
-                    data: dict[str, Any] | None = None
+                    data = None
                     if case_output.exists():
                         candidate = json.loads(case_output.read_text())
                         if bool(candidate.get("converged")):
