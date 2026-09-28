@@ -1,0 +1,2 @@
+rh,cathode_solid_potential_v,mpi_ranks,stop_time_s,pass,lambda_cl_max,sigma_m_max_s_per_m,mean_c_o2_mol_per_m3,mean_eta_v,total_reaction_current_a,j_orr_max_a_per_m3,phi_m_min_v,phi_m_max_v
+0.5,0.768,2,0.0002,True,3.4854731284396543,1.6739415514012956,7.946186596462238,-0.41199207760456585,0.004598003626014349,188698253.74679175,-0.0025280350141882717,0.00038884885574844873

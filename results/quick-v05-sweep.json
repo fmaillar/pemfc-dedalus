@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "model": "v05",
+  "grid": [
+    8,
+    8,
+    24
+  ],
+  "membrane_nz": 65,
+  "mpi_ranks": 2,
+  "relative_humidities": [
+    0.5
+  ],
+  "cathode_solid_potentials_v": [
+    0.768
+  ],
+  "completed_cases": 1,
+  "total_cases": 1,
+  "cases": [
+    {
+      "rh": 0.5,
+      "cathode_solid_potential_v": 0.768,
+      "converged": true,
+      "coupling_iterations": 3,
+      "final_current_a": 0.002387331192410875,
+      "final_current_density_a_m2": 1193.6655962054374,
+      "final_phi_m_bc_v": -0.03747414234282102,
+      "final_target_phi_m_bc_v": -0.03740423348477678,
+      "final_membrane_asr_ohm_m2": 3.133560488270894e-05,
+      "final_lambda_anode": 3.2261510625938605,
+      "final_lambda_mean": 3.3541806978862763,
+      "final_lambda_cathode": 3.4854999999999983,
+      "final_sigma_m_mean_s_m": 1.5968543844804326,
+      "final_sigma_m_min_s_m": 1.521685813594904,
+      "final_sigma_m_max_s_m": 1.6739543797044156
+    }
+  ]
+}
