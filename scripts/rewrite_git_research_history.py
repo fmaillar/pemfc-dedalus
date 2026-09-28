@@ -8,9 +8,7 @@ rewriting commit messages only.  A remote backup branch must exist before use.
 
 from __future__ import annotations
 
-import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 BRANCHES = [
@@ -152,7 +150,7 @@ def ensure_filter_repo() -> None:
     except (subprocess.CalledProcessError, FileNotFoundError):
         raise SystemExit(
             "git-filter-repo is required. On Debian: sudo apt install git-filter-repo"
-        )
+        ) from None
 
 
 def remote_branch_sha(branch: str) -> str:
@@ -187,6 +185,10 @@ def main() -> None:
     old_remote = {branch: remote_branch_sha(branch) for branch in BRANCHES}
     for branch in BRANCHES:
         ensure_local_branch(branch)
+    old_trees = {
+        branch: run("git", "rev-parse", f"{branch}^{{tree}}", capture=True)
+        for branch in BRANCHES
+    }
 
     origin_url = run("git", "remote", "get-url", "origin", capture=True)
 
@@ -258,15 +260,30 @@ lower = subject.lower()
 if "merge" in lower:
     role = "Milestone/integration commit: combines the validated work of this phase."
 elif "test" in lower or "validate" in lower:
-    role = "Validation commit: constrains the implementation with a physical, numerical, or regression check."
+    role = (
+        "Validation commit: constrains the implementation with a physical, numerical, "
+        "or regression check."
+    )
 elif "fix" in lower or "correct" in lower:
-    role = "Correction commit: resolves an identified implementation, numerical, or physical-consistency issue."
+    role = (
+        "Correction commit: resolves an identified implementation, numerical, "
+        "or physical-consistency issue."
+    )
 elif "result" in lower or "record" in lower:
-    role = "Research record: stores reproducible numerical evidence used to accept or compare this model state."
+    role = (
+        "Research record: stores reproducible numerical evidence used to accept "
+        "or compare this model state."
+    )
 elif "study" in lower or "sweep" in lower or "convergence" in lower:
-    role = "Study infrastructure: makes a controlled numerical experiment reproducible and restartable."
+    role = (
+        "Study infrastructure: makes a controlled numerical experiment reproducible "
+        "and restartable."
+    )
 else:
-    role = "Development commit: adds one incremental capability while keeping the model inspectable."
+    role = (
+        "Development commit: adds one incremental capability while keeping the model "
+        "inspectable."
+    )
 
 existing = body.strip()
 context = (
@@ -311,21 +328,20 @@ commit.message = new_message.encode()
         return matches[0]
 
     for tag, (old_prefix, message) in MILESTONES.items():
-        subprocess.run(["git", "tag", "-d", tag], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run(
+            ["git", "tag", "-d", tag],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         run("git", "tag", "-a", tag, rewritten_sha(old_prefix), "-m", message.strip())
 
-    # Verify that the rewritten tips still contain the exact same file trees as
-    # their pre-rewrite counterparts.
+    # Verify that history rewriting changed commit metadata only, not file trees.
     for branch in BRANCHES:
         new_tree = run("git", "rev-parse", f"{branch}^{{tree}}", capture=True)
-        old_tree = run(
-            "git",
-            "rev-parse",
-            f"{BACKUP_BRANCH}^{{tree}}",
-            capture=True,
-        ) if branch == "v06-anode-water-transport" else None
-        if branch == "v06-anode-water-transport" and old_tree != new_tree:
-            raise SystemExit("Safety check failed: V0.6 tip tree changed during rewrite")
+        if old_trees[branch] != new_tree:
+            raise SystemExit(
+                f"Safety check failed: {branch} tip tree changed during rewrite"
+            )
 
     print("\nRewritten history prepared. Force-pushing with explicit leases...")
     for branch in BRANCHES:
