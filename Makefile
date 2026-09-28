@@ -231,3 +231,22 @@ grid-v05:
 	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
 	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
 	  $(PYTHON) scripts/run_v05_grid_convergence.py
+
+
+quick-v06:
+	rm -rf .quick-v06
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' \
+	  $(PYTHON) scripts/run_v06_coupled.py \
+	  --nx 8 --ny 8 --nz 24 --membrane-nz 65 \
+	  --stop-time 0.0002 --max-dt 0.000001 --scalar-dt 0.00001 \
+	  --max-coupling-iterations 10 --current-rtol 0.01 --potential-atol 0.0001 \
+	  --mpi-n 2 --work-dir .quick-v06 \
+	  --output results/quick-v06-coupled.json
+
+study-v06:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' \
+	  $(PYTHON) scripts/run_v06_coupled.py \
+	  --mpi-n $(MPI_N) \
+	  --output results/v06-coupled-membrane.json
