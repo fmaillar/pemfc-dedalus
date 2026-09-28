@@ -84,6 +84,11 @@ class CathodeParameters:
     # This assumption must be sensitivity-tested in V0.5.
     membrane_conductivity_floor: float = 5.0e-2
     anode_relative_humidity: float = 0.0
+    # V0.6 phenomenological lambda-space transfer coefficient [m/s].
+    # This is an explicit modelling assumption, not a Ballard-disclosed value.
+    # D/L is about 4e-6 m/s for the current membrane assumptions, so 2e-6
+    # provides a moderate finite-transfer reference point for sensitivity tests.
+    anode_water_transfer_coefficient: float = 2.0e-6
     membrane_current_density: float = 2.15e3
 
     @property
