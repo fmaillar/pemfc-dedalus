@@ -1816,3 +1816,92 @@ La limite :
 
 est déjà validée par continuité avec V0.5 et ne nécessite pas d'être recalculée
 systématiquement.
+
+** V0.6 — Sensibilité au coefficient k_a
+
+La campagne multi-régime à :
+
+  k_a = 2e-6 m/s
+
+est complète.
+
+La valeur de k_a reste cependant un paramètre phénoménologique provisoire.
+La prochaine campagne doit donc mesurer explicitement la sensibilité des
+résultats à ce coefficient.
+
+*** Valeurs prévues
+
+  k_a = 0
+  k_a = 5e-7 m/s
+  k_a = 1e-6 m/s
+  k_a = 2e-6 m/s
+  k_a = 5e-6 m/s
+  k_a = 1e-5 m/s
+
+Les trois régimes conservés sont :
+
+- dry_high_load ;
+- nominal ;
+- wet_low_load.
+
+La référence :
+
+  k_a = 0
+
+n'est pas recalculée.
+
+Elle est importée depuis la campagne V0.5, puisque la continuité V0.6 -> V0.5
+a déjà été démontrée à la précision machine.
+
+De même, les trois résultats déjà validés à :
+
+  k_a = 2e-6 m/s
+
+sont réutilisés lorsque la campagne est exécutée avec la grille de référence.
+
+Les nouveaux calculs concernent donc seulement :
+
+  5e-7
+  1e-6
+  5e-6
+  1e-5 m/s
+
+soit 12 nouvelles simulations au lieu de 18.
+
+*** Questions étudiées
+
+La campagne doit déterminer :
+
+- si I(k_a) décroît monotoniquement ;
+- si ASR(k_a) croît monotoniquement ;
+- si lambda_anode(k_a) et lambda_mean(k_a) évoluent régulièrement ;
+- si le régime sec devient fortement non linéaire ;
+- si le régime humide reste électriquement peu sensible malgré un flux de
+  retrait d'eau important ;
+- si k_a = 2e-6 m/s se situe dans une zone quasi linéaire ou déjà fortement
+  pénalisante.
+
+*** Infrastructure
+
+Un driver restartable :
+
+  scripts/run_v06_ka_sensitivity.py
+
+regroupe les résultats dans :
+
+  results/v06-ka-sensitivity.json
+  results/v06-ka-sensitivity.csv
+
+Une cible rapide vérifie le pipeline sur un seul cas :
+
+  make quick-ka-v06
+
+La campagne complète est lancée avec :
+
+  make ka-v06
+
+Aucun calcul de campagne ne doit être lancé avant que :
+
+  make test
+
+soit entièrement vert.

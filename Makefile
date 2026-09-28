@@ -8,6 +8,7 @@ NUMEXPR_NUM_THREADS ?= 1
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
         quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh plot-v04-rh \
         quick-v05 study-v05 quick-sweep-v05 sweep-v05 quick-grid-v05 grid-v05 \
+        quick-v06 study-v06 quick-ka-v06 ka-v06 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -34,6 +35,10 @@ help:
 	  'make sweep-v05        run 3x3 V0.5 RH-voltage campaign' \
 	  'make quick-grid-v05   preflight V0.5 spatial-convergence driver' \
 	  'make grid-v05         run 3-point V0.5 spatial convergence study' \
+	  'make quick-v06        preflight V0.6 finite anode-transfer coupling' \
+	  'make study-v06        run nominal V0.6 finite anode-transfer coupling' \
+	  'make quick-ka-v06     preflight one V0.6 k_a sensitivity case' \
+	  'make ka-v06           run V0.6 k_a sensitivity on three regimes' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -250,3 +255,22 @@ study-v06:
 	  $(PYTHON) scripts/run_v06_coupled.py \
 	  --mpi-n $(MPI_N) \
 	  --output results/v06-coupled-membrane.json
+
+
+quick-ka-v06:
+	rm -rf .quick-v06-ka
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=2 \
+	  $(PYTHON) scripts/run_v06_ka_sensitivity.py \
+	  --regimes nominal --k-values 1e-6 \
+	  --nx 8 --ny 8 --nz 24 --membrane-nz 65 \
+	  --stop-time 0.0002 --max-dt 0.000001 --scalar-dt 0.00001 \
+	  --max-coupling-iterations 10 --current-rtol 0.01 --potential-atol 0.0001 \
+	  --work-dir .quick-v06-ka \
+	  --output-json results/quick-v06-ka-sensitivity.json \
+	  --output-csv results/quick-v06-ka-sensitivity.csv
+
+ka-v06:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
+	  $(PYTHON) scripts/run_v06_ka_sensitivity.py
