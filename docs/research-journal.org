@@ -1905,3 +1905,45 @@ Aucun calcul de campagne ne doit être lancé avant que :
   make test
 
 soit entièrement vert.
+
+*** Observation numérique à k_a = 1e-5 m/s
+
+Le premier passage de la campagne a atteint le cas :
+
+  dry_high_load
+  k_a = 1e-5 m/s
+
+avec une validation cathodique positive, mais le couplage partitionné n'a pas
+satisfait les critères globaux dans la limite initiale de 8 itérations.
+
+À l'itération 7 :
+
+  I = 1.89014 mA
+  J = 945.072 A/m²
+  ASR = 1.13639e-4 ohm m²
+
+et la mise à jour de potentiel restait de l'ordre de :
+
+  0.911 mV
+
+donc supérieure au critère :
+
+  0.5 mV.
+
+Ce résultat n'est pas interprété comme une divergence physique du modèle.
+
+Il montre plutôt que le régime :
+
+  faible RH + forte charge + transfert anodique élevé
+
+rend le point fixe plus lent à converger.
+
+La limite par défaut de la campagne est donc portée à :
+
+  12 itérations
+
+et le driver est modifié pour ne jamais considérer un fichier de résultat
+existant mais non convergé comme un cas réutilisable.
+
+Un nouveau répertoire d'itérations est créé lors de chaque reprise afin de
+conserver la tentative précédente pour diagnostic.
