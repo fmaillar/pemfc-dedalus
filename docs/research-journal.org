@@ -1470,7 +1470,7 @@ sans devoir reconstruire toute la logique à partir des diffs.
 - [X] transfert d'eau anodique fini
 - [X] point nominal V0.6 convergé
 - [X] continuité V0.6 -> V0.5 vérifiée à la précision machine
-- [ ] comparaison dry / nominal / wet V0.6
+- [X] comparaison dry / nominal / wet V0.6
 - [ ] sensibilité à k_a
 - [ ] sensibilité à RH_anode
 - [ ] convergence spatiale V0.6
@@ -1485,38 +1485,24 @@ sans devoir reconstruire toute la logique à partir des diffs.
 
 ** Prochaine étape
 
-Compléter trois régimes représentatifs avec :
+La matrice dry / nominal / wet à :
 
   k_a = 2e-6 m/s
   RH_anode = 0
 
-Cas déjà disponible :
+est maintenant complète et les trois régimes convergent.
 
-  nominal
-  RH cathode = 0.50
-  V = 0.768 V
+La prochaine étape V0.6 est une étude de sensibilité à :
 
-Cas à calculer :
+  k_a
 
-  dry_high_load
-  RH cathode = 0.30
-  V = 0.700 V
+afin de vérifier que les tendances observées ne dépendent pas uniquement de la
+valeur provisoire :
 
-  wet_low_load
-  RH cathode = 0.90
-  V = 0.830 V
+  k_a = 2e-6 m/s.
 
-But :
-
-déterminer si le transfert anodique est plus pénalisant :
-
-- en régime sec ;
-- à forte charge ;
-- ou dans des conditions humides à faible charge.
-
-Les références k_a = 0 sont déjà disponibles via V0.5.
-
-Il n'est donc pas nécessaire de recalculer ces cas à k_a = 0.
+Cette étude devra conserver les mêmes trois régimes représentatifs et utiliser
+V0.5 comme limite k_a = 0 déjà validée.
 
 ** V0.6 — Campagne multi-régime à transfert anodique fini
 
@@ -1604,9 +1590,36 @@ Répertoire de calcul :
 
 État :
 
-  [ ] calcul terminé
-  [ ] couplage convergé
-  [ ] validation cathode passée
+  [X] calcul terminé
+  [X] couplage convergé
+  [X] validation cathode passée
+
+Résultat final :
+
+  I = 2.9781041 mA
+  J = 1489.0521 A/m²
+  ASR = 5.51945e-5 ohm m²
+  lambda_anode = 1.71819
+  lambda_mean = 2.23645
+  sigma_mean = 0.94061 S/m
+  sigma_min = 0.63634 S/m
+  flux anodique = 3.35038e-6 lambda m/s
+
+Convergence :
+
+  7 itérations
+  variation relative finale du courant = 0.205 %
+  correction finale de potentiel = 0.0279 mV
+
+Comparé à V0.5 :
+
+  courant      : -13.26 %
+  ASR          : +28.65 %
+  lambda_anode : -30.71 %
+  lambda_mean  : -14.74 %
+  sigma_mean   : -19.44 %
+  sigma_min    : -41.27 %
+  |phi_m|      : +11.73 %
 
 **** nominal
 
@@ -1659,70 +1672,147 @@ Répertoire de calcul :
 
 État :
 
-  [ ] calcul terminé
-  [ ] couplage convergé
-  [ ] validation cathode passée
+  [X] calcul terminé
+  [X] couplage convergé
+  [X] validation cathode passée
 
-*** Comparaison prévue
+Résultat final :
 
-Pour chacun des trois régimes, les résultats V0.5 existants servent de
-référence :
+  I = 1.2035138 mA
+  J = 601.7569 A/m²
+  ASR = 1.13863e-5 ohm m²
+  lambda_anode = 6.49153
+  lambda_mean = 8.25309
+  sigma_mean = 4.47309 S/m
+  sigma_min = 3.43885 S/m
+  flux anodique = 1.28971e-5 lambda m/s
+
+Convergence :
+
+  6 itérations
+  variation relative finale du courant = 0.249 %
+  correction finale de potentiel = 0.0607 mV
+
+Comparé à V0.5 :
+
+  courant      : -2.27 %
+  ASR          : +23.06 %
+  lambda_anode : -32.69 %
+  lambda_mean  : -16.13 %
+  sigma_mean   : -17.24 %
+  sigma_min    : -35.00 %
+  |phi_m|      : +23.55 %
+
+*** Comparaison multi-régime V0.5 / V0.6
+
+Les trois régimes à transfert fini :
+
+  k_a = 2e-6 m/s
+  RH_anode = 0
+
+convergent et passent la validation cathodique.
+
+Réduction du courant par rapport à V0.5 :
+
+  dry_high_load : -13.26 %
+  nominal       :  -8.94 %
+  wet_low_load  :  -2.27 %
+
+Augmentation de l'ASR membrane :
+
+  dry_high_load : +28.65 %
+  nominal       : +27.08 %
+  wet_low_load  : +23.06 %
+
+Variation de lambda_anode :
+
+  dry_high_load : -30.71 %
+  nominal       : -31.77 %
+  wet_low_load  : -32.69 %
+
+Variation de lambda_mean :
+
+  dry_high_load : -14.74 %
+  nominal       : -15.49 %
+  wet_low_load  : -16.13 %
+
+Variation de sigma_min :
+
+  dry_high_load : -41.27 %
+  nominal       : -39.48 %
+  wet_low_load  : -35.00 %
+
+Le drainage anodique réduit donc fortement l'hydratation côté anode dans les
+trois régimes. Pourtant, l'effet sur le courant n'est pas uniforme.
+
+La pénalité de courant est maximale dans le cas sec à forte charge et minimale
+dans le cas humide à faible charge.
+
+L'interprétation est cohérente avec la structure du modèle :
+
+  transfert anodique
+  -> baisse de lambda
+  -> baisse de conductivité protonique
+  -> hausse de l'ASR
+  -> chute protonique supplémentaire.
+
+Mais l'effet électrochimique de cette hausse d'ASR dépend aussi du courant
+traversant la membrane.
+
+À forte charge, la densité de courant est élevée et la pénalité ohmique :
+
+  J * ASR
+
+devient plus importante.
+
+À faible charge et forte humidité, le drainage reste important en termes de
+lambda_anode, mais la membrane conserve une conductivité absolue élevée et le
+courant est plus faible. La conséquence sur le courant total reste donc
+nettement plus limitée.
+
+Point notable :
+
+le flux anodique final est plus élevé dans le cas humide à faible charge :
+
+  dry_high_load : 3.350e-6 lambda m/s
+  nominal       : 4.347e-6 lambda m/s
+  wet_low_load  : 1.290e-5 lambda m/s
+
+Un flux de retrait plus élevé ne signifie donc pas nécessairement une pénalité
+électrique plus élevée. L'état d'hydratation absolu et le niveau de courant
+doivent être considérés conjointement.
+
+*** Validation de la campagne
+
+- [X] dry_high_load converge
+- [X] nominal converge
+- [X] wet_low_load converge
+- [X] les validations cathodiques passent pour les trois cas
+- [X] les trois cas ont été comparés quantitativement aux références V0.5
+
+La campagne multi-régime V0.6 est donc complète.
+
+*** Décision de développement
+
+Le coefficient :
+
+  k_a = 2e-6 m/s
+
+reste un paramètre provisoire.
+
+Les résultats montrent néanmoins une réponse physique cohérente sur trois
+régimes distincts.
+
+La prochaine étape est donc une sensibilité à k_a afin de déterminer :
+
+- si les tendances restent monotones ;
+- à partir de quelle valeur le drainage devient dominant ;
+- si les conclusions dry / nominal / wet sont robustes ;
+- si une plage de k_a produit des réponses qualitativement différentes.
+
+La limite :
 
   k_a = 0
 
-Il n'est donc pas nécessaire de recalculer ces références avec V0.6.
-
-Les grandeurs comparées seront :
-
-- courant total I ;
-- densité de courant J ;
-- lambda_anode ;
-- lambda_mean ;
-- lambda_min ;
-- conductivité protonique moyenne ;
-- conductivité protonique minimale ;
-- ASR membrane ;
-- potentiel protonique de bord ;
-- flux d'eau anodique ;
-- nombre d'itérations du couplage ;
-- résidus de convergence.
-
-La question physique est :
-
-  l'effet du transfert d'eau vers l'anode dépend-il fortement du régime de
-  fonctionnement ?
-
-En particulier, il faut déterminer si la pénalité est plus importante :
-
-- à faible humidité cathodique ;
-- à forte charge ;
-- au point nominal ;
-- ou si une forte humidité cathodique compense largement le drainage anodique.
-
-La chaîne causale recherchée reste :
-
-  transfert anodique
-  -> profil lambda
-  -> conductivité protonique
-  -> ASR
-  -> chute protonique
-  -> courant.
-
-*** Critère de passage à l'étape suivante
-
-La campagne sera considérée comme exploitable lorsque :
-
-- [ ] dry_high_load converge ;
-- [X] nominal converge ;
-- [ ] wet_low_load converge ;
-- [ ] les validations cathodiques passent pour les trois cas ;
-- [ ] les trois cas ont été comparés quantitativement aux références V0.5.
-
-Après cette étape, la prochaine question V0.6 sera la sensibilité au coefficient :
-
-  k_a
-
-afin de vérifier que les conclusions ne dépendent pas uniquement de la valeur
-provisoire :
-
-  k_a = 2e-6 m/s.
+est déjà validée par continuité avec V0.5 et ne nécessite pas d'être recalculée
+systématiquement.
