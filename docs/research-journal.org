@@ -5771,3 +5771,188 @@ cette seule campagne.
 Le but est de cartographier la sensibilité du modèle avant de choisir une plage
 de crossover à confronter à des données de littérature ou de membrane.
 
+*** Résultats de la sensibilité au crossover N2
+
+La campagne complète confirme les tendances attendues sur toute la plage :
+
+  J_N2 =
+    0
+    2.5e-7
+    5e-7
+    1e-6
+    2e-6
+    5e-6 mol/m2/s.
+
+Les contrôles de monotonie sont satisfaits dans les trois régimes :
+
+- x_N2,max croît avec J_N2 ;
+- x_H2,min décroît avec J_N2.
+
+Le cas J_N2 = 0 restitue exactement :
+
+  x_N2,max = 0
+  N2 final = 0
+  N2 purgé = 0
+  bilan N2 = 0.
+
+La continuité vers le modèle sans azote est donc vérifiée.
+
+*** Dilution maximale observée
+
+Pour dry_high_load, x_N2,max vaut environ :
+
+  0       -> 0
+  2.5e-7  -> 0.000554
+  5e-7    -> 0.001108
+  1e-6    -> 0.002216
+  2e-6    -> 0.004432
+  5e-6    -> 0.011080.
+
+Pour nominal :
+
+  0       -> 0
+  2.5e-7  -> 0.000875
+  5e-7    -> 0.001749
+  1e-6    -> 0.003498
+  2e-6    -> 0.006996
+  5e-6    -> 0.017490.
+
+Pour wet_low_load :
+
+  0       -> 0
+  2.5e-7  -> 0.001537
+  5e-7    -> 0.003074
+  1e-6    -> 0.006148
+  2e-6    -> 0.012296
+  5e-6    -> 0.030740.
+
+La réponse est pratiquement linéaire sur la plage étudiée.
+
+Le régime wet_low_load reste systématiquement le plus sensible, en raison de la
+plus longue période entre purges.
+
+*** Fraction molaire H2 minimale
+
+Les minima x_H2 associés sont :
+
+dry_high_load :
+
+  J_N2 = 0      -> 0.98640
+  J_N2 = 1e-6   -> 0.98419
+  J_N2 = 5e-6   -> 0.97532.
+
+nominal :
+
+  J_N2 = 0      -> 0.97692
+  J_N2 = 1e-6   -> 0.97342
+  J_N2 = 5e-6   -> 0.95943.
+
+wet_low_load :
+
+  J_N2 = 0      -> 0.95299
+  J_N2 = 1e-6   -> 0.94684
+  J_N2 = 5e-6   -> 0.92225.
+
+Dans le régime humide et faible charge, le flux le plus élevé de la campagne
+réduit donc x_H2 de plusieurs points de pourcentage.
+
+*** Effet sur l'horloge de purge
+
+Comme prévu, la fréquence de purge est indépendante de J_N2 dans cet incrément.
+
+Elle reste :
+
+  dry_high_load : 19 purges, période ≈ 50.94 s
+  nominal       : 12 purges, période ≈ 80.45 s
+  wet_low_load  : 7 purges, période ≈ 141.91 s.
+
+Cette invariance confirme que la rétroaction N2 -> électrochimie n'est pas encore
+introduite implicitement.
+
+*** Pression
+
+L'effet de J_N2 sur les extrema de pression reste faible sur toute la plage.
+
+Même à :
+
+  J_N2 = 5e-6 mol/m2/s
+
+les maxima restent environ :
+
+  dry_high_load : 1.37325 bar
+  nominal       : 1.37476 bar
+  wet_low_load  : 1.42003 bar.
+
+La vapeur d'eau reste donc le principal déterminant de la surpression observée
+dans wet_low_load.
+
+*** Conservation
+
+Les bilans H2, H2O et N2 restent fermés à la précision numérique dans tous les
+cas.
+
+L'erreur N2 reste typiquement comprise entre :
+
+  1e-19 et quelques 1e-16 mol.
+
+La campagne de sensibilité est donc numériquement conservative.
+
+*** Lecture des seuils
+
+Sur la plage étudiée :
+
+- autour de 1e-6 mol/m2/s, la dilution N2 reste sous 1 % dans les trois régimes ;
+- autour de 2e-6 mol/m2/s, wet_low_load dépasse environ 1.2 % de N2 ;
+- à 5e-6 mol/m2/s, nominal atteint environ 1.75 % de N2 et wet_low_load environ
+  3.07 %.
+
+Cela fournit une plage utile pour la prochaine étape :
+
+  1e-6 à 5e-6 mol/m2/s
+
+est suffisamment large pour tester une rétroaction électrochimique sans entrer
+dans un régime artificiellement extrême.
+
+Cette plage reste toutefois une plage de screening, non calibrée.
+
+*** Validation
+
+- [X] continuité exacte pour J_N2 = 0
+- [X] x_N2,max monotone croissant
+- [X] x_H2,min monotone décroissant
+- [X] fréquence de purge indépendante de J_N2
+- [X] wet_low_load est le régime le plus sensible
+- [X] bilans H2/H2O/N2 fermés
+- [X] pression toujours physique
+- [X] aucun seuil non monotone ou branche anormale détecté
+
+*** Décision de développement
+
+La sensibilité structurelle au crossover N2 est maintenant caractérisée.
+
+La prochaine étape peut introduire une première rétroaction électrochimique
+simple et isolée.
+
+Pour éviter de mélanger plusieurs effets, le premier retour doit porter sur :
+
+  p_H2
+
+ou, de manière équivalente dans ce modèle idéal :
+
+  x_H2.
+
+La fermeture la plus simple est un facteur multiplicatif sur le courant issu de
+V0.6, normalisé sur le cas sans dilution, par exemple une dépendance de type :
+
+  I = I_V0.6 * f(p_H2 / p_H2,ref).
+
+Cette loi devra être introduite comme hypothèse de modèle, avec :
+
+- continuité exacte pour x_H2 = x_H2,ref ;
+- courant décroissant lorsque H2 est dilué ;
+- sensibilité paramétrique explicite ;
+- aucun recalibrage caché du crossover.
+
+Avant toute loi plus détaillée, il faudra choisir et documenter précisément la
+forme de f et sa justification physique.
+
