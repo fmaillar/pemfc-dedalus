@@ -89,6 +89,14 @@ class CathodeParameters:
     # D/L is about 4e-6 m/s for the current membrane assumptions, so 2e-6
     # provides a moderate finite-transfer reference point for sensitivity tests.
     anode_water_transfer_coefficient: float = 2.0e-6
+
+    # V0.7 lumped anode control-volume assumption [m^3 per representative cell].
+    # The internal anode gas volume is not disclosed by the Ballard manual.
+    # As a provisional scale, use 20 mL, numerically equal to the manual purge
+    # volume per cell, without interpreting the purge volume as a measured
+    # internal channel volume. This parameter must be sensitivity-tested later.
+    anode_gas_volume_m3: float = 20.0e-6
+
     membrane_current_density: float = 2.15e3
 
     @property
