@@ -2780,3 +2780,200 @@ par :
 La prochaine étape de développement devient ainsi le volume anodique dynamique,
 avant l'introduction de la purge transitoire.
 
+** V0.7 — Volume anodique dynamique
+
+La V0.6 a validé la condition de transfert d'eau anodique sur trois axes :
+
+- sensibilité à k_a ;
+- convergence spatiale ;
+- sensibilité à RH_anode.
+
+La limitation principale devient maintenant structurelle :
+
+  RH_anode
+
+est encore imposée comme une condition externe.
+
+Pour une anode dead-end, cette humidité doit au contraire émerger d'un bilan de
+matière dans un volume gazeux fini.
+
+La V0.7 commence donc par introduire explicitement un inventaire d'eau anodique
+dynamique.
+
+*** Stratégie incrémentale
+
+Comme pour les versions précédentes, la dynamique complète de l'anode n'est pas
+introduite en une seule étape.
+
+Le premier incrément V0.7 isole uniquement :
+
+  membrane
+  -> flux d'eau
+  -> volume anodique fini
+  -> RH_anode dynamique.
+
+Le transport H2, la consommation d'hydrogène, la variation de pression, l'azote
+et la purge transitoire restent volontairement hors de ce premier sous-modèle.
+
+L'objectif est d'abord de vérifier le bilan d'eau et son échelle de temps.
+
+*** Fermeture quasi-stationnaire utilisée
+
+La campagne V0.6 de sensibilité à RH_anode fournit, pour chaque régime, une
+relation tabulée :
+
+  RH_anode
+  -> flux d'eau membrane/anode.
+
+Cette relation validée est utilisée comme fermeture quasi-stationnaire par
+interpolation linéaire.
+
+Cela permet d'étudier la dynamique du volume anodique sans relancer une
+simulation cathodique 3D à chaque pas de temps.
+
+Cette V0.7 initiale est donc un modèle réduit dynamique construit à partir de la
+réponse V0.6 validée.
+
+*** Conversion du flux membrane vers le volume gazeux
+
+Le flux V0.6 est exprimé en espace lambda :
+
+  J_lambda [lambda m/s].
+
+Il est converti en débit molaire d'eau par :
+
+  n_dot_H2O = J_lambda * A * c_fixed
+
+où :
+
+  A
+  = aire du patch membrane ;
+
+  c_fixed
+  = concentration molaire des sites fixes de la membrane.
+
+La convention de signe est conservée :
+
+  n_dot_H2O > 0
+  -> eau entrant dans le volume anodique ;
+
+  n_dot_H2O < 0
+  -> eau quittant le volume anodique vers la membrane.
+
+*** Volume anodique provisoire
+
+Le volume gazeux interne réel du stack n'est pas fourni par le manuel Ballard.
+
+Une hypothèse explicite est donc introduite :
+
+  V_anode = 20 mL par cellule représentative.
+
+Cette valeur est numériquement égale au volume de purge par cellule donné dans
+le manuel, mais elle ne doit pas être interprétée comme une mesure du volume
+interne des canaux.
+
+Elle sert uniquement d'échelle provisoire pour la première dynamique.
+
+Une sensibilité à ce volume sera nécessaire ultérieurement.
+
+*** État thermodynamique de l'eau
+
+Le premier modèle V0.7 suppose :
+
+- température anodique uniforme égale à la température stack ;
+- volume constant ;
+- équilibre vapeur/liquide instantané ;
+- gaz idéal pour la vapeur d'eau.
+
+La pression de vapeur saturante est obtenue par une corrélation de Buck.
+
+Lorsque l'inventaire total d'eau dépasse la capacité de vapeur saturée :
+
+  RH_anode = 1
+
+et l'excès est stocké comme eau liquide dans l'inventaire du volume.
+
+Ce traitement ne constitue pas encore un modèle d'eau liquide dans les canaux.
+Il évite simplement de créer une humidité relative supérieure à 100 %.
+
+*** Validation attendue
+
+Le premier test dynamique part d'une anode sèche :
+
+  RH_anode(t=0) = 0.
+
+La V0.6 donne un flux positif dans les trois régimes à cette condition.
+
+Le volume anodique doit donc s'humidifier progressivement.
+
+À mesure que RH_anode augmente, le flux de transfert doit diminuer puis tendre
+vers zéro.
+
+Le point fixe dynamique doit être cohérent avec les inversions de flux observées
+en V0.6, soit approximativement :
+
+  dry_high_load : RH_anode ≈ 0.255
+  nominal       : RH_anode ≈ 0.434
+  wet_low_load  : RH_anode ≈ 0.883.
+
+Ce rapprochement entre :
+
+  zéro de la fermeture statique V0.6
+
+et :
+
+  état stationnaire du volume dynamique V0.7
+
+constitue la première validation de continuité entre les deux versions.
+
+*** Infrastructure
+
+Nouveau module :
+
+  src/pemfc_dedalus/anode.py
+
+Nouveau driver :
+
+  scripts/run_v07_anode_volume.py
+
+Tests :
+
+  tests/test_anode.py
+  tests/test_v07_anode_volume.py
+
+Commandes :
+
+  make quick-v07
+  make study-v07
+
+Résultats :
+
+  results/quick-v07-anode-volume.json
+  results/quick-v07-anode-volume.csv
+  results/v07-anode-volume.json
+  results/v07-anode-volume.csv
+
+Aucun calcul V0.7 ne doit être interprété avant que :
+
+  make test
+
+soit entièrement vert.
+
+*** Étapes suivantes prévues dans V0.7
+
+Après validation du bilan d'eau dynamique :
+
+1. sensibilité au volume anodique ;
+2. ajout de la consommation H2 dans le volume dead-end ;
+3. évolution de la pression/composition anodique ;
+4. introduction d'une purge discrète ;
+5. comparaison de la période dynamique avec l'ordre de grandeur Ballard :
+
+     2300 A.s
+
+   soit environ :
+
+     88.3 s
+
+   au courant nominal provisoire de 26.04 A.
+
