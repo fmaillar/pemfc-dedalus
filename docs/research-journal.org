@@ -3627,3 +3627,255 @@ déterminer :
 
 La purge ne sera introduite qu'après validation de ce bilan H2 sans purge.
 
+*** Résultats du bilan dynamique H2 sans purge
+
+La campagne :
+
+  make h2-v07
+
+est terminée sur les trois régimes.
+
+Le préflight nominal sur 60 s est cohérent :
+
+  RH_anode : 0 -> 0.0163
+  p_total  : environ 1.3736 bar
+
+sans perte d'inventaire H2 ni instabilité numérique.
+
+La campagne complète utilise :
+
+  V_anode = 20 mL
+  p_target = 137325 Pa
+  t_final = 15000 s
+  dt = 1 s.
+
+*** Pression finale
+
+Dans les trois régimes, la pression totale finale revient à la cible du
+régulateur :
+
+  p_total,final ≈ 137325 Pa.
+
+La répartition H2 / H2O évolue cependant fortement avec l'humidification.
+
+dry_high_load :
+
+  p_H2,final  = 1.35458 bar
+  p_H2O,final = 0.01867 bar
+
+nominal :
+
+  p_H2,final  = 1.34177 bar
+  p_H2O,final = 0.03148 bar
+
+wet_low_load :
+
+  p_H2,final  = 1.30869 bar
+  p_H2O,final = 0.06456 bar.
+
+La fraction de la pression totale portée par la vapeur d'eau atteint donc
+environ :
+
+  dry_high_load : 1.36 %
+  nominal       : 2.29 %
+  wet_low_load  : 4.70 %.
+
+*** Surpression transitoire
+
+Le régulateur est unidirectionnel :
+
+  il ajoute H2
+  mais ne retire pas de gaz.
+
+Une surpression peut donc apparaître lorsque l'eau s'accumule plus vite que la
+consommation d'H2 ne libère de capacité de pression.
+
+dry_high_load :
+
+  p_max ≈ 1.37325 bar
+  surpression ≈ 0 %.
+
+nominal :
+
+  p_max ≈ 1.37433 bar
+  surpression ≈ 0.079 %
+  maximum vers t ≈ 320 s.
+
+wet_low_load :
+
+  p_max ≈ 1.41886 bar
+  surpression ≈ 3.32 %
+  maximum vers t ≈ 1820 s.
+
+Le régime humide à faible charge est donc le plus sensible à cette accumulation
+de vapeur, malgré son faible courant.
+
+Cette tendance est cohérente avec la V0.6 :
+
+  wet_low_load
+
+présente le plus fort transfert d'eau vers l'anode à faible RH_anode.
+
+*** Bilan cumulé H2
+
+dry_high_load :
+
+  H2 fourni     = 2.4976e-4 mol
+  H2 consommé   = 2.6411e-4 mol
+  variation stock H2 = -1.4348e-5 mol
+
+nominal :
+
+  H2 fourni     = 1.4329e-4 mol
+  H2 consommé   = 1.6749e-4 mol
+  variation stock H2 = -2.4198e-5 mol
+
+wet_low_load :
+
+  H2 fourni     = 4.5936e-5 mol
+  H2 consommé   = 9.5555e-5 mol
+  variation stock H2 = -4.9619e-5 mol.
+
+Dans les trois cas :
+
+  H2 fourni - H2 consommé
+  = variation de l'inventaire H2
+
+à la précision numérique.
+
+L'erreur de fermeture du bilan est de l'ordre de :
+
+  1e-16 mol
+
+ou moins.
+
+Le déficit de H2 dans l'inventaire final est numériquement égal à
+l'inventaire de vapeur d'eau accumulé lorsque la pression finale revient à la
+cible.
+
+Cette relation est exactement celle attendue à volume et température constants :
+
+  n_H2 + n_H2O = constante
+
+pour une pression totale régulée.
+
+*** Réponse du courant
+
+Le courant augmente au cours de l'humidification anodique car il est interpolé
+depuis la fermeture V0.6.
+
+Entre t = 0 et t = 15000 s :
+
+dry_high_load :
+
+  2.9781 -> 3.4301 mA
+  soit +15.18 %.
+
+nominal :
+
+  1.9781 -> 2.1715 mA
+  soit +9.78 %.
+
+wet_low_load :
+
+  1.2035 -> 1.2312 mA
+  soit +2.30 %.
+
+Ces variations restent celles de la fermeture V0.6 en fonction de RH_anode.
+
+Le modèle H2 actuel ne rétroagit pas encore sur l'électrochimie via p_H2.
+
+*** Interprétation du régulateur
+
+Le bilan montre trois comportements distincts.
+
+Dans dry_high_load :
+
+- la consommation H2 est suffisamment importante ;
+- la vapeur d'eau reste une petite fraction de la pression ;
+- le régulateur peut maintenir pratiquement exactement la cible.
+
+Dans nominal :
+
+- une faible surpression transitoire apparaît ;
+- l'alimentation H2 doit temporairement se fermer ou devenir insuffisante pour
+  compenser l'accumulation de vapeur ;
+- la pression revient ensuite vers la cible.
+
+Dans wet_low_load :
+
+- la consommation H2 est faible ;
+- le transfert d'eau vers l'anode est important ;
+- la vapeur remplace rapidement une fraction significative du H2 dans le
+  volume ;
+- le régulateur unidirectionnel ne peut pas retirer ce gaz ;
+- une surpression temporaire de l'ordre de 3.3 % apparaît.
+
+Ce comportement fournit précisément une motivation physique supplémentaire pour
+introduire ensuite une purge.
+
+*** Validation du bilan H2
+
+- [X] make test vert avant campagne
+- [X] quick-h2-v07 cohérent
+- [X] inventaire H2 toujours positif
+- [X] consommation H2 positive
+- [X] apport H2 non négatif
+- [X] pression totale toujours positive
+- [X] bilan molaire H2 fermé à la précision numérique
+- [X] pression finale revenue à la cible dans les trois régimes
+- [X] légère surpression nominale identifiée
+- [X] surpression wet_low_load identifiée
+- [X] aucune eau liquide observée
+- [X] continuité de RH_anode avec le sous-modèle hydrique précédent préservée
+
+Le premier bilan H2 dynamique sans purge est donc validé comme modèle réduit.
+
+*** Limite importante d'échelle
+
+Le courant utilisé dans cette fermeture correspond au courant intégré du patch
+numérique :
+
+  A_patch = 2 mm x 1 mm.
+
+Le volume anodique lumped :
+
+  20 mL
+
+n'est pas encore relié géométriquement à cette aire active.
+
+Les débits H2 absolus et les inventaires molaires ne doivent donc pas être
+interprétés comme ceux d'une cellule Ballard complète.
+
+À ce stade, la validation porte sur :
+
+- la fermeture des bilans ;
+- les signes ;
+- la dynamique relative ;
+- les tendances entre régimes.
+
+Une mise à l'échelle cohérente aire active / volume devra être introduite avant
+toute comparaison quantitative avec le débit H2 réel du stack.
+
+*** Décision de développement après le bilan H2
+
+Le bilan H2 sans purge est numériquement fermé et produit un comportement
+qualitativement cohérent avec une anode dead-end équipée d'une alimentation
+unidirectionnelle.
+
+La prochaine étape naturelle est désormais une purge discrète.
+
+Cette purge devra retirer une fraction de :
+
+- H2 ;
+- vapeur d'eau ;
+- plus tard N2 lorsque le crossover sera introduit ;
+
+tout en conservant explicitement le bilan de matière.
+
+Une première loi de déclenchement peut reprendre la référence Ballard :
+
+  2300 A.s
+
+avant de tester ensuite une logique fondée sur l'état interne de l'anode.
+
