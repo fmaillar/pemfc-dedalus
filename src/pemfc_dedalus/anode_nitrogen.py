@@ -38,6 +38,37 @@ def nitrogen_crossover_molar_rate(
     return flux_mol_m2_s * active_area_m2
 
 
+
+
+def nitrogen_permeance_from_reference_flux(
+    reference_flux_mol_m2_s: float,
+    cathode_partial_pressure_pa: float,
+) -> float:
+    """Calibrate a linear N2 permeance from a zero-anode-pressure flux."""
+    if reference_flux_mol_m2_s < 0.0:
+        raise ValueError("reference_flux_mol_m2_s must be non-negative")
+    if cathode_partial_pressure_pa <= 0.0:
+        raise ValueError("cathode_partial_pressure_pa must be positive")
+    return reference_flux_mol_m2_s / cathode_partial_pressure_pa
+
+
+def nitrogen_pressure_driven_flux(
+    permeance_mol_m2_s_pa: float,
+    cathode_partial_pressure_pa: float,
+    anode_partial_pressure_pa: float,
+) -> float:
+    """Return one-way N2 crossover flux from a linear partial-pressure law."""
+    if permeance_mol_m2_s_pa < 0.0:
+        raise ValueError("permeance_mol_m2_s_pa must be non-negative")
+    if cathode_partial_pressure_pa < 0.0:
+        raise ValueError("cathode_partial_pressure_pa must be non-negative")
+    if anode_partial_pressure_pa < 0.0:
+        raise ValueError("anode_partial_pressure_pa must be non-negative")
+    return permeance_mol_m2_s_pa * max(
+        cathode_partial_pressure_pa - anode_partial_pressure_pa,
+        0.0,
+    )
+
 def total_gas_pressure_with_nitrogen_pa(
     hydrogen_mol: float,
     nitrogen_mol: float,
