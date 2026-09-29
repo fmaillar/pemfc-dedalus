@@ -1078,7 +1078,7 @@ régularisation numérique.
 - [ ] matrice dry / nominal / wet V0.6
 - [X] sensibilité à k_a
 - [ ] sensibilité à RH_anode
-- [ ] convergence spatiale V0.6
+- [X] convergence spatiale V0.6
 - [ ] dynamique du volume anodique
 - [ ] purge transitoire
 - [ ] transport H2
@@ -1473,7 +1473,7 @@ sans devoir reconstruire toute la logique à partir des diffs.
 - [X] comparaison dry / nominal / wet V0.6
 - [X] sensibilité à k_a
 - [ ] sensibilité à RH_anode
-- [ ] convergence spatiale V0.6
+- [X] convergence spatiale V0.6
 - [ ] volume anodique dynamique
 - [ ] purge transitoire
 - [ ] transport H2
@@ -2208,4 +2208,171 @@ purge :
 
 Après ces contrôles, l'étape physique suivante sera le volume anodique dynamique,
 puis la purge transitoire.
+
+** V0.6 — Convergence spatiale à transfert anodique fini
+
+Après la campagne de sensibilité à k_a, la convergence spatiale est vérifiée
+sur le régime le plus sévère électriquement :
+
+  dry_high_load
+
+avec :
+
+  RH cathode = 0.30
+  V cathode = 0.700 V
+  RH anode = 0
+  k_a = 2e-6 m/s.
+
+La grille membrane reste fixée à :
+
+  nz_membrane = 129
+
+afin d'isoler l'effet de la discrétisation de la cathode 3D.
+
+*** Grilles
+
+Trois niveaux sont comparés :
+
+  16x16x48
+  24x24x72
+  32x32x96
+
+Le niveau :
+
+  16x16x48
+
+est la référence V0.6 déjà validée et n'est pas recalculé.
+
+Les deux niveaux plus fins sont calculés avec le même couplage partitionné et
+les mêmes critères de convergence.
+
+Les trois niveaux convergent en :
+
+  7 itérations de couplage.
+
+*** Résultats
+
+Courant :
+
+  16x16x48 : 2.9781041 mA
+  24x24x72 : 2.9784287 mA
+  32x32x96 : 2.9781372 mA
+
+ASR :
+
+  16x16x48 : 5.5194482e-5 ohm m²
+  24x24x72 : 5.5194862e-5 ohm m²
+  32x32x96 : 5.5194520e-5 ohm m²
+
+lambda_anode :
+
+  16x16x48 : 1.71819198
+  24x24x72 : 1.71817686
+  32x32x96 : 1.71819044
+
+lambda_mean :
+
+  16x16x48 : 2.23644696
+  24x24x72 : 2.23643836
+  32x32x96 : 2.23644609
+
+sigma_min :
+
+  16x16x48 : 0.63633510 S/m
+  24x24x72 : 0.63632622 S/m
+  32x32x96 : 0.63633420 S/m
+
+*** Écarts entre niveaux de grille
+
+Entre 16x16x48 et 24x24x72 :
+
+  courant      : 0.01090 %
+  |phi_m|      : 0.01029 %
+  ASR          : 0.000689 %
+  lambda_anode : 0.000880 %
+  lambda_mean  : 0.000384 %
+  sigma_min    : 0.001395 %
+
+Entre 24x24x72 et 32x32x96 :
+
+  courant      : 0.00979 %
+  |phi_m|      : 0.01100 %
+  ASR          : 0.000619 %
+  lambda_anode : 0.000790 %
+  lambda_mean  : 0.000345 %
+  sigma_min    : 0.001253 %
+
+Le courant varie donc de moins de :
+
+  0.01 %
+
+entre les deux grilles les plus fines.
+
+Les grandeurs de membrane varient encore moins.
+
+*** Interprétation
+
+Le nouveau mécanisme de transfert d'eau anodique n'introduit pas de sensibilité
+spatiale significative dans le cas dry_high_load.
+
+Le résultat V0.6 à :
+
+  16x16x48
+
+est pratiquement confondu avec le résultat :
+
+  32x32x96.
+
+La forte pénalité électrique observée dans le régime sec n'est donc pas un
+artefact de discrétisation spatiale.
+
+La conclusion déjà obtenue en V0.5 reste valable après introduction du transfert
+anodique fini :
+
+  16x16x48
+
+est une grille suffisante pour les campagnes paramétriques V0.6, tandis que :
+
+  32x32x96
+
+reste une grille de validation.
+
+*** Validation de la convergence spatiale V0.6
+
+- [X] préflight quick-grid-v06 terminé
+- [X] 16x16x48 réutilisé depuis la référence V0.6 validée
+- [X] 24x24x72 convergé
+- [X] 32x32x96 convergé
+- [X] validation cathodique passée aux niveaux fins
+- [X] écart de courant 24 -> 32 inférieur à 0.01 %
+- [X] ASR, lambda et sigma convergés à un niveau nettement inférieur à 0.01 %
+
+La convergence spatiale V0.6 est donc considérée comme validée pour le régime
+dry_high_load à k_a = 2e-6 m/s.
+
+*** Décision de développement après convergence spatiale
+
+Le contrôle spatial étant satisfaisant dans le régime le plus sévère, il n'est
+pas nécessaire de répéter immédiatement la grille 32x32x96 sur les régimes
+nominal et wet_low_load.
+
+La prochaine vérification V0.6 est la sensibilité à :
+
+  RH_anode
+
+car toutes les campagnes à transfert fini réalisées jusqu'ici utilisent :
+
+  RH_anode = 0.
+
+L'objectif est de vérifier comment une anode partiellement humidifiée modifie :
+
+- lambda_eq,anode ;
+- le flux de retrait d'eau ;
+- lambda_anode et lambda_mean ;
+- l'ASR ;
+- le courant ;
+- la hiérarchie dry / nominal / wet.
+
+Après cette sensibilité, la prochaine évolution physique sera le volume anodique
+dynamique, puis la purge transitoire.
 
