@@ -17,6 +17,7 @@ NUMEXPR_NUM_THREADS ?= 1
         quick-n2-pressure-v07 n2-pressure-v07 \
         quick-n2-literature-v07 n2-literature-v07 \
         quick-n2-state-v07 n2-state-v07 \
+        quick-n2-water-v07 n2-water-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -77,6 +78,8 @@ help:
 	  'make n2-literature-v07 run literature-anchored N2 permeability study' \
 	  'make quick-n2-state-v07 preflight state-dependent N2 permeability' \
 	  'make n2-state-v07      run state-dependent N2 permeability study' \
+	  'make quick-n2-water-v07 preflight water-content N2 permeability' \
+	  'make n2-water-v07      run water-content N2 permeability study' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -488,3 +491,14 @@ quick-n2-state-v07:
 
 n2-state-v07:
 	$(PYTHON) -m scripts.run_v07_n2_state_permeability
+
+
+quick-n2-water-v07:
+	$(PYTHON) -m scripts.run_v07_n2_water_content_permeability \
+	  --regimes nominal --feedback-exponents 0 1 \
+	  --stop-time 200 --dt 0.01 --write-every 100 \
+	  --output-json results/quick-v07-n2-water-content-permeability.json \
+	  --output-csv results/quick-v07-n2-water-content-permeability.csv
+
+n2-water-v07:
+	$(PYTHON) -m scripts.run_v07_n2_water_content_permeability
