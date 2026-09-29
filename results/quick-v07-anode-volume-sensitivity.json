@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "model": "v07-anode-volume-sensitivity",
+  "closure_source": "results/v06-rha-sensitivity.csv",
+  "initial_relative_humidity": 0.0,
+  "horizon_per_ml_s_ml": 100.0,
+  "dt_s": 1.0,
+  "write_every": 5,
+  "volumes_ml": [
+    10.0,
+    20.0,
+    40.0
+  ],
+  "regimes": [
+    "nominal"
+  ],
+  "cases": [
+    {
+      "regime": "nominal",
+      "anode_gas_volume_ml": 10.0,
+      "anode_gas_volume_m3": 9.999999999999999e-06,
+      "stop_time_s": 1000.0,
+      "equilibrium_relative_humidity": 0.4336692933307609,
+      "final_relative_humidity": 0.2597716435572349,
+      "absolute_rh_error_to_equilibrium": 0.17389764977352595,
+      "final_water_flux_lambda_m_s": 1.0042227947808555e-06,
+      "final_liquid_water_mol": 0.0,
+      "t50_s": 725.0,
+      "t90_s": null,
+      "t95_s": null,
+      "t99_s": null
+    },
+    {
+      "regime": "nominal",
+      "anode_gas_volume_ml": 20.0,
+      "anode_gas_volume_m3": 1.9999999999999998e-05,
+      "stop_time_s": 2000.0,
+      "equilibrium_relative_humidity": 0.4336692933307609,
+      "final_relative_humidity": 0.2597239525509714,
+      "absolute_rh_error_to_equilibrium": 0.17394534077978946,
+      "final_water_flux_lambda_m_s": 1.0046462960775345e-06,
+      "final_liquid_water_mol": 0.0,
+      "t50_s": 1445.0,
+      "t90_s": null,
+      "t95_s": null,
+      "t99_s": null
+    },
+    {
+      "regime": "nominal",
+      "anode_gas_volume_ml": 40.0,
+      "anode_gas_volume_m3": 3.9999999999999996e-05,
+      "stop_time_s": 4000.0,
+      "equilibrium_relative_humidity": 0.4336692933307609,
+      "final_relative_humidity": 0.2597001247779785,
+      "absolute_rh_error_to_equilibrium": 0.17396916855278238,
+      "final_water_flux_lambda_m_s": 1.0048578892803225e-06,
+      "final_liquid_water_mol": 0.0,
+      "t50_s": 2885.0,
+      "t90_s": null,
+      "t95_s": null,
+      "t99_s": null
+    }
+  ]
+}
