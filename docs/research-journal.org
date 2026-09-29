@@ -4528,3 +4528,70 @@ purge instantanée :
 Cette comparaison déterminera si la purge transitoire fournit une base assez
 physique pour introduire ensuite N2.
 
+*** Résultats de la purge transitoire à durée finie
+
+La campagne complète est terminée sur les trois régimes avec 11 événements sur
+1000 s. La première purge apparaît à 88.33 s et la période moyenne mesurée vaut
+88.326 s, en accord avec la référence 2300 A.s à 26.04 A.
+
+La correction principale est validée : la pression minimale reste proche de
+1.35003 bar dans les trois régimes, donc largement au-dessus de la pression
+ambiante de 1.01325 bar. L'état intermédiaire artificiel à environ 50.5 kPa du
+modèle instantané a disparu.
+
+Les pressions maximales restent :
+
+  dry_high_load : 1.37325 bar
+  nominal       : 1.37379 bar
+  wet_low_load  : 1.37764 bar.
+
+Sur les cinq derniers cycles, le volume standard évacué par événement est :
+
+  dry_high_load : 8.0000 mL
+  nominal       : 8.0002 mL
+  wet_low_load  : 8.0040 mL.
+
+Cela correspond directement au débit de référence de 2.4 slpm appliqué pendant
+0.2 s. Le modèle n'impose donc plus artificiellement un échange de 20 mL.
+
+Le cycle hydrique établi sur les cinq derniers événements est environ :
+
+  dry_high_load : RH 0.04875 -> 0.03469
+  nominal       : RH 0.06345 -> 0.04515
+  wet_low_load  : RH 0.19758 -> 0.14058.
+
+Les bilans restent fermés à la précision numérique :
+
+  erreur H2 : de l'ordre de 1e-17 mol
+  erreur H2O : de l'ordre de 1e-19 mol.
+
+La quantité totale de H2 évacuée sur 1000 s vaut environ :
+
+  dry_high_load : 3.919e-3 mol
+  nominal       : 3.917e-3 mol
+  wet_low_load  : 3.898e-3 mol.
+
+Ces pertes restent trop grandes relativement à la consommation électrochimique
+du patch pour être interprétées quantitativement, car l'échelle géométrique
+n'est pas encore cohérente entre le patch numérique, le volume anodique et le
+débit de purge par cellule.
+
+*** Validation
+
+- [X] période de purge correcte
+- [X] durée de 0.2 s résolue temporellement
+- [X] pression minimale supérieure à l'ambiante
+- [X] volume évacué proche de 8 mL standard par événement
+- [X] bilans H2 et H2O fermés
+- [X] cycle RH périodique stable
+- [X] disparition de l'état artificiel sous-atmosphérique
+- [ ] mise à l'échelle aire active / volume / débit cohérente
+- [ ] dépendance électrochimique explicite à p_H2
+- [ ] N2 et crossover
+- [ ] calibration quantitative du débit réel de purge
+
+La prochaine priorité est la mise à l'échelle cohérente entre aire active,
+courant cellulaire, volume anodique et débit de purge. L'ajout de N2 doit venir
+après cette étape afin que les bilans absolus soient physiquement
+interprétables.
+
