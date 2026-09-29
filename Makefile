@@ -11,6 +11,7 @@ NUMEXPR_NUM_THREADS ?= 1
         quick-v06 study-v06 quick-ka-v06 ka-v06 quick-grid-v06 grid-v06 quick-rha-v06 rha-v06 \
         quick-v07 study-v07 quick-volume-v07 volume-v07 quick-h2-v07 h2-v07 quick-purge-v07 purge-v07 \
         quick-transient-purge-v07 transient-purge-v07 quick-scaling-v07 scaling-v07 \
+        quick-purge-duration-v07 purge-duration-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -57,6 +58,8 @@ help:
 	  'make transient-purge-v07 run finite-duration pressure-driven purge' \
 	  'make quick-scaling-v07 preflight full-cell active-area scaling' \
 	  'make scaling-v07       run full-cell active-area scaling study' \
+	  'make quick-purge-duration-v07 preflight dynamic-clock purge durations' \
+	  'make purge-duration-v07 compare 0.2 s and 0.5 s purge durations' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -392,3 +395,14 @@ quick-scaling-v07:
 
 scaling-v07:
 	$(PYTHON) -m scripts.run_v07_active_area_scaling
+
+
+quick-purge-duration-v07:
+	$(PYTHON) -m scripts.run_v07_purge_duration_comparison \
+	  --regimes nominal --durations 0.2 0.5 \
+	  --stop-time 200 --dt 0.01 --write-every 100 \
+	  --output-json results/quick-v07-purge-duration-comparison.json \
+	  --output-csv results/quick-v07-purge-duration-comparison.csv
+
+purge-duration-v07:
+	$(PYTHON) -m scripts.run_v07_purge_duration_comparison
