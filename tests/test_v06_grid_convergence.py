@@ -25,7 +25,7 @@ def test_relative_change_uses_new_value_as_scale():
 
 
 def test_full_reference_is_reused_only_for_exact_reference_configuration():
-    base = dict(
+    assert can_reuse_reference(
         quick=False,
         grid=(16, 16, 48),
         membrane_nz=129,
@@ -35,19 +35,36 @@ def test_full_reference_is_reused_only_for_exact_reference_configuration():
         anode_relative_humidity=0.0,
         k_value=2.0e-6,
     )
-    assert can_reuse_reference(**base)
-
-    changed = dict(base)
-    changed["grid"] = (24, 24, 72)
-    assert not can_reuse_reference(**changed)
-
-    changed = dict(base)
-    changed["k_value"] = 5.0e-6
-    assert not can_reuse_reference(**changed)
-
-    changed = dict(base)
-    changed["quick"] = True
-    assert not can_reuse_reference(**changed)
+    assert not can_reuse_reference(
+        quick=False,
+        grid=(24, 24, 72),
+        membrane_nz=129,
+        stop_time=0.0064,
+        max_dt=1.0e-6,
+        scalar_dt=1.0e-5,
+        anode_relative_humidity=0.0,
+        k_value=2.0e-6,
+    )
+    assert not can_reuse_reference(
+        quick=False,
+        grid=(16, 16, 48),
+        membrane_nz=129,
+        stop_time=0.0064,
+        max_dt=1.0e-6,
+        scalar_dt=1.0e-5,
+        anode_relative_humidity=0.0,
+        k_value=5.0e-6,
+    )
+    assert not can_reuse_reference(
+        quick=True,
+        grid=(16, 16, 48),
+        membrane_nz=129,
+        stop_time=0.0064,
+        max_dt=1.0e-6,
+        scalar_dt=1.0e-5,
+        anode_relative_humidity=0.0,
+        k_value=2.0e-6,
+    )
 
 
 def test_v06_grid_summary_uses_last_coupling_iteration():
