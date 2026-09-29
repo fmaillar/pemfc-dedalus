@@ -205,6 +205,7 @@ def main() -> None:
                 and reference.exists()
             )
 
+            data: dict[str, Any] | None
             if reuse_reference:
                 print(f"reusing validated reference {reference}", flush=True)
                 data = json.loads(reference.read_text())
@@ -212,7 +213,7 @@ def main() -> None:
             else:
                 case_dir = args.work_dir / name
                 case_output = case_dir / "result.json"
-                data: dict[str, Any] | None = None
+                data = None
 
                 if case_output.exists():
                     candidate = json.loads(case_output.read_text())
