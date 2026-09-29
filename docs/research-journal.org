@@ -5291,3 +5291,167 @@ L'effet de p_H2 et de la fraction molaire H2 sur l'électrochimie pourra ensuite
 être ajouté dans un incrément distinct, afin de ne pas mélanger validation du
 transport N2 et rétroaction électrochimique.
 
+** V0.7 — Inventaire N2 et crossover cathode -> anode
+
+La chaîne de purge standard est maintenant suffisamment cohérente pour ajouter
+un premier inventaire d'azote dans le volume anodique.
+
+Cet incrément reste volontairement réduit.
+
+L'objectif n'est pas encore de modifier l'électrochimie par la dilution de H2,
+mais de valider séparément :
+
+- une source de crossover N2 ;
+- l'accumulation de N2 entre purges ;
+- la contribution de N2 à la pression totale ;
+- la dilution molaire de H2 ;
+- l'évacuation de N2 pendant la purge ;
+- la fermeture du bilan de matière N2.
+
+*** Source de crossover
+
+Le crossover est représenté par un flux surfacique imposé :
+
+  J_N2 [mol/m2/s].
+
+Le débit molaire vers l'anode vaut :
+
+  n_dot_N2 = J_N2 * A_active.
+
+La valeur de screening utilisée initialement est :
+
+  J_N2 = 1e-6 mol/m2/s.
+
+Cette valeur est une hypothèse provisoire de modèle.
+
+Elle n'est pas issue d'une calibration Ballard et ne doit pas être interprétée
+comme une mesure de perméabilité de la membrane.
+
+Le premier objectif est la validation conservative du nouvel état N2.
+
+*** État gazeux anodique
+
+Le volume contient maintenant explicitement :
+
+- H2 ;
+- N2 ;
+- vapeur d'eau ;
+- éventuellement eau liquide dans l'inventaire hydrique déjà existant.
+
+La pression totale est calculée par :
+
+  p_total = (n_H2 + n_N2 + n_H2O,vap) R T / V.
+
+Le régulateur H2 tient compte de N2 et de H2O lors du calcul de la quantité de
+H2 nécessaire pour revenir vers la pression cible.
+
+*** Purge standard
+
+Le nouvel incrément conserve la configuration désormais retenue comme référence
+quantitative :
+
+  durée = 0.5 s
+  débit de référence = 2.4 slpm
+  déclenchement = intégrale de I_cell(t) jusqu'à 2300 A.s.
+
+Pendant la purge, le débit sortant retire le mélange gazeux parfaitement
+mélangé selon ses fractions molaires instantanées :
+
+  H2
+  N2
+  H2O.
+
+Le bilan N2 devient :
+
+  n_N2,crossover
+  - n_N2,purge
+  - n_N2,final
+  ≈ 0.
+
+*** Pas de rétroaction électrochimique dans ce premier incrément
+
+Le courant reste obtenu à partir de la fermeture V0.6 :
+
+  RH_anode -> courant.
+
+Ni :
+
+  p_H2
+
+ni :
+
+  x_H2
+
+ne modifient encore la cinétique électrochimique.
+
+Cette séparation est volontaire afin de distinguer :
+
+1. validation du transport et du bilan N2 ;
+2. rétroaction électrochimique due à la dilution H2.
+
+*** Infrastructure
+
+Nouveau module :
+
+  src/pemfc_dedalus/anode_nitrogen.py
+
+Nouvelles grandeurs :
+
+  AnodeGasState
+  nitrogen_crossover_molar_rate(...)
+  total_gas_pressure_with_nitrogen_pa(...)
+  hydrogen_moles_for_pressure_with_nitrogen(...)
+  remove_well_mixed_h2_n2_h2o(...)
+
+Nouveau driver :
+
+  scripts/run_v07_anode_nitrogen.py
+
+Tests :
+
+  tests/test_anode_nitrogen.py
+  tests/test_v07_anode_nitrogen.py
+
+Commandes :
+
+  make quick-n2-v07
+  make n2-v07
+
+Sorties :
+
+  results/quick-v07-anode-nitrogen.json
+  results/quick-v07-anode-nitrogen.csv
+  results/v07-anode-nitrogen.json
+  results/v07-anode-nitrogen.csv
+
+*** Validation attendue
+
+Avant toute exécution :
+
+  make test
+
+doit être entièrement vert.
+
+Le préflight nominal doit vérifier :
+
+- inventaire N2 positif lorsque le crossover est non nul ;
+- inventaire N2 nul lorsque J_N2 = 0 ;
+- fraction molaire N2 positive ;
+- fraction molaire H2 réduite par rapport au cas sans N2 ;
+- N2 expulsé lors des purges ;
+- pression toujours physique ;
+- bilans H2, H2O et N2 fermés.
+
+La campagne complète sur les trois régimes devra ensuite mesurer :
+
+- x_N2 maximal entre purges ;
+- x_H2 minimal ;
+- inventaire N2 avant/après purge ;
+- N2 cumulé traversant la membrane ;
+- N2 cumulé purgé ;
+- effet de N2 sur la pression totale ;
+- stabilité du cycle N2 sur plusieurs purges.
+
+Si la conservation est validée, l'étape suivante sera une sensibilité à
+J_N2 avant toute rétroaction de p_H2 ou x_H2 sur l'électrochimie.
+
