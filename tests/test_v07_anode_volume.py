@@ -62,7 +62,7 @@ def test_dynamic_anode_moves_toward_static_zero_flux_point():
         "nominal",
         closure,
         initial_rh=0.0,
-        stop_time_s=2000.0,
+        stop_time_s=10000.0,
         dt_s=1.0,
         volume_m3=20.0e-6,
         temperature_k=313.15,
