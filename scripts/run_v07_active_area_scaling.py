@@ -136,7 +136,7 @@ def main() -> None:
             target_total_pressure_pa=p.anode_target_total_pressure_pa,
             ambient_pressure_pa=p.pressure,
             purge_interval_as=p.tech.purge_interval_as,
-            purge_clock_current_a=p.stack_current_a,
+            purge_clock_current_a=None,
             purge_duration_s=p.tech.lab_purge_duration_s,
             purge_reference_flow_slpm=p.tech.purge_rate_min_slpm_per_cell,
             current_scale_factor=scaling.area_scale_factor,
@@ -180,6 +180,7 @@ def main() -> None:
         "purge_flow_slpm_per_cm2": (
             p.tech.purge_rate_min_slpm_per_cell / scaling.inferred_active_area_cm2
         ),
+        "purge_clock_mode": "dynamic_cell_current",
         "manual_reference_hydrogen_utilization": (
             p.tech.h2_utilization_with_standard_purge
         ),
