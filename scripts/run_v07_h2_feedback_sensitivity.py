@@ -31,7 +31,6 @@ from scripts.run_v07_anode_h2 import (
 )
 from scripts.run_v07_anode_nitrogen import simulate_nitrogen_regime
 
-
 DEFAULT_FLUXES = [0.0, 1.0e-6, 2.0e-6, 5.0e-6]
 DEFAULT_EXPONENTS = [0.0, 0.5, 1.0]
 
