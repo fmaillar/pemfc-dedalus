@@ -91,3 +91,38 @@ def effective_membrane_relative_humidity(
     if not 0.0 <= cathode_relative_humidity <= 1.0:
         raise ValueError("cathode_relative_humidity must be in [0, 1]")
     return 0.5 * (anode_relative_humidity + cathode_relative_humidity)
+
+
+
+def state_dependent_permeability(
+    dry_reference_permeability: float,
+    *,
+    temperature_k: float,
+    reference_temperature_k: float,
+    activation_energy_j_mol: float,
+    gas_constant_j_mol_k: float,
+    anode_relative_humidity: float,
+    cathode_relative_humidity: float,
+    maximum_humidity_factor: float = 100.0,
+    humidity_reference_relative_humidity: float = 0.90,
+    humidity_shape_exponent: float = 2.0,
+) -> float:
+    """Combine Arrhenius temperature scaling with the RH screening closure."""
+    dry_at_temperature = arrhenius_permeability(
+        dry_reference_permeability,
+        temperature_k,
+        reference_temperature_k,
+        activation_energy_j_mol,
+        gas_constant_j_mol_k,
+    )
+    effective_rh = effective_membrane_relative_humidity(
+        anode_relative_humidity,
+        cathode_relative_humidity,
+    )
+    humidity_factor = humidity_permeability_multiplier(
+        effective_rh,
+        maximum_factor=maximum_humidity_factor,
+        reference_relative_humidity=humidity_reference_relative_humidity,
+        shape_exponent=humidity_shape_exponent,
+    )
+    return dry_at_temperature * humidity_factor
