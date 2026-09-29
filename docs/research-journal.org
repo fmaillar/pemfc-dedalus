@@ -2376,3 +2376,107 @@ L'objectif est de vérifier comment une anode partiellement humidifiée modifie 
 Après cette sensibilité, la prochaine évolution physique sera le volume anodique
 dynamique, puis la purge transitoire.
 
+** V0.6 — Sensibilité à l'humidité anodique
+
+Après validation de la sensibilité à k_a et de la convergence spatiale V0.6,
+la dernière étude paramétrique prévue avant l'introduction d'une dynamique
+anodique consiste à faire varier :
+
+  RH_anode.
+
+Toutes les campagnes V0.6 précédentes avec transfert fini utilisaient :
+
+  RH_anode = 0.
+
+Cette hypothèse représente une anode sèche au sens de l'équilibre hydrique
+imposé par la condition de transfert.
+
+*** Valeurs prévues
+
+La campagne utilise :
+
+  RH_anode = 0.00
+  RH_anode = 0.10
+  RH_anode = 0.30
+  RH_anode = 0.50
+  RH_anode = 0.70
+  RH_anode = 0.90
+
+avec :
+
+  k_a = 2e-6 m/s.
+
+Les trois régimes sont conservés :
+
+- dry_high_load ;
+- nominal ;
+- wet_low_load.
+
+Cela représente :
+
+  18 points
+
+dont les trois points à :
+
+  RH_anode = 0
+
+sont déjà validés et sont réutilisés lorsque la campagne est exécutée avec la
+configuration de référence.
+
+Les nouveaux calculs sont donc au nombre de :
+
+  15.
+
+*** Questions étudiées
+
+L'étude doit déterminer :
+
+- comment lambda_eq,anode évolue avec RH_anode ;
+- à partir de quelle humidité le flux de retrait anodique devient faible ;
+- si le flux peut changer de signe lorsque l'anode devient plus humide que la
+  membrane locale ;
+- comment lambda_anode et lambda_mean répondent à cette humidification ;
+- comment l'ASR et le courant évoluent ;
+- si le régime dry_high_load reste le plus sensible électriquement ;
+- si les différences entre dry / nominal / wet se réduisent quand RH_anode
+  augmente.
+
+Le signe du flux est particulièrement important.
+
+La convention actuelle est :
+
+  flux de retrait > 0
+  -> eau quittant la membrane vers l'anode ;
+
+  flux de retrait < 0
+  -> eau entrant dans la membrane depuis l'environnement anodique.
+
+Une inversion de signe ne serait donc pas une erreur en soi ; elle indiquerait
+que la condition de Robin impose localement une humidification de la membrane.
+
+*** Infrastructure
+
+Le driver restartable est :
+
+  scripts/run_v06_rha_sensitivity.py
+
+Les sorties sont :
+
+  results/v06-rha-sensitivity.json
+  results/v06-rha-sensitivity.csv
+
+Le préflight est lancé avec :
+
+  make quick-rha-v06
+
+et la campagne complète avec :
+
+  make rha-v06.
+
+Comme pour les campagnes précédentes, aucun calcul long ne doit être lancé avant
+que :
+
+  make test
+
+soit entièrement vert.
+
