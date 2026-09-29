@@ -7129,3 +7129,211 @@ dépendance en température/hydratation.
 La prochaine étape devra introduire une loi de perméabilité N2 dépendant de
 l'état de membrane, plutôt qu'un facteur arbitraire 1x/10x/100x.
 
+** V0.7 — Perméabilité N2 dépendante de la température et de l'hydratation
+
+La prochaine étape remplace les niveaux discrets de perméabilité N2 par une
+fermeture continue dépendant de l'état de membrane.
+
+*** Base physique
+
+Deux tendances expérimentales sont retenues.
+
+1. Température
+
+Baik et Kim rapportent, pour une membrane PEMFC entièrement hydratée, une
+dépendance de type Arrhenius du coefficient de perméabilité N2 et une énergie
+d'activation de :
+
+  E_a = 19.83 kJ/mol.
+
+La fermeture thermique utilisée est :
+
+  P(T) =
+    P_ref
+    * exp[
+        -E_a/R
+        * (1/T - 1/T_ref)
+      ].
+
+2. Hydratation
+
+Catalano et al. montrent pour Nafion 117 et Aquivion que la perméabilité N2
+augmente fortement avec l'humidité relative et peut atteindre une amplification
+de l'ordre de 100 dans la zone de forte humidité.
+
+Les auteurs indiquent également que la dépendance à RH est complexe et non
+linéaire.
+
+La présente fermeture d'humidité est donc explicitement une interpolation de
+screening et non une corrélation extraite directement de l'article.
+
+*** Référence sèche
+
+La perméabilité sèche reste ancrée à :
+
+  P_N2,dry = 0.24 Barrer
+
+à :
+
+  T_ref = 35 °C = 308.15 K.
+
+La conversion Barrer -> SI et la division par l'épaisseur de membrane restent
+celles validées précédemment.
+
+*** Fermeture hydrique de screening
+
+Une humidité effective de membrane est définie au premier ordre par :
+
+  RH_eff =
+    (RH_anode + RH_cathode) / 2.
+
+RH_anode est dynamique.
+
+RH_cathode est le paramètre cathodique du modèle.
+
+Le multiplicateur d'humidité est :
+
+  F_RH =
+    100^[min(RH_eff / 0.9, 1)^q_RH].
+
+Ainsi :
+
+  RH_eff = 0 -> F_RH = 1
+  RH_eff >= 0.9 -> F_RH = 100.
+
+La campagne compare :
+
+  q_RH =
+    1
+    2
+    4.
+
+Ces valeurs ne sont pas des paramètres publiés.
+
+Elles quantifient l'incertitude sur la forme de la dépendance hydrique entre les
+deux bornes expérimentales.
+
+*** Loi complète
+
+La perméabilité instantanée utilisée est :
+
+  P_N2(T,RH) =
+    P_N2,dry(35 °C)
+    * F_T(T)
+    * F_RH(RH_eff).
+
+La perméance instantanée devient :
+
+  K_N2(t) =
+    P_N2(T,RH(t))
+    / L_membrane.
+
+Le crossover reste ensuite :
+
+  J_N2(t) =
+    K_N2(t)
+    * max(
+        p_N2,cathode - p_N2,anode(t),
+        0
+      ).
+
+La simulation possède donc maintenant simultanément :
+
+- une perméance N2 dépendant de l'état hydrique ;
+- une force motrice dépendant du gradient de pression N2 ;
+- une rétroaction H2 sur le courant ;
+- une horloge de purge dépendant du courant.
+
+*** Implémentation
+
+Le module :
+
+  src/pemfc_dedalus/gas_permeability.py
+
+contient maintenant :
+
+  arrhenius_permeability(...)
+  humidity_permeability_multiplier(...)
+  effective_membrane_relative_humidity(...)
+  state_dependent_permeability(...).
+
+Le driver N2 accepte également une fonction de perméance dynamique :
+
+  n2_permeance_model(anode_rh).
+
+Le mode associé est enregistré comme :
+
+  state_dependent_permeance.
+
+*** Nouvelle campagne
+
+Driver :
+
+  scripts/run_v07_n2_state_permeability.py
+
+Paramètres :
+
+  q_RH =
+    1
+    2
+    4
+
+et :
+
+  gamma =
+    0
+    1.
+
+Le cas gamma = 0 isole le nouveau transport.
+
+Le cas gamma = 1 conserve la rétroaction électrochimique H2.
+
+Commandes :
+
+  make quick-n2-state-v07
+  make n2-state-v07
+
+Sorties :
+
+  results/quick-v07-n2-state-permeability.json
+  results/quick-v07-n2-state-permeability.csv
+  results/v07-n2-state-permeability.json
+  results/v07-n2-state-permeability.csv
+
+*** Points de validation
+
+Avant exécution :
+
+  make test
+
+doit rester entièrement vert, y compris Ruff et mypy.
+
+La campagne devra vérifier :
+
+- P_N2 augmente avec T ;
+- P_N2 augmente avec RH_eff ;
+- la perméance reste positive et bornée par la fermeture choisie ;
+- q_RH contrôle monotoniquement la courbure de la loi ;
+- les bilans H2/H2O/N2 restent fermés ;
+- le système reste stable dans wet_low_load ;
+- la rétroaction pression-gradient continue à limiter le crossover.
+
+*** Limitation importante
+
+La loi combinée température-humidité n'est pas une corrélation publiée telle
+quelle.
+
+Elle combine :
+
+- une référence sèche publiée ;
+- une tendance Arrhenius publiée ;
+- une borne d'amplification hydrique publiée ;
+- une interpolation hydrique explicitement paramétrique.
+
+Cette distinction devra être conservée dans toute présentation ou publication.
+
+L'étape suivante, après la campagne, sera de déterminer si la forme q_RH peut
+être contrainte plus finement par les données expérimentales de Catalano et al.,
+ou s'il faut passer à une loi en teneur en eau / fraction volumique d'eau
+plutôt qu'en RH.
+
