@@ -3139,3 +3139,120 @@ Après cette sensibilité, l'étape physique suivante sera d'ajouter le bilan H2
 dans le volume dead-end, puis la pression/composition et enfin la purge
 transitoire.
 
+** V0.7 — Sensibilité au volume anodique
+
+Le premier bilan dynamique a montré que RH_anode converge vers le point fixe
+hydrique issu de V0.6.
+
+L'étape suivante consiste à quantifier explicitement l'influence de :
+
+  V_anode
+
+sur l'inertie du système.
+
+*** Volumes étudiés
+
+La campagne utilise :
+
+  5 mL
+  10 mL
+  20 mL
+  40 mL
+  80 mL
+
+par cellule représentative.
+
+La valeur :
+
+  20 mL
+
+reste le point de référence provisoire.
+
+Les autres volumes couvrent deux facteurs 4 autour de cette référence.
+
+Aucune de ces valeurs, y compris 20 mL, ne doit être interprétée comme une
+mesure du volume interne Ballard.
+
+*** Horizon temporel
+
+Le point fixe RH ne dépend pas du volume dans ce modèle réduit.
+
+Seule l'échelle de temps doit changer.
+
+Pour éviter de tronquer artificiellement les grands volumes, l'horizon est
+choisi proportionnel à V_anode :
+
+  t_final = 750 s/mL * V_anode.
+
+Cela donne :
+
+  5 mL  ->  3750 s
+  10 mL ->  7500 s
+  20 mL -> 15000 s
+  40 mL -> 30000 s
+  80 mL -> 60000 s.
+
+*** Grandeurs extraites
+
+Pour chaque volume et chaque régime, la campagne calcule :
+
+  t50
+  t90
+  t95
+  t99
+
+où tx est le premier temps auquel RH_anode atteint x % de son point fixe
+statique V0.6.
+
+Elle enregistre également :
+
+- RH finale ;
+- erreur au point fixe ;
+- flux d'eau final ;
+- éventuel inventaire d'eau liquide.
+
+*** Hypothèse à vérifier
+
+Dans ce premier modèle lumped, la capacité de stockage de vapeur est
+proportionnelle au volume tandis que la loi de transfert membrane est conservée.
+
+On s'attend donc à ce que les temps caractéristiques soient approximativement
+proportionnels à :
+
+  V_anode.
+
+Cette propriété constitue un contrôle structurel du modèle.
+
+Une forte déviation non expliquée à cette loi d'échelle indiquerait soit une
+non-linéarité importante de la fermeture, soit un problème dans le bilan
+d'inventaire.
+
+*** Infrastructure
+
+Driver :
+
+  scripts/run_v07_anode_volume_sensitivity.py
+
+Tests :
+
+  tests/test_v07_anode_volume_sensitivity.py
+
+Préflight :
+
+  make quick-volume-v07
+
+Campagne complète :
+
+  make volume-v07
+
+Sorties :
+
+  results/v07-anode-volume-sensitivity.json
+  results/v07-anode-volume-sensitivity.csv
+
+Comme pour les campagnes précédentes :
+
+  make test
+
+doit être entièrement vert avant le préflight puis la campagne complète.
+
