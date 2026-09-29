@@ -8,7 +8,7 @@ NUMEXPR_NUM_THREADS ?= 1
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
         quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh plot-v04-rh \
         quick-v05 study-v05 quick-sweep-v05 sweep-v05 quick-grid-v05 grid-v05 \
-        quick-v06 study-v06 quick-ka-v06 ka-v06 quick-grid-v06 grid-v06 \
+        quick-v06 study-v06 quick-ka-v06 ka-v06 quick-grid-v06 grid-v06 quick-rha-v06 rha-v06 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -41,6 +41,8 @@ help:
 	  'make ka-v06           run V0.6 k_a sensitivity on three regimes' \
 	  'make quick-grid-v06   preflight V0.6 spatial-convergence driver' \
 	  'make grid-v06         run V0.6 dry/high-load spatial convergence' \
+	  'make quick-rha-v06    preflight one V0.6 RH_anode sensitivity case' \
+	  'make rha-v06          run V0.6 RH_anode sensitivity on three regimes' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -295,3 +297,23 @@ grid-v06:
 	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
 	  $(PYTHON) scripts/run_v06_grid_convergence.py \
 	  --regimes dry_high_load --mpi-n $(MPI_N)
+
+
+quick-rha-v06:
+	rm -rf .quick-v06-rha
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=2 \
+	  $(PYTHON) scripts/run_v06_rha_sensitivity.py \
+	  --regimes nominal --anode-rh-values 0.5 \
+	  --nx 8 --ny 8 --nz 24 --membrane-nz 65 \
+	  --stop-time 0.0002 --max-dt 0.000001 --scalar-dt 0.00001 \
+	  --max-coupling-iterations 10 --current-rtol 0.01 --potential-atol 0.0001 \
+	  --mpi-n 2 --work-dir .quick-v06-rha \
+	  --output-json results/quick-v06-rha-sensitivity.json \
+	  --output-csv results/quick-v06-rha-sensitivity.csv
+
+rha-v06:
+	OMP_NUM_THREADS=$(OMP_NUM_THREADS) NUMEXPR_NUM_THREADS=$(NUMEXPR_NUM_THREADS) \
+	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
+	  $(PYTHON) scripts/run_v06_rha_sensitivity.py \
+	  --mpi-n $(MPI_N)
