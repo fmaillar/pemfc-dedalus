@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "model": "v07-anode-purge",
+  "closure_source": "results/v06-rha-sensitivity.csv",
+  "anode_gas_volume_m3": 2e-05,
+  "target_total_pressure_pa": 137325.0,
+  "purge_interval_as": 2300.0,
+  "purge_clock_current_a": 26.04,
+  "purge_exchange_volume_m3": 2e-05,
+  "purge_fraction": 0.6321205588285577,
+  "stop_time_s": 200.0,
+  "dt_s": 0.1,
+  "regimes": [
+    "nominal"
+  ],
+  "summaries": [
+    {
+      "regime": "nominal",
+      "purge_count": 2,
+      "purge_fraction": 0.6321205588285577,
+      "purge_interval_as": 2300.0,
+      "purge_clock_current_a": 26.04,
+      "expected_purge_period_s": 88.32565284178187,
+      "first_purge_time_s": 88.4,
+      "mean_purge_period_s": 88.30000000000001,
+      "final_relative_humidity": 0.017646646940877097,
+      "min_relative_humidity": 0.0,
+      "max_relative_humidity": 0.03127137267620586,
+      "final_total_pressure_pa": 137338.52813498673,
+      "max_total_pressure_pa": 137378.56970400814,
+      "cumulative_h2_inlet_mol": 0.001334113508870634,
+      "cumulative_h2_consumed_mol": 2.0662680876833082e-06,
+      "cumulative_h2_purged_mol": 0.0013329345215001565,
+      "cumulative_water_transfer_mol": 2.9389683558815388e-06,
+      "cumulative_water_purged_mol": 1.9477092123306173e-06,
+      "h2_balance_error_mol": -2.168404344971009e-18,
+      "water_balance_error_mol": 2.117582368135751e-21,
+      "purge_events": [
+        {
+          "event_index": 1,
+          "time_s": 88.4,
+          "rh_before": 0.02355723101787768,
+          "rh_after": 0.008666220982403407,
+          "pressure_before_pa": 137378.56970400814,
+          "pressure_after_purge_pa": 50538.75145164254,
+          "pressure_after_refill_pa": 137324.99999999997,
+          "purged_hydrogen_mol": 0.0006666219554516549,
+          "purged_water_mol": 8.364676815843128e-07,
+          "refill_hydrogen_mol": 0.000667046681712258
+        },
+        {
+          "event_index": 2,
+          "time_s": 176.70000000000002,
+          "rh_before": 0.03129561850718329,
+          "rh_after": 0.011513014647537238,
+          "pressure_before_pa": 137371.4450125936,
+          "pressure_after_purge_pa": 50536.13042414647,
+          "pressure_after_refill_pa": 137324.99999999997,
+          "purged_hydrogen_mol": 0.0006663125660485015,
+          "purged_water_mol": 1.1112415307463046e-06,
+          "refill_hydrogen_mol": 0.0006670668271583761
+        }
+      ]
+    }
+  ]
+}
