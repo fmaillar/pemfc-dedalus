@@ -19,6 +19,7 @@ NUMEXPR_NUM_THREADS ?= 1
         quick-n2-state-v07 n2-state-v07 \
         quick-n2-water-v07 n2-water-v07 \
         quick-n2-water-volume-v07 n2-water-volume-v07 \
+        quick-n2-catalano-v07 n2-catalano-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -83,6 +84,8 @@ help:
 	  'make n2-water-v07      run water-content N2 permeability study' \
 	  'make quick-n2-water-volume-v07 preflight water-volume N2 permeability' \
 	  'make n2-water-volume-v07 run water-volume N2 permeability study' \
+	  'make quick-n2-catalano-v07 preflight Catalano-calibrated N2 study' \
+	  'make n2-catalano-v07   run Catalano-calibrated N2 study' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -517,3 +520,17 @@ quick-n2-water-volume-v07:
 
 n2-water-volume-v07:
 	$(PYTHON) -m scripts.run_v07_n2_water_volume_permeability
+
+
+quick-n2-catalano-v07:
+	$(PYTHON) -m scripts.run_v07_n2_catalano_calibrated \
+	  --regimes nominal \
+	  --water-partial-molar-volumes-cm3-mol 17.0 18.01528 \
+	  --activation-energies-j-mol 49600 19830 \
+	  --feedback-exponents 0 1 \
+	  --stop-time 200 --dt 0.01 --write-every 100 \
+	  --output-json results/quick-v07-n2-catalano-calibrated.json \
+	  --output-csv results/quick-v07-n2-catalano-calibrated.csv
+
+n2-catalano-v07:
+	$(PYTHON) -m scripts.run_v07_n2_catalano_calibrated
