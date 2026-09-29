@@ -196,7 +196,7 @@ def main() -> None:
         "inferred_active_area_cm2": scaling.inferred_active_area_cm2,
         "fluxes_mol_m2_s": args.fluxes,
         "feedback_exponents": args.exponents,
-        "feedback_law": "(p_H2 / p_H2_ref_same_RH_no_N2) ** gamma",
+        "feedback_law": "min(p_H2 / p_H2_ref_same_RH_no_N2, 1) ** gamma",
         "purge_duration_s": p.tech.purge_duration_max_s,
         "purge_reference_flow_slpm": p.tech.purge_rate_min_slpm_per_cell,
         "purge_interval_as": p.tech.purge_interval_as,
