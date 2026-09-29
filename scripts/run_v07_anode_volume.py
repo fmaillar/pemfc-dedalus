@@ -196,7 +196,7 @@ def main() -> None:
         default=list(REGIMES),
     )
     parser.add_argument("--initial-rh", type=float, default=0.0)
-    parser.add_argument("--stop-time", type=float, default=5000.0)
+    parser.add_argument("--stop-time", type=float, default=15000.0)
     parser.add_argument("--dt", type=float, default=1.0)
     parser.add_argument("--write-every", type=int, default=10)
     parser.add_argument("--anode-gas-volume", type=float, default=None)
