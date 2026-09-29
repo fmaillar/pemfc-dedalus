@@ -5455,3 +5455,175 @@ La campagne complète sur les trois régimes devra ensuite mesurer :
 Si la conservation est validée, l'étape suivante sera une sensibilité à
 J_N2 avant toute rétroaction de p_H2 ou x_H2 sur l'électrochimie.
 
+*** Résultats de l'inventaire N2
+
+La campagne complète est terminée avec :
+
+  J_N2 = 1e-6 mol/m2/s
+
+et la purge standard :
+
+  0.5 s
+  2.4 slpm
+  déclenchement à 2300 A.s.
+
+Le débit de crossover correspondant à l'aire active inférée vaut :
+
+  n_dot_N2 = 2.633e-8 mol/s.
+
+Sur 1000 s, chaque régime reçoit donc :
+
+  2.633e-5 mol de N2.
+
+*** Fréquence de purge
+
+La fréquence de purge reste celle imposée par l'intégrale du courant cellule :
+
+  dry_high_load : 19 purges, période moyenne 50.94 s
+  nominal       : 12 purges, période moyenne 80.45 s
+  wet_low_load  : 7 purges, période moyenne 141.91 s.
+
+L'ajout de N2 ne modifie pas encore cette horloge puisque le courant reste
+fourni uniquement par la fermeture RH de V0.6.
+
+*** Accumulation et dilution
+
+Les fractions molaires N2 maximales observées sont :
+
+  dry_high_load : 0.002216
+  nominal       : 0.003498
+  wet_low_load  : 0.006148.
+
+Les fractions molaires H2 minimales correspondantes sont :
+
+  dry_high_load : 0.98419
+  nominal       : 0.97342
+  wet_low_load  : 0.94684.
+
+La tendance est cohérente :
+
+- le régime dry_high_load purge fréquemment et accumule le moins de N2 ;
+- le régime wet_low_load purge peu fréquemment et accumule le plus de N2.
+
+Le cas wet_low_load montre donc déjà une dilution mesurable de H2, même avec le
+flux de crossover provisoire de screening.
+
+*** Cycle N2 établi
+
+Sur les cinq dernières purges, l'inventaire N2 avant/après purge est environ :
+
+dry_high_load :
+
+  avant ≈ 2.339e-6 mol
+  après ≈ 1.011e-6 mol
+
+nominal :
+
+  avant ≈ 3.691e-6 mol
+  après ≈ 1.587e-6 mol
+
+wet_low_load :
+
+  avant ≈ 6.333e-6 mol
+  après ≈ 2.709e-6 mol.
+
+La fraction de N2 retirée par une purge standard est donc voisine de :
+
+  56.8 % à 57.2 %
+
+dans les trois régimes.
+
+Les inventaires avant/après purge convergent vers des valeurs répétitives :
+le cycle N2 périodique est donc établi.
+
+*** Bilan N2
+
+Sur 1000 s :
+
+dry_high_load :
+
+  N2 crossover = 2.6329e-5 mol
+  N2 purgé     = 2.4486e-5 mol
+  N2 final     = 1.8428e-6 mol
+
+nominal :
+
+  N2 crossover = 2.6329e-5 mol
+  N2 purgé     = 2.3842e-5 mol
+  N2 final     = 2.4865e-6 mol
+
+wet_low_load :
+
+  N2 crossover = 2.6329e-5 mol
+  N2 purgé     = 2.3391e-5 mol
+  N2 final     = 2.9373e-6 mol.
+
+Les erreurs de fermeture N2 sont de l'ordre de :
+
+  1e-17 mol ou moins.
+
+Les bilans H2 et H2O restent également fermés à la précision numérique.
+
+Le nouvel état N2 est donc conservatif.
+
+*** Pression
+
+Les pressions minimales pendant purge restent physiques :
+
+  dry_high_load : 1.34718 bar
+  nominal       : 1.34823 bar
+  wet_low_load  : 1.34901 bar.
+
+Les pressions maximales deviennent :
+
+  dry_high_load : 1.37325 bar
+  nominal       : 1.37476 bar
+  wet_low_load  : 1.42001 bar.
+
+À ce niveau de crossover, l'effet de N2 sur les extrema de pression est donc
+faible devant l'effet déjà identifié de la vapeur d'eau.
+
+*** Validation
+
+- [X] inventaire N2 positif pour crossover non nul
+- [X] N2 expulsé pendant les purges
+- [X] dilution H2 mesurable
+- [X] accumulation plus forte quand les purges sont moins fréquentes
+- [X] cycle N2 périodique établi
+- [X] bilan N2 fermé à la précision numérique
+- [X] bilans H2 et H2O conservés
+- [X] pression toujours physique
+- [X] aucune rétroaction électrochimique introduite prématurément
+
+Le premier incrément N2 est donc validé comme sous-modèle conservatif.
+
+*** Décision de développement
+
+La prochaine étape doit être une sensibilité au flux de crossover :
+
+  J_N2 = 0
+  puis plusieurs valeurs croissantes autour de 1e-6 mol/m2/s.
+
+Cette campagne doit déterminer :
+
+- la relation entre J_N2 et x_N2,max ;
+- la relation entre J_N2 et x_H2,min ;
+- le stock N2 avant/après purge ;
+- le temps d'établissement du cycle N2 ;
+- les éventuels seuils où la dilution H2 cesse d'être négligeable.
+
+La valeur :
+
+  1e-6 mol/m2/s
+
+ne doit pas encore être considérée comme calibrée.
+
+Après cette sensibilité, une valeur ou une plage de crossover physiquement
+défendable pourra être retenue avant d'introduire la rétroaction de :
+
+  p_H2
+  ou
+  x_H2
+
+sur l'électrochimie.
+
