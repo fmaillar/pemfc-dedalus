@@ -4969,3 +4969,122 @@ permettra alors de vérifier simultanément :
 Après cette correction, le modèle pourra passer à N2 et au crossover sur une
 base quantitative beaucoup plus solide.
 
+** V0.7 — Horloge dynamique et comparaison 0.2 s / 0.5 s
+
+La mise à l'échelle aire active a montré que l'horloge de purge ne doit plus
+être pilotée par un courant nominal constant dans les régimes non nominaux.
+
+La loi Ballard est donc maintenant appliquée sous la forme :
+
+  Q_purge(t) = integral I_cell(t) dt
+
+avec déclenchement lorsque :
+
+  Q_purge = 2300 A.s.
+
+Le courant utilisé est le courant cellulaire instantané issu de la fermeture
+V0.6 après mise à l'échelle d'aire active.
+
+*** Deux durées de purge
+
+La campagne compare explicitement :
+
+  0.2 s
+
+correspondant à la durée de laboratoire utilisée jusque-là,
+
+et :
+
+  0.5 s
+
+correspondant à la durée maximale de purge indiquée dans la référence Ballard.
+
+Avec :
+
+  2.4 slpm
+
+les volumes standards associés sont environ :
+
+  0.2 s -> 8 mL
+  0.5 s -> 20 mL.
+
+Cette deuxième configuration est donc celle qui est la plus cohérente avec la
+valeur Ballard de :
+
+  20 mL par cellule.
+
+*** Objectifs
+
+La campagne doit mesurer, pour chaque régime et chaque durée :
+
+- nombre de purges sur 1000 s ;
+- première purge ;
+- période moyenne ;
+- volume de H2 purgé ;
+- eau purgée ;
+- pression minimale ;
+- pression maximale ;
+- RH finale ;
+- utilisation H2.
+
+Le contrôle externe principal reste :
+
+  utilisation H2 Ballard ≈ 0.93.
+
+Cette valeur n'est toujours pas utilisée comme cible de calibration.
+
+*** Infrastructure
+
+Le driver de purge transitoire accepte maintenant :
+
+  purge_clock_current_a = None
+
+pour activer l'horloge dynamique :
+
+  I_clock = I_cell(t).
+
+Le driver d'aire active utilise désormais cette horloge dynamique.
+
+Nouvelle campagne :
+
+  scripts/run_v07_purge_duration_comparison.py
+
+Commandes :
+
+  make quick-purge-duration-v07
+  make purge-duration-v07
+
+Sorties :
+
+  results/quick-v07-purge-duration-comparison.json
+  results/quick-v07-purge-duration-comparison.csv
+  results/v07-purge-duration-comparison.json
+  results/v07-purge-duration-comparison.csv
+
+*** Validation attendue
+
+Avant toute exécution :
+
+  make test
+
+doit être entièrement vert.
+
+Le préflight nominal doit vérifier :
+
+- déclenchement par courant cellule dynamique ;
+- les deux durées 0.2 s et 0.5 s ;
+- pression toujours supérieure à l'ambiante ;
+- bilans H2 et H2O fermés ;
+- une perte H2 plus forte à 0.5 s qu'à 0.2 s.
+
+La campagne complète devra ensuite vérifier que :
+
+- dry_high_load purge plus fréquemment que nominal ;
+- wet_low_load purge moins fréquemment que nominal ;
+- la durée 0.5 s rapproche l'utilisation H2 de la référence 0.93 ;
+- la pression minimale reste physiquement acceptable ;
+- les tendances hydriques restent cohérentes.
+
+Si ces conditions sont satisfaites, l'horloge de purge et la purge standard
+seront suffisamment structurées pour passer ensuite à N2 et au crossover.
+
