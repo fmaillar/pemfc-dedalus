@@ -25,8 +25,9 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from pemfc_dedalus.anode import water_saturation_pressure_pa
 from pemfc_dedalus.anode_nitrogen import (
