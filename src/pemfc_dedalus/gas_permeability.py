@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 # 1 Barrer = 1e-10 cm^3(STP) cm / (cm^2 s cmHg).
 # Converted with 22.414e-3 m^3/mol at STP and 1 cmHg = 1333.22 Pa.
 BARRER_TO_MOL_M_PER_M2_S_PA = 3.348e-16
@@ -49,7 +51,7 @@ def arrhenius_permeability(
         / gas_constant_j_mol_k
         * (1.0 / temperature_k - 1.0 / reference_temperature_k)
     )
-    return reference_permeability * float(__import__("math").exp(exponent))
+    return reference_permeability * math.exp(exponent)
 
 
 def humidity_permeability_multiplier(
