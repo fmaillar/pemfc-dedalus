@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "model": "v06-rha-sensitivity",
+  "grid": [
+    8,
+    8,
+    24
+  ],
+  "membrane_nz": 65,
+  "mpi_ranks": 2,
+  "anode_water_transfer_coefficient_m_s": 2e-06,
+  "regimes": [
+    "nominal"
+  ],
+  "anode_rh_values": [
+    0.5
+  ],
+  "completed_cases": 1,
+  "total_cases": 1,
+  "cases": [
+    {
+      "regime": "nominal",
+      "anode_relative_humidity": 0.5,
+      "lambda_anode_equilibrium": 3.4854999999999983,
+      "anode_water_transfer_coefficient_m_s": 2e-06,
+      "source": "computed_v06",
+      "converged": true,
+      "coupling_iterations": 3,
+      "relative_humidity": 0.5,
+      "cathode_solid_potential_v": 0.768,
+      "final_current_a": 0.0024077610769948836,
+      "final_current_density_a_m2": 1203.8805384974419,
+      "final_phi_m_bc_v": -0.03699193826417108,
+      "final_target_phi_m_bc_v": -0.03713621420303835,
+      "final_membrane_asr_ohm_m2": 3.084709239455594e-05,
+      "final_lambda_anode": 3.308941775697861,
+      "final_lambda_mean": 3.396091546130309,
+      "final_lambda_cathode": 3.4854999999999983,
+      "final_sigma_m_mean_s_m": 1.6214610199668882,
+      "final_sigma_m_min_s_m": 1.5702937751219976,
+      "final_sigma_m_max_s_m": 1.6739543797044156,
+      "final_anode_water_removal_flux_lambda_m_s": -3.531164486042746e-07,
+      "final_current_relative_change": 0.007943950071408587,
+      "final_potential_change_v": 7.213796943363743e-05
+    }
+  ]
+}
