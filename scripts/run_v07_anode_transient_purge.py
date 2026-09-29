@@ -72,7 +72,7 @@ def simulate_transient_purge_regime(
     target_total_pressure_pa: float,
     ambient_pressure_pa: float,
     purge_interval_as: float,
-    purge_clock_current_a: float,
+    purge_clock_current_a: float | None,
     purge_duration_s: float,
     purge_reference_flow_slpm: float,
     current_scale_factor: float = 1.0,
@@ -80,8 +80,10 @@ def simulate_transient_purge_regime(
     """Integrate H2/H2O inventories with a finite-duration purge valve."""
     if stop_time_s <= 0.0 or dt_s <= 0.0:
         raise ValueError("stop_time_s and dt_s must be positive")
-    if purge_interval_as <= 0.0 or purge_clock_current_a <= 0.0:
-        raise ValueError("purge clock parameters must be positive")
+    if purge_interval_as <= 0.0:
+        raise ValueError("purge_interval_as must be positive")
+    if purge_clock_current_a is not None and purge_clock_current_a <= 0.0:
+        raise ValueError("purge_clock_current_a must be positive when provided")
     if purge_duration_s <= 0.0:
         raise ValueError("purge_duration_s must be positive")
     if current_scale_factor <= 0.0:
@@ -165,6 +167,11 @@ def simulate_transient_purge_regime(
                     "patch_current_a": patch_current_a,
                     "cell_current_a": cell_current_a,
                     "charge_since_purge_as": charge_since_purge_as,
+                    "purge_clock_current_a": (
+                        cell_current_a
+                        if purge_clock_current_a is None
+                        else purge_clock_current_a
+                    ),
                     "hydrogen_mol": hydrogen_mol,
                     "water_vapor_mol": water_state.vapor_mol,
                     "liquid_water_mol": water_state.liquid_mol,
@@ -294,7 +301,12 @@ def simulate_transient_purge_regime(
             cumulative_h2_inlet_mol += inlet_rate * actual_dt
             cumulative_h2_consumed_mol += consumption_rate * actual_dt
 
-        charge_since_purge_as += purge_clock_current_a * actual_dt
+        clock_current_a = (
+            cell_current_a
+            if purge_clock_current_a is None
+            else purge_clock_current_a
+        )
+        charge_since_purge_as += clock_current_a * actual_dt
 
         if (
             purge_remaining_s <= 0.0
@@ -355,8 +367,17 @@ def simulate_transient_purge_regime(
         "regime": regime,
         "purge_count": len(purge_events),
         "purge_interval_as": purge_interval_as,
+        "purge_clock_mode": (
+            "dynamic_cell_current"
+            if purge_clock_current_a is None
+            else "fixed_current"
+        ),
         "purge_clock_current_a": purge_clock_current_a,
-        "expected_purge_period_s": purge_interval_as / purge_clock_current_a,
+        "expected_purge_period_s": (
+            None
+            if purge_clock_current_a is None
+            else purge_interval_as / purge_clock_current_a
+        ),
         "purge_duration_s": purge_duration_s,
         "purge_reference_flow_slpm": purge_reference_flow_slpm,
         "purge_conductance_mol_s_pa": purge_conductance,
