@@ -6540,3 +6540,173 @@ La campagne complète permettra de mesurer combien l'accumulation anodique
 réduit effectivement le crossover par rapport à l'hypothèse de source
 constante.
 
+*** Résultats du crossover N2 piloté par pression partielle
+
+La campagne complète est terminée pour :
+
+  J_N2,ref =
+    1e-6
+    2e-6
+    5e-6 mol/m2/s
+
+et :
+
+  gamma =
+    0
+    1.
+
+La pression partielle N2 cathodique calculée par le modèle d'air humide vaut :
+
+  p_N2,cathode = 77208.8 Pa.
+
+Les perméances associées sont :
+
+  Jref = 1e-6 -> K_N2 = 1.29519e-11 mol/m2/s/Pa
+  Jref = 2e-6 -> K_N2 = 2.59038e-11 mol/m2/s/Pa
+  Jref = 5e-6 -> K_N2 = 6.47595e-11 mol/m2/s/Pa.
+
+*** Réduction du crossover par accumulation anodique
+
+Comme attendu, le flux maximal est exactement égal à J_N2,ref au démarrage,
+puis il diminue lorsque p_N2,anode augmente.
+
+Pour gamma = 0, la réduction moyenne du flux vaut environ :
+
+Jref = 1e-6 :
+
+  dry_high_load : 0.27 %
+  nominal       : 0.40 %
+  wet_low_load  : 0.66 %.
+
+Jref = 2e-6 :
+
+  dry_high_load : 0.53 %
+  nominal       : 0.80 %
+  wet_low_load  : 1.31 %.
+
+Jref = 5e-6 :
+
+  dry_high_load : 1.31 %
+  nominal       : 1.98 %
+  wet_low_load  : 3.23 %.
+
+L'effet est donc monotone avec :
+
+- le niveau de crossover ;
+- le temps disponible entre deux purges.
+
+Le régime wet_low_load reste le plus sensible.
+
+*** Flux minimum atteint
+
+À Jref = 5e-6 mol/m2/s et gamma = 0 :
+
+  dry_high_load : J_N2,min = 4.903e-6
+  nominal       : J_N2,min = 4.848e-6
+  wet_low_load  : J_N2,min = 4.737e-6 mol/m2/s.
+
+Le gradient de pression partielle réduit donc le flux instantané maximal de
+quelques pourcents au plus sur la plage actuelle.
+
+Le modèle à source constante constituait ainsi une approximation raisonnable
+pour les faibles flux, mais commence à surestimer perceptiblement le crossover
+dans le régime wet_low_load à Jref = 5e-6 mol/m2/s.
+
+*** Effet sur l'accumulation N2 sans rétroaction H2
+
+À Jref = 5e-6 mol/m2/s et gamma = 0 :
+
+le modèle à pression partielle donne :
+
+  dry_high_load : x_N2,max = 0.010926
+  nominal       : x_N2,max = 0.017110
+  wet_low_load  : x_N2,max = 0.029595.
+
+À comparer au modèle à flux constant :
+
+  dry_high_load : 0.011080
+  nominal       : 0.017490
+  wet_low_load  : 0.030740.
+
+Le nouveau transport réduit donc légèrement mais systématiquement l'accumulation
+N2, avec l'effet le plus marqué dans wet_low_load.
+
+*** Couplage avec la rétroaction H2
+
+Avec gamma = 1 et Jref = 5e-6 mol/m2/s :
+
+  dry_high_load :
+    I_mean = 44.809 A
+    f_H2,min = 0.98884
+    période purge = 51.34 s
+    x_N2,max = 0.011013
+
+  nominal :
+    I_mean = 28.261 A
+    f_H2,min = 0.98227
+    période purge = 81.44 s
+    x_N2,max = 0.017324
+
+  wet_low_load :
+    I_mean = 15.895 A
+    f_H2,min = 0.96836
+    période purge = 144.93 s
+    x_N2,max = 0.030153
+    6 purges sur 1000 s.
+
+La boucle positive identifiée précédemment reste présente, mais le transport
+piloté par pression partielle agit comme une rétroaction négative partielle :
+
+  N2 anode augmente
+  -> gradient p_N2 diminue
+  -> crossover N2 diminue.
+
+Cette nouvelle boucle limite légèrement l'accumulation par rapport au modèle à
+source constante.
+
+*** Conservation
+
+Les bilans restent fermés à la précision numérique dans toute la campagne.
+
+Les erreurs N2 restent de l'ordre de :
+
+  1e-18 mol ou moins
+
+dans la plupart des cas, et les bilans H2/H2O restent également fermés.
+
+Le nouveau transport N2 ne dégrade donc pas la conservation.
+
+*** Validation
+
+- [X] J_N2,max = J_N2,ref à p_N2,anode = 0
+- [X] J_N2 diminue avec l'accumulation anodique
+- [X] J_N2 reste positif
+- [X] aucun reflux anode -> cathode dans la loi unidirectionnelle
+- [X] réduction du flux monotone avec J_N2,ref
+- [X] wet_low_load est le régime le plus sensible
+- [X] accumulation N2 réduite par rapport au flux constant
+- [X] rétroaction H2 reste stable
+- [X] bilans H2/H2O/N2 fermés
+
+Le crossover piloté par pression partielle est donc validé comme remplacement
+plus physique de la source N2 constante.
+
+*** Décision de développement
+
+La principale limite restante est désormais K_N2 lui-même.
+
+Il est encore défini indirectement à partir d'un flux de screening et non à
+partir d'une propriété de membrane indépendante.
+
+La prochaine étape doit donc être une confrontation à une perméabilité /
+perméance N2 de membrane issue de la littérature, avec conversion explicite
+entre :
+
+  perméabilité matériau
+  épaisseur membrane
+  perméance K_N2
+  flux prédit sous gradient de pression.
+
+Cette étape permettra de remplacer le paramètre de screening par une plage
+physiquement défendable avant de poursuivre la complexification du modèle.
+
