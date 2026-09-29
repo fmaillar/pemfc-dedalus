@@ -7,7 +7,10 @@ def _run(feedback_exponent: float, n2_flux: float):
     closure = (
         np.asarray([0.0, 0.5, 1.0]),
         np.asarray([2.0e-6, 0.0, -2.0e-6]),
-        np.asarray([0.0020, 0.0022, 0.0024]),
+        # Keep the base V0.6 current constant in this fixture so the
+        # integration test isolates the H2-dilution feedback itself from
+        # the separate RH -> current closure.
+        np.asarray([0.0020, 0.0020, 0.0020]),
     )
     _, summary = simulate_nitrogen_regime(
         "nominal",
