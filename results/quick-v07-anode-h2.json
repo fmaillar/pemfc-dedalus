@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "model": "v07-anode-h2",
+  "closure_source": "results/v06-rha-sensitivity.csv",
+  "anode_gas_volume_m3": 2e-05,
+  "stack_temperature_k": 312.9612,
+  "initial_relative_humidity": 0.0,
+  "target_total_pressure_pa": 137325.0,
+  "stop_time_s": 60.0,
+  "dt_s": 1.0,
+  "regimes": [
+    "nominal"
+  ],
+  "summaries": [
+    {
+      "regime": "nominal",
+      "initial_relative_humidity": 0.0,
+      "final_relative_humidity": 0.016278752195520038,
+      "final_hydrogen_mol": 0.0010548744313553775,
+      "final_water_vapor_mol": 9.14420853631404e-07,
+      "final_liquid_water_mol": 0.0,
+      "final_hydrogen_partial_pressure_pa": 137244.65932716546,
+      "final_total_pressure_pa": 137363.6302442793,
+      "max_total_pressure_pa": 137363.6302442793,
+      "target_total_pressure_pa": 137325.0,
+      "cumulative_h2_inlet_mol": 0.0,
+      "cumulative_h2_consumed_mol": 6.175054241560605e-07,
+      "net_h2_inventory_change_mol": -6.175054241563688e-07
+    }
+  ]
+}

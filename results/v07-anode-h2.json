@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "model": "v07-anode-h2",
+  "closure_source": "results/v06-rha-sensitivity.csv",
+  "anode_gas_volume_m3": 2e-05,
+  "stack_temperature_k": 312.9612,
+  "initial_relative_humidity": 0.0,
+  "target_total_pressure_pa": 137325.0,
+  "stop_time_s": 15000.0,
+  "dt_s": 1.0,
+  "regimes": [
+    "dry_high_load",
+    "nominal",
+    "wet_low_load"
+  ],
+  "summaries": [
+    {
+      "regime": "dry_high_load",
+      "initial_relative_humidity": 0.0,
+      "final_relative_humidity": 0.25543437093125176,
+      "final_hydrogen_mol": 0.0010411435080604067,
+      "final_water_vapor_mol": 1.4348428719127277e-05,
+      "final_liquid_water_mol": 0.0,
+      "final_hydrogen_partial_pressure_pa": 135458.1946695243,
+      "final_total_pressure_pa": 137324.99999999997,
+      "max_total_pressure_pa": 137325.00000000003,
+      "target_total_pressure_pa": 137325.0,
+      "cumulative_h2_inlet_mol": 0.0002497627446805175,
+      "cumulative_h2_consumed_mol": 0.00026411117339963697,
+      "net_h2_inventory_change_mol": -1.4348428719127221e-05
+    },
+    {
+      "regime": "nominal",
+      "initial_relative_humidity": 0.0,
+      "final_relative_humidity": 0.4307794355920359,
+      "final_hydrogen_mol": 0.0010312939089153757,
+      "final_water_vapor_mol": 2.419802786415842e-05,
+      "final_liquid_water_mol": 0.0,
+      "final_hydrogen_partial_pressure_pa": 134176.71050516548,
+      "final_total_pressure_pa": 137325.00000000003,
+      "max_total_pressure_pa": 137432.94204376053,
+      "target_total_pressure_pa": 137325.0,
+      "cumulative_h2_inlet_mol": 0.00014328721048436385,
+      "cumulative_h2_consumed_mol": 0.00016748523834851973,
+      "net_h2_inventory_change_mol": -2.419802786415826e-05
+    },
+    {
+      "regime": "wet_low_load",
+      "initial_relative_humidity": 0.0,
+      "final_relative_humidity": 0.8833231280217776,
+      "final_hydrogen_mol": 0.0010058733247964653,
+      "final_water_vapor_mol": 4.9618611983068664e-05,
+      "final_liquid_water_mol": 0.0,
+      "final_hydrogen_partial_pressure_pa": 130869.36007217159,
+      "final_total_pressure_pa": 137324.99999999997,
+      "max_total_pressure_pa": 141885.53577553874,
+      "target_total_pressure_pa": 137325.0,
+      "cumulative_h2_inlet_mol": 4.593624897512383e-05,
+      "cumulative_h2_consumed_mol": 9.555486095829782e-05,
+      "net_h2_inventory_change_mol": -4.9618611983068576e-05
+    }
+  ]
+}
