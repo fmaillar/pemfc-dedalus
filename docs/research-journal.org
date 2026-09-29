@@ -2977,3 +2977,165 @@ Après validation du bilan d'eau dynamique :
 
    au courant nominal provisoire de 26.04 A.
 
+*** Résultats du premier volume anodique dynamique
+
+La campagne :
+
+  make study-v07
+
+est terminée pour les trois régimes.
+
+Conditions principales :
+
+  RH_anode(t=0) = 0
+  V_anode = 20 mL
+  t_final = 15000 s
+  dt = 1 s.
+
+La fermeture dynamique utilise directement la relation validée V0.6 :
+
+  RH_anode -> flux d'eau membrane/anode.
+
+Aucun des trois cas ne produit d'eau liquide avec cette hypothèse de volume et
+ces fermetures quasi-stationnaires.
+
+*** Convergence vers les points fixes V0.6
+
+dry_high_load :
+
+  RH finale dynamique = 0.255434
+  RH zéro-flux V0.6  = 0.255471
+  erreur absolue      = 3.70e-5
+  flux final          = 3.33e-10 lambda m/s
+
+nominal :
+
+  RH finale dynamique = 0.430779
+  RH zéro-flux V0.6  = 0.433669
+  erreur absolue      = 2.89e-3
+  flux final          = 1.40e-8 lambda m/s
+
+wet_low_load :
+
+  RH finale dynamique = 0.883323
+  RH zéro-flux V0.6  = 0.883323
+  erreur absolue      = 1.06e-13
+  flux final          = 3.33e-18 lambda m/s
+
+Les états dynamiques convergent donc vers les points fixes déduits de la campagne
+statique V0.6.
+
+La continuité entre :
+
+  V0.6 : RH_anode imposée
+
+et :
+
+  V0.7 : RH_anode dynamique
+
+est ainsi vérifiée pour ce premier modèle réduit.
+
+Le cas nominal n'est pas encore aussi proche du zéro-flux à t = 15000 s que les
+deux autres, mais l'écart reste faible et le flux final est déjà très petit.
+
+*** Échelles de temps observées
+
+À partir des trajectoires enregistrées, les temps nécessaires pour atteindre une
+fraction du point fixe RH sont approximativement :
+
+dry_high_load :
+
+  50 % : 1030 s
+  90 % : 3790 s
+  95 % : 4980 s
+  99 % : 7740 s
+
+nominal :
+
+  50 % : 1450 s
+  90 % : 6360 s
+  95 % : 8570 s
+  99 % : 13710 s
+
+wet_low_load :
+
+  50 % : 690 s
+  90 % : 1590 s
+  95 % : 1930 s
+  99 % : 2720 s
+
+Ces temps sont très supérieurs à la période de purge nominale Ballard :
+
+  environ 88.3 s.
+
+Il ne faut pas en conclure que la dynamique réelle de l'anode est aussi lente.
+
+Ce résultat dépend directement de plusieurs hypothèses provisoires :
+
+- volume anodique de 20 mL par cellule représentative ;
+- fermeture quasi-stationnaire issue de V0.6 ;
+- absence de renouvellement d'hydrogène ;
+- absence de consommation H2 dans le bilan gazeux ;
+- absence de purge ;
+- absence de variation de pression ;
+- absence de transport spatial dans les canaux.
+
+La comparaison montre surtout que la dynamique d'humidification actuellement
+isolée ne suffit pas, à elle seule, à reproduire l'échelle de temps système
+associée à la purge.
+
+*** Inventaire d'eau final
+
+Inventaire vapeur final :
+
+  dry_high_load : 1.435e-5 mol
+  nominal       : 2.420e-5 mol
+  wet_low_load  : 4.962e-5 mol
+
+Inventaire liquide final :
+
+  0 mol
+
+dans les trois cas.
+
+Le stockage liquide prévu dans le modèle n'est donc pas activé dans cette
+campagne.
+
+*** Validation du premier incrément V0.7
+
+- [X] make test vert avant campagne
+- [X] quick-v07 cohérent
+- [X] dry_high_load évolue vers le zéro-flux V0.6
+- [X] nominal évolue vers le zéro-flux V0.6
+- [X] wet_low_load évolue vers le zéro-flux V0.6
+- [X] signe du flux cohérent avec l'évolution de RH_anode
+- [X] aucune RH supérieure à 1
+- [X] aucun inventaire d'eau négatif
+- [X] aucune formation d'eau liquide dans la campagne nominale
+- [X] continuité V0.6 -> V0.7 vérifiée au niveau du point fixe hydrique
+
+Le premier bilan d'eau dynamique de V0.7 est donc validé.
+
+*** Décision de développement après le premier bilan dynamique
+
+La prochaine étape reste la sensibilité au volume anodique.
+
+Cette étude est maintenant importante car :
+
+  V_anode
+
+fixe directement l'inertie hydrique du système.
+
+L'objectif est de déterminer comment les temps :
+
+  t50
+  t90
+  t95
+  t99
+
+varient avec le volume supposé.
+
+Après cette sensibilité, l'étape physique suivante sera d'ajouter le bilan H2
+dans le volume dead-end, puis la pression/composition et enfin la purge
+transitoire.
+
