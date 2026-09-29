@@ -12,7 +12,11 @@ def hydrogen_partial_pressure_feedback_factor(
 
     The closure is
 
-        f_H2 = (p_H2 / p_H2,ref) ** exponent.
+        f_H2 = min(p_H2 / p_H2,ref, 1) ** exponent.
+
+    The upper clamp is deliberate: this reduced term represents only the
+    penalty from H2 dilution and must not create a current bonus when transient
+    regulator dynamics make p_H2 exceed the no-N2 reference.
 
     An exponent of zero exactly disables the feedback. The reference pressure
     is evaluated for the same water state but with no N2, so the factor isolates
@@ -29,5 +33,6 @@ def hydrogen_partial_pressure_feedback_factor(
         raise ValueError("exponent must be non-negative")
     if exponent == 0.0:
         return 1.0
-    ratio = max(actual_partial_pressure_pa / reference_partial_pressure_pa, 0.0)
-    return ratio**exponent
+    ratio = actual_partial_pressure_pa / reference_partial_pressure_pa
+    bounded_ratio = min(max(ratio, 0.0), 1.0)
+    return bounded_ratio**exponent
