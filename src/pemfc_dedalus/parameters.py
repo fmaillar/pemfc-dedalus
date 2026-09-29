@@ -101,6 +101,11 @@ class CathodeParameters:
     # Ballard gives 0.36 barg as the optimal H2 supply pressure.
     anode_target_total_pressure_pa: float = 101325.0 + 0.36e5
 
+    # V0.7 provisional N2 crossover screening assumption [mol/m^2/s].
+    # This is not calibrated to Ballard data.  The first N2 increment uses it
+    # only to validate accumulation, dilution, purge transport and conservation.
+    n2_crossover_flux_mol_m2_s: float = 1.0e-6
+
     membrane_current_density: float = 2.15e3
 
     @property
