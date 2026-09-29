@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "model": "v07-active-area-scaling",
+  "closure_source": "results/v06-rha-sensitivity.csv",
+  "calibration_regime": "nominal",
+  "calibration_relative_humidity": 0.0,
+  "patch_area_m2": 2e-06,
+  "patch_reference_current_a": 0.001978066785327398,
+  "cell_reference_current_a": 26.04,
+  "area_scale_factor": 13164.368459728226,
+  "inferred_active_area_m2": 0.02632873691945645,
+  "inferred_active_area_cm2": 263.2873691945645,
+  "anode_gas_volume_m3_per_cell": 2e-05,
+  "anode_volume_ml_per_cm2": 0.07596262616464662,
+  "purge_reference_flow_slpm_per_cell": 2.4,
+  "purge_flow_slpm_per_cm2": 0.009115515139757594,
+  "manual_reference_hydrogen_utilization": 0.93,
+  "stop_time_s": 200.0,
+  "dt_s": 0.01,
+  "regimes": [
+    "nominal"
+  ],
+  "summaries": [
+    {
+      "regime": "nominal",
+      "purge_count": 2,
+      "purge_interval_as": 2300.0,
+      "purge_clock_current_a": 26.04,
+      "expected_purge_period_s": 88.32565284178187,
+      "purge_duration_s": 0.2,
+      "purge_reference_flow_slpm": 2.4,
+      "purge_conductance_mol_s_pa": 4.957225933941146e-08,
+      "first_purge_time_s": 88.33000000000001,
+      "mean_purge_period_s": 88.32999999999998,
+      "final_relative_humidity": 0.43366929333076015,
+      "final_total_pressure_pa": 137325.00000000003,
+      "min_total_pressure_pa": 134822.79288851458,
+      "max_total_pressure_pa": 137475.4891901925,
+      "cumulative_h2_inlet_mol": 0.030303955894722366,
+      "cumulative_h2_consumed_mol": 0.029632567607666045,
+      "cumulative_h2_purged_mol": 0.0006957486459233337,
+      "cumulative_water_transfer_mol": 3.8946705225533674e-05,
+      "cumulative_water_purged_mol": 1.458634635783293e-05,
+      "h2_balance_error_mol": 6.891189008317866e-16,
+      "water_balance_error_mol": -1.2197274440461925e-19,
+      "purge_events": [
+        {
+          "event_index": 1,
+          "start_time_s": 88.33000000000001,
+          "end_time_s": 88.53,
+          "rh_before": 0.43366929333076015,
+          "rh_after": 0.3454089752731255,
+          "pressure_before_pa": 137325.00000000003,
+          "pressure_after_pa": 137324.99999999997,
+          "min_pressure_pa": 134822.79288851458,
+          "h2_purged_mol": 0.0003478743229616669,
+          "water_purged_mol": 7.293173178916464e-06,
+          "h2_refill_mol": 0.00038234388848958686,
+          "max_outflow_mol_s": 0.0017763957286575107
+        },
+        {
+          "event_index": 2,
+          "start_time_s": 176.66,
+          "end_time_s": 176.85999999999999,
+          "rh_before": 0.43366929333076015,
+          "rh_after": 0.3454089752731255,
+          "pressure_before_pa": 137325.00000000003,
+          "pressure_after_pa": 137324.99999999997,
+          "min_pressure_pa": 134822.79288851458,
+          "h2_purged_mol": 0.0003478743229616669,
+          "water_purged_mol": 7.293173178916464e-06,
+          "h2_refill_mol": 0.00038234388848958686,
+          "max_outflow_mol_s": 0.0017763957286575107
+        }
+      ],
+      "hydrogen_utilization_consumed_over_consumed_plus_purged": 0.9770594371245059,
+      "manual_reference_hydrogen_utilization": 0.93
+    }
+  ]
+}
