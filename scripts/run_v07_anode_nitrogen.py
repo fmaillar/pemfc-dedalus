@@ -264,6 +264,10 @@ def simulate_nitrogen_regime(
             n2_flux = n2_crossover_flux_mol_m2_s
             n2_source_rate = constant_n2_source_rate
         else:
+            if cathode_n2_partial_pressure_pa is None:
+                raise RuntimeError(
+                    "cathode N2 partial pressure missing in pressure-driven mode"
+                )
             anode_n2_partial_pressure_pa = (
                 nitrogen_mol
                 * gas_constant_j_mol_k
@@ -272,7 +276,7 @@ def simulate_nitrogen_regime(
             )
             n2_flux = nitrogen_pressure_driven_flux(
                 n2_crossover_permeance_mol_m2_s_pa,
-                float(cathode_n2_partial_pressure_pa),
+                cathode_n2_partial_pressure_pa,
                 anode_n2_partial_pressure_pa,
             )
             n2_source_rate = nitrogen_crossover_molar_rate(
