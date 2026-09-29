@@ -33,3 +33,12 @@ def test_hydrogen_feedback_rejects_invalid_inputs():
         hydrogen_partial_pressure_feedback_factor(1.0, 0.0, 1.0)
     with pytest.raises(ValueError):
         hydrogen_partial_pressure_feedback_factor(1.0, 1.0, -1.0)
+
+
+
+def test_hydrogen_feedback_never_boosts_current_above_reference():
+    assert hydrogen_partial_pressure_feedback_factor(
+        110000.0,
+        100000.0,
+        1.0,
+    ) == 1.0
