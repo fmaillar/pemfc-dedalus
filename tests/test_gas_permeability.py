@@ -7,7 +7,9 @@ from pemfc_dedalus.gas_permeability import (
     effective_membrane_relative_humidity,
     humidity_permeability_multiplier,
     membrane_permeance_from_permeability,
+    calibrated_exponential_permeability_multiplier,
     membrane_water_volume_fraction,
+    membrane_water_volume_fraction_from_partial_molar_volume,
     state_dependent_permeability,
     water_content_dependent_permeability,
     water_content_permeability_multiplier,
@@ -174,3 +176,38 @@ def test_water_volume_fraction_permeability_exceeds_dry_reference():
         water_volume_fraction=0.10,
     )
     assert value > reference
+
+
+
+def test_partial_molar_volume_water_fraction_is_below_bulk_additivity():
+    bulk = membrane_water_volume_fraction(
+        6.0,
+        membrane_equivalent_weight_kg_mol=1.10,
+        membrane_dry_density_kg_m3=2000.0,
+    )
+    contracted = membrane_water_volume_fraction_from_partial_molar_volume(
+        6.0,
+        membrane_equivalent_weight_kg_mol=1.10,
+        membrane_dry_density_kg_m3=2000.0,
+        water_partial_molar_volume_m3_mol=17.0e-6,
+    )
+    assert 0.0 < contracted < bulk < 1.0
+
+
+def test_calibrated_exponential_multiplier_hits_anchor_and_cap():
+    anchor = calibrated_exponential_permeability_multiplier(
+        0.15,
+        baseline_fraction=0.01,
+        anchor_fraction=0.15,
+        anchor_factor=95.0,
+        maximum_factor=100.0,
+    )
+    above = calibrated_exponential_permeability_multiplier(
+        0.20,
+        baseline_fraction=0.01,
+        anchor_fraction=0.15,
+        anchor_factor=95.0,
+        maximum_factor=100.0,
+    )
+    assert anchor == pytest.approx(95.0)
+    assert above == pytest.approx(100.0)
