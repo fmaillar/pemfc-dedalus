@@ -267,19 +267,19 @@ def test_pressure_driven_purge_closes_at_or_below_ambient():
 
 def test_well_mixed_molar_outflow_preserves_gas_composition():
     state = AnodeWaterState(
-        vapor_mol=2.0e-4,
+        vapor_mol=2.0e-5,
         liquid_mol=0.0,
         relative_humidity=0.5,
     )
     h2_new, water_new, h2_out, water_out = remove_well_mixed_gas_moles(
-        8.0e-4,
+        8.0e-5,
         state,
-        gas_outflow_mol=1.0e-4,
+        gas_outflow_mol=1.0e-5,
         volume_m3=20.0e-6,
         temperature_k=313.15,
         gas_constant_j_mol_k=8.31446261815324,
     )
-    assert h2_out == pytest.approx(8.0e-5)
-    assert water_out == pytest.approx(2.0e-5)
-    assert h2_new == pytest.approx(7.2e-4)
-    assert water_new.vapor_mol == pytest.approx(1.8e-4)
+    assert h2_out == pytest.approx(8.0e-6)
+    assert water_out == pytest.approx(2.0e-6)
+    assert h2_new == pytest.approx(7.2e-5)
+    assert water_new.vapor_mol == pytest.approx(1.8e-5)
