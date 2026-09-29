@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "model": "v07-anode-volume",
+  "closure_source": "results/v06-rha-sensitivity.csv",
+  "closure_kind": "piecewise-linear V0.6 RH_anode sensitivity",
+  "anode_gas_volume_m3": 2e-05,
+  "stack_temperature_k": 312.9612,
+  "initial_relative_humidity": 0.0,
+  "stop_time_s": 60.0,
+  "dt_s": 1.0,
+  "membrane_area_m2": 2e-06,
+  "fixed_charge_mol_m3": 1818.181818181818,
+  "regimes": [
+    "nominal"
+  ],
+  "summaries": [
+    {
+      "regime": "nominal",
+      "initial_relative_humidity": 0.0,
+      "final_relative_humidity": 0.016278752195520038,
+      "final_water_flux_lambda_m_s": 4.033832664113933e-06,
+      "final_water_vapor_mol": 9.14420853631404e-07,
+      "final_liquid_water_mol": 0.0,
+      "static_zero_flux_relative_humidity": 0.4336692933307609,
+      "absolute_rh_error_to_static_zero_flux": 0.4173905411352408
+    }
+  ]
+}
