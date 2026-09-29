@@ -34,6 +34,7 @@ from pemfc_dedalus.anode_nitrogen import (
     AnodeGasState,
     hydrogen_moles_for_pressure_with_nitrogen,
     nitrogen_crossover_molar_rate,
+    nitrogen_pressure_driven_flux,
     remove_well_mixed_h2_n2_h2o,
     total_gas_pressure_with_nitrogen_pa,
 )
@@ -82,6 +83,8 @@ def simulate_nitrogen_regime(
     current_scale_factor: float,
     n2_crossover_flux_mol_m2_s: float,
     hydrogen_feedback_exponent: float = 0.0,
+    n2_crossover_permeance_mol_m2_s_pa: float | None = None,
+    cathode_n2_partial_pressure_pa: float | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Integrate H2/N2/H2O inventories with charge-triggered standard purges."""
     if stop_time_s <= 0.0 or dt_s <= 0.0:
@@ -92,6 +95,13 @@ def simulate_nitrogen_regime(
         raise ValueError("current_scale_factor must be positive")
     if hydrogen_feedback_exponent < 0.0:
         raise ValueError("hydrogen_feedback_exponent must be non-negative")
+    if n2_crossover_permeance_mol_m2_s_pa is not None:
+        if n2_crossover_permeance_mol_m2_s_pa < 0.0:
+            raise ValueError("n2 crossover permeance must be non-negative")
+        if cathode_n2_partial_pressure_pa is None:
+            raise ValueError("cathode N2 partial pressure is required")
+        if cathode_n2_partial_pressure_pa <= 0.0:
+            raise ValueError("cathode N2 partial pressure must be positive")
 
     initial_water = water_vapor_moles_from_relative_humidity(
         initial_rh,
@@ -115,7 +125,7 @@ def simulate_nitrogen_regime(
     initial_hydrogen_mol = hydrogen_mol
     nitrogen_mol = 0.0
 
-    n2_source_rate = nitrogen_crossover_molar_rate(
+    constant_n2_source_rate = nitrogen_crossover_molar_rate(
         n2_crossover_flux_mol_m2_s,
         active_area_m2,
     )
@@ -248,6 +258,25 @@ def simulate_nitrogen_regime(
         )
         cumulative_water_transfer_mol += water_source * actual_dt
 
+        if n2_crossover_permeance_mol_m2_s_pa is None:
+            n2_flux = n2_crossover_flux_mol_m2_s
+            n2_source_rate = constant_n2_source_rate
+        else:
+            anode_n2_partial_pressure_pa = (
+                nitrogen_mol
+                * gas_constant_j_mol_k
+                * temperature_k
+                / volume_m3
+            )
+            n2_flux = nitrogen_pressure_driven_flux(
+                n2_crossover_permeance_mol_m2_s_pa,
+                float(cathode_n2_partial_pressure_pa),
+                anode_n2_partial_pressure_pa,
+            )
+            n2_source_rate = nitrogen_crossover_molar_rate(
+                n2_flux,
+                active_area_m2,
+            )
         n2_added = n2_source_rate * actual_dt
         nitrogen_mol += n2_added
         cumulative_n2_crossover_mol += n2_added
@@ -413,8 +442,19 @@ def simulate_nitrogen_regime(
         "first_purge_time_s": event_times[0] if event_times else None,
         "mean_purge_period_s": mean(periods) if periods else None,
         "purge_duration_s": purge_duration_s,
+        "n2_crossover_mode": (
+            "constant_flux"
+            if n2_crossover_permeance_mol_m2_s_pa is None
+            else "partial_pressure_driven"
+        ),
         "n2_crossover_flux_mol_m2_s": n2_crossover_flux_mol_m2_s,
-        "n2_crossover_rate_mol_s": n2_source_rate,
+        "n2_crossover_permeance_mol_m2_s_pa": (
+            n2_crossover_permeance_mol_m2_s_pa
+        ),
+        "cathode_n2_partial_pressure_pa": cathode_n2_partial_pressure_pa,
+        "mean_n2_crossover_rate_mol_s": (
+            cumulative_n2_crossover_mol / stop_time_s
+        ),
         "hydrogen_feedback_exponent": hydrogen_feedback_exponent,
         "min_hydrogen_feedback_factor": min_hydrogen_feedback_factor,
         "min_cell_current_a": min_cell_current_a,
