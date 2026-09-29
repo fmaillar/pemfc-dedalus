@@ -3,8 +3,8 @@ import pytest
 from pemfc_dedalus.anode import AnodeWaterState
 from pemfc_dedalus.anode_nitrogen import (
     AnodeGasState,
-    hydrogen_moles_for_pressure_with_nitrogen,
     humid_air_nitrogen_partial_pressure_pa,
+    hydrogen_moles_for_pressure_with_nitrogen,
     nitrogen_crossover_molar_rate,
     nitrogen_permeance_from_reference_flux,
     nitrogen_pressure_driven_flux,
