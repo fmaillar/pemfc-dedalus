@@ -5627,3 +5627,147 @@ défendable pourra être retenue avant d'introduire la rétroaction de :
 
 sur l'électrochimie.
 
+** V0.7 — Sensibilité au flux de crossover N2
+
+Le premier incrément N2 a validé :
+
+- accumulation ;
+- dilution H2 ;
+- purge du mélange H2/N2/H2O ;
+- fermeture du bilan N2.
+
+La prochaine étape est une campagne de sensibilité au flux imposé J_N2, sans
+rétroaction électrochimique.
+
+*** Valeurs étudiées
+
+La campagne complète utilise :
+
+  J_N2 =
+    0
+    2.5e-7
+    5e-7
+    1e-6
+    2e-6
+    5e-6 mol/m2/s.
+
+Cette plage encadre la valeur de screening utilisée jusque-là :
+
+  1e-6 mol/m2/s.
+
+Le cas :
+
+  J_N2 = 0
+
+sert de référence de continuité vers le modèle sans azote.
+
+*** Configuration conservée
+
+Toutes les autres hypothèses restent identiques à la campagne N2 précédente :
+
+- aire active mise à l'échelle ;
+- horloge dynamique à 2300 A.s ;
+- purge standard de 0.5 s ;
+- débit de référence de 2.4 slpm ;
+- volume anodique de 20 mL ;
+- courant obtenu uniquement par la fermeture RH de V0.6.
+
+Aucune rétroaction de :
+
+  p_H2
+
+ou :
+
+  x_H2
+
+sur l'électrochimie n'est introduite.
+
+*** Grandeurs suivies
+
+Pour chaque flux et chaque régime, la campagne extrait :
+
+- x_N2 maximal ;
+- x_H2 minimal ;
+- fraction molaire N2 finale ;
+- inventaire N2 final ;
+- N2 cumulé traversant la membrane ;
+- N2 cumulé purgé ;
+- pression minimale ;
+- pression maximale ;
+- bilans H2, H2O et N2.
+
+La fréquence de purge doit rester indépendante de J_N2 dans ce premier modèle,
+puisque le courant ne dépend pas encore de la dilution.
+
+*** Tendances attendues
+
+Lorsque J_N2 augmente :
+
+  x_N2,max
+
+doit croître monotoniquement et :
+
+  x_H2,min
+
+doit décroître monotoniquement.
+
+Le cas J_N2 = 0 doit donner :
+
+  inventaire N2 = 0
+  N2 purgé = 0
+  bilan N2 = 0.
+
+La campagne calcule explicitement ces contrôles de monotonie.
+
+*** Infrastructure
+
+Nouveau driver :
+
+  scripts/run_v07_n2_crossover_sensitivity.py
+
+Tests :
+
+  tests/test_v07_n2_crossover_sensitivity.py
+
+Commandes :
+
+  make quick-n2-sensitivity-v07
+  make n2-sensitivity-v07
+
+Sorties :
+
+  results/quick-v07-n2-crossover-sensitivity.json
+  results/quick-v07-n2-crossover-sensitivity.csv
+  results/v07-n2-crossover-sensitivity.json
+  results/v07-n2-crossover-sensitivity.csv
+
+*** Validation attendue
+
+Avant toute exécution :
+
+  make test
+
+doit être entièrement vert.
+
+Le préflight nominal doit vérifier :
+
+- le cas nul ;
+- plusieurs valeurs autour de 1e-6 ;
+- croissance monotone de x_N2,max ;
+- décroissance monotone de x_H2,min ;
+- bilans fermés.
+
+La campagne complète devra permettre d'identifier les niveaux de crossover pour
+lesquels :
+
+- la dilution H2 reste faible ;
+- la dilution atteint quelques pourcents ;
+- la dilution devient suffisamment forte pour justifier une rétroaction
+  électrochimique explicite.
+
+Aucune valeur de J_N2 ne sera retenue comme physiquement calibrée à partir de
+cette seule campagne.
+
+Le but est de cartographier la sensibilité du modèle avant de choisir une plage
+de crossover à confronter à des données de littérature ou de membrane.
+
