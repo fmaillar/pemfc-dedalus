@@ -145,6 +145,7 @@ def simulate_nitrogen_regime(
     max_n2_mole_fraction = 0.0
     min_h2_mole_fraction = 1.0
     min_hydrogen_feedback_factor = 1.0
+    min_cell_current_a = float("inf")
 
     n_steps = int(np.ceil(stop_time_s / dt_s))
 
@@ -185,6 +186,7 @@ def simulate_nitrogen_regime(
             hydrogen_feedback_exponent,
         )
         cell_current_a = base_cell_current_a * hydrogen_feedback_factor
+        min_cell_current_a = min(min_cell_current_a, cell_current_a)
 
         total_pressure = total_gas_pressure_with_nitrogen_pa(
             hydrogen_mol,
@@ -415,6 +417,13 @@ def simulate_nitrogen_regime(
         "n2_crossover_rate_mol_s": n2_source_rate,
         "hydrogen_feedback_exponent": hydrogen_feedback_exponent,
         "min_hydrogen_feedback_factor": min_hydrogen_feedback_factor,
+        "min_cell_current_a": min_cell_current_a,
+        "mean_cell_current_a": (
+            2.0
+            * faraday_c_mol
+            * cumulative_h2_consumed_mol
+            / stop_time_s
+        ),
         "final_relative_humidity": water_state.relative_humidity,
         "final_hydrogen_mol": hydrogen_mol,
         "final_nitrogen_mol": nitrogen_mol,
