@@ -6388,3 +6388,155 @@ Cette évolution permettra de faire décroître naturellement le crossover lorsq
 N2 s'accumule à l'anode, au lieu d'imposer une source constante indépendante de
 l'état interne.
 
+** V0.7 — Crossover N2 piloté par les pressions partielles
+
+Le crossover N2 constant est remplacé par une loi dépendant de la différence
+de pression partielle entre cathode et anode :
+
+  J_N2 = K_N2 * max(p_N2,cathode - p_N2,anode, 0).
+
+Le coefficient :
+
+  K_N2 [mol/m2/s/Pa]
+
+reste paramétrique dans ce premier incrément.
+
+*** Calibration de K_N2
+
+Pour conserver une continuité directe avec les campagnes précédentes, K_N2 est
+déduit d'un flux de référence à pression N2 anodique nulle :
+
+  K_N2 = J_N2,ref / p_N2,cathode.
+
+Ainsi, à l'instant initial :
+
+  p_N2,anode = 0
+
+et :
+
+  J_N2 = J_N2,ref.
+
+À mesure que N2 s'accumule dans le volume anodique :
+
+  p_N2,anode augmente
+
+et le crossover diminue naturellement.
+
+*** Pression partielle N2 cathodique
+
+Le modèle cathodique utilise l'air humide déjà défini par les paramètres de
+fonctionnement.
+
+La pression sèche disponible est :
+
+  p_dry = p_total - RH * p_H2O,sat(T_stack).
+
+La fraction sèche non-O2 est représentée comme N2 dans ce modèle réduit :
+
+  p_N2,cathode = (1 - x_O2,dry) * p_dry.
+
+Cette approximation regroupe donc Ar et les gaz traces avec N2.
+
+Elle est explicite et pourra être raffinée ultérieurement si nécessaire.
+
+*** Compatibilité avec les modèles précédents
+
+Le driver N2 conserve le mode historique :
+
+  crossover constant
+
+par défaut.
+
+Le nouveau mode :
+
+  partial_pressure_driven
+
+n'est activé que lorsqu'un K_N2 et une pression partielle N2 cathodique sont
+fournis.
+
+Les campagnes précédentes restent donc reproductibles.
+
+*** Campagne
+
+La campagne étudie les références :
+
+  J_N2,ref =
+    1e-6
+    2e-6
+    5e-6 mol/m2/s
+
+avec :
+
+  gamma = 0
+  gamma = 1.
+
+Le cas gamma = 0 isole l'effet de la nouvelle loi de transport.
+
+Le cas gamma = 1 conserve la rétroaction électrochimique H2 validée précédemment.
+
+*** Grandeurs suivies
+
+Pour chaque cas :
+
+- K_N2 ;
+- p_N2,cathode ;
+- J_N2 moyen ;
+- J_N2 minimal ;
+- J_N2 maximal ;
+- réduction moyenne du flux par rapport à J_N2,ref ;
+- x_N2 maximal ;
+- x_H2 minimal ;
+- courant moyen ;
+- période de purge ;
+- nombre de purges ;
+- bilans H2, H2O et N2.
+
+*** Infrastructure
+
+Nouvelles fonctions :
+
+  humid_air_nitrogen_partial_pressure_pa(...)
+  nitrogen_permeance_from_reference_flux(...)
+  nitrogen_pressure_driven_flux(...)
+
+Nouveau driver :
+
+  scripts/run_v07_n2_pressure_crossover.py
+
+Nouveau test dynamique :
+
+  tests/test_v07_n2_pressure_crossover.py
+
+Commandes :
+
+  make quick-n2-pressure-v07
+  make n2-pressure-v07
+
+Sorties :
+
+  results/quick-v07-n2-pressure-crossover.json
+  results/quick-v07-n2-pressure-crossover.csv
+  results/v07-n2-pressure-crossover.json
+  results/v07-n2-pressure-crossover.csv
+
+*** Validation attendue
+
+Avant toute campagne :
+
+  make test
+
+doit être entièrement vert.
+
+Le préflight doit vérifier :
+
+- J_N2 initial = J_N2,ref ;
+- J_N2 diminue lorsque p_N2,anode augmente ;
+- J_N2 reste positif ou nul ;
+- aucun reflux N2 anode -> cathode dans cette loi unidirectionnelle ;
+- bilans H2/H2O/N2 fermés ;
+- continuité avec le mode constant lorsque p_N2,anode est faible.
+
+La campagne complète permettra de mesurer combien l'accumulation anodique
+réduit effectivement le crossover par rapport à l'hypothèse de source
+constante.
+
