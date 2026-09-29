@@ -6138,3 +6138,244 @@ modérée ou devient significative sur la plage de crossover déjà étudiée.
 
 Aucune valeur de gamma ne sera considérée comme calibrée à ce stade.
 
+*** Résultats de la rétroaction électrochimique H2
+
+La campagne complète est terminée pour :
+
+  J_N2 =
+    0
+    1e-6
+    2e-6
+    5e-6 mol/m2/s
+
+et :
+
+  gamma =
+    0
+    0.5
+    1.
+
+La loi effectivement utilisée est la loi bornée :
+
+  f_H2 = min(p_H2 / p_H2,ref, 1)^gamma.
+
+Le plafonnement à 1 empêche cette fermeture de devenir un terme de gain en cas
+de surpression transitoire : elle représente uniquement une pénalité de
+dilution.
+
+*** Contrôles de continuité
+
+Deux contrôles sont satisfaits.
+
+Pour :
+
+  J_N2 = 0
+
+on obtient :
+
+  f_H2,min = 1
+
+pour gamma = 0, 0.5 et 1, dans les trois régimes.
+
+Pour :
+
+  gamma = 0
+
+la rétroaction est exactement désactivée et les résultats reproduisent le
+sous-modèle N2 précédent.
+
+La nouvelle boucle n'introduit donc pas de modification cachée dans les cas de
+référence.
+
+*** Effet sur le courant moyen
+
+À :
+
+  J_N2 = 1e-6 mol/m2/s
+
+et :
+
+  gamma = 1
+
+les courants moyens passent approximativement de :
+
+  dry_high_load : 45.149 -> 45.081 A
+  nominal       : 28.591 -> 28.524 A
+  wet_low_load  : 16.208 -> 16.144 A.
+
+L'effet reste donc faible à ce niveau de crossover.
+
+À :
+
+  J_N2 = 5e-6 mol/m2/s
+
+et :
+
+  gamma = 1
+
+les courants moyens deviennent :
+
+  dry_high_load : 44.805 A
+  nominal       : 28.254 A
+  wet_low_load  : 15.885 A.
+
+Par rapport au cas gamma = 0 au même flux, cela correspond à une baisse
+d'environ :
+
+  dry_high_load : 0.76 %
+  nominal       : 1.18 %
+  wet_low_load  : 1.99 %.
+
+Le régime wet_low_load reste donc le plus sensible à la boucle N2 -> p_H2 ->
+courant.
+
+*** Facteur de rétroaction minimal
+
+Pour :
+
+  J_N2 = 5e-6 mol/m2/s
+  gamma = 1
+
+les minima sont :
+
+  dry_high_load : f_H2,min = 0.98868
+  nominal       : f_H2,min = 0.98186
+  wet_low_load  : f_H2,min = 0.96710.
+
+La pénalité instantanée maximale atteint ainsi environ :
+
+  1.1 %
+  1.8 %
+  3.3 %
+
+respectivement.
+
+Ces niveaux restent modérés et ne produisent aucune instabilité.
+
+*** Effet sur la purge
+
+La baisse du courant allonge la période de purge.
+
+À J_N2 = 5e-6 mol/m2/s :
+
+gamma = 0 :
+
+  dry_high_load : 50.94 s, 19 purges
+  nominal       : 80.45 s, 12 purges
+  wet_low_load  : 141.91 s, 7 purges.
+
+gamma = 1 :
+
+  dry_high_load : 51.35 s, 19 purges
+  nominal       : 81.46 s, 12 purges
+  wet_low_load  : 145.02 s, 6 purges.
+
+Le cas wet_low_load franchit donc un seuil discret important sur la fenêtre de
+1000 s :
+
+  7 -> 6 purges.
+
+C'est la première conséquence qualitative visible de la boucle de rétroaction.
+
+*** Effet secondaire sur l'accumulation N2
+
+L'allongement des périodes augmente légèrement l'accumulation N2.
+
+À J_N2 = 5e-6 mol/m2/s :
+
+gamma = 0 :
+
+  dry_high_load : x_N2,max = 0.011080
+  nominal       : x_N2,max = 0.017490
+  wet_low_load  : x_N2,max = 0.030740.
+
+gamma = 1 :
+
+  dry_high_load : x_N2,max = 0.011170
+  nominal       : x_N2,max = 0.017720
+  wet_low_load  : x_N2,max = 0.031353.
+
+La boucle est donc bien positive :
+
+  dilution H2
+  -> courant plus faible
+  -> purge plus tardive
+  -> davantage de N2
+  -> dilution légèrement renforcée.
+
+Sur la plage testée, ce renforcement reste faible et stable.
+
+*** Fractions H2 minimales
+
+Pour J_N2 = 5e-6 mol/m2/s :
+
+gamma = 0 :
+
+  dry_high_load : x_H2,min = 0.97532
+  nominal       : x_H2,min = 0.95943
+  wet_low_load  : x_H2,min = 0.92225.
+
+gamma = 1 :
+
+  dry_high_load : x_H2,min = 0.97523
+  nominal       : x_H2,min = 0.95920
+  wet_low_load  : x_H2,min = 0.92164.
+
+La rétroaction modifie donc davantage la dynamique temporelle que la dilution
+instantanée elle-même.
+
+*** Conservation
+
+Les bilans H2, H2O et N2 restent fermés à la précision numérique dans toute la
+campagne.
+
+Aucune dérive de conservation n'est introduite par la rétroaction du courant.
+
+*** Validation
+
+- [X] J_N2 = 0 donne f_H2 = 1 pour tout gamma
+- [X] gamma = 0 reproduit le modèle N2 sans rétroaction
+- [X] f_H2 reste inférieur ou égal à 1
+- [X] le courant moyen décroît avec la dilution
+- [X] la période de purge augmente lorsque la rétroaction augmente
+- [X] l'accumulation N2 augmente légèrement par rétroaction
+- [X] aucune instabilité détectée
+- [X] bilans H2/H2O/N2 fermés
+
+La boucle couplée est donc validée comme premier incrément électrochimique
+réduit.
+
+*** Limite de métadonnée détectée
+
+Le fichier de résultats généré par cette campagne décrit encore la loi sous la
+forme non bornée :
+
+  (p_H2 / p_H2,ref)^gamma.
+
+Le code utilisé pour la simulation applique bien la loi bornée :
+
+  min(p_H2 / p_H2,ref, 1)^gamma.
+
+La métadonnée du driver a été corrigée séparément afin que les prochains
+résultats reflètent exactement la loi réellement calculée.
+
+Les valeurs numériques déjà obtenues restent valides, mais les fichiers de
+résultats doivent être régénérés pour corriger cette description de provenance.
+
+*** Décision de développement
+
+La rétroaction électrochimique réduite reste modérée sur la plage de screening,
+mais elle affecte déjà la fréquence de purge dans le régime wet_low_load.
+
+Avant d'ajouter une loi HOR plus détaillée, il faut d'abord régénérer les
+résultats avec la métadonnée corrigée.
+
+Ensuite, la prochaine étape physique devra être choisie entre :
+
+- une loi de dépendance à p_H2 mieux fondée physiquement ;
+- ou l'introduction d'une vraie loi de crossover N2 dépendant des pressions
+  partielles de part et d'autre de la membrane.
+
+La seconde option est préférable pour progresser vers un modèle de transport
+plus physique sans multiplier trop tôt les paramètres cinétiques empiriques.
+
