@@ -30,7 +30,6 @@ from pemfc_dedalus.anode import (
     anode_total_gas_pressure_pa,
     hydrogen_consumption_molar_rate,
     hydrogen_moles_for_total_pressure,
-    ideal_gas_partial_pressure_pa,
     lambda_flux_to_water_molar_rate,
     pressure_driven_purge_molar_rate,
     purge_pressure_conductance_mol_s_pa,
