@@ -4755,3 +4755,217 @@ l'écart artificiel entre consommation H2 et perte H2 par purge.
 Si les ordres de grandeur deviennent cohérents, la V0.7 pourra ensuite passer à
 l'introduction de N2 et du crossover.
 
+*** Résultats de la mise à l'échelle aire active / cellule
+
+La campagne complète est terminée.
+
+La calibration nominale utilise :
+
+  A_patch = 2e-6 m2
+  I_patch,ref = 1.9780668 mA
+  I_cell,ref = 26.04 A.
+
+On obtient :
+
+  facteur d'échelle S_A = 13164.37
+  aire active inférée = 0.0263287 m2
+                      = 263.29 cm2.
+
+Cette aire reste une grandeur dérivée du modèle, et non une mesure du stack.
+
+Les grandeurs ramenées à l'aire active deviennent :
+
+  volume anodique = 0.07596 mL/cm2
+  débit de purge  = 0.009116 slpm/cm2.
+
+*** Effet sur les courants cellule
+
+Le facteur d'aire place correctement le nominal sec à :
+
+  26.04 A.
+
+Après évolution hydrique, les courants cellule issus de la fermeture V0.6 sont
+d'environ :
+
+  dry_high_load : 45.16 A
+  nominal       : 28.59 A
+  wet_low_load  : 16.21 A.
+
+La consommation H2 est désormais du même ordre physique que les flux par
+cellule.
+
+*** Utilisation H2
+
+Sur 1000 s, l'utilisation définie par :
+
+  U_H2 = H2_consomme / (H2_consomme + H2_purge)
+
+vaut :
+
+  dry_high_load : 0.98383
+  nominal       : 0.97482
+  wet_low_load  : 0.95731.
+
+La référence Ballard disponible est :
+
+  U_H2 ≈ 0.93
+
+avec purge standard.
+
+La mise à l'échelle corrige donc le défaut précédent où le H2 purgé dominait de
+plusieurs ordres de grandeur la consommation du patch.
+
+Elle ne reproduit cependant pas encore quantitativement la référence de 93 %.
+
+*** Lecture de l'écart à 93 %
+
+Le résultat nominal proche de 97.5 % est cohérent avec les paramètres de purge
+actuellement utilisés :
+
+  débit = 2.4 slpm
+  durée = 0.2 s
+  période ≈ 88.33 s.
+
+Ces valeurs correspondent à environ :
+
+  8 mL standard par purge.
+
+Or la référence Ballard contient également :
+
+  volume de purge = 20 mL par cellule
+  durée maximale de purge = 0.5 s.
+
+À 2.4 slpm pendant 0.5 s, le volume standard est précisément :
+
+  20 mL.
+
+Ainsi, les données :
+
+  20 mL
+  2.4 slpm
+  0.5 s
+
+sont mutuellement cohérentes pour la purge standard.
+
+La durée de 0.2 s doit donc rester identifiée comme une condition de laboratoire
+distincte, et non comme la purge standard servant à comparer l'utilisation H2 à
+93 %.
+
+Cela explique une grande partie de l'écart actuel entre :
+
+  U_H2,modele ≈ 0.975 au nominal
+
+et :
+
+  U_H2,Ballard ≈ 0.93.
+
+*** Effet sur la dynamique hydrique
+
+Après mise à l'échelle, le transfert d'eau est lui aussi multiplié par S_A.
+
+Les états anodiques atteignent alors très rapidement les points de flux nul de
+la fermeture V0.6 :
+
+  dry_high_load : RH ≈ 0.25547
+  nominal       : RH ≈ 0.43367
+  wet_low_load  : RH ≈ 0.88332.
+
+La purge produit ensuite une baisse temporaire de RH, mais le transfert
+membranaire à l'échelle cellule recharge rapidement l'inventaire entre deux
+purges.
+
+Ce comportement est structurellement cohérent avec la fermeture actuelle, mais
+il montre que le volume anodique provisoire de 20 mL devient maintenant un
+paramètre beaucoup plus important à calibrer.
+
+*** Pressions et bilans
+
+Les pressions minimales pendant purge restent physiques :
+
+  dry_high_load : 1.34718 bar
+  nominal       : 1.34823 bar
+  wet_low_load  : 1.34901 bar.
+
+Les bilans restent fermés à la précision numérique :
+
+  erreur H2 : jusqu'à environ 3e-14 mol
+  erreur H2O : de l'ordre de 1e-19 mol.
+
+La mise à l'échelle n'introduit donc pas de défaut de conservation.
+
+*** Limite identifiée sur l'horloge de purge
+
+La campagne utilise encore :
+
+  I_purge_clock = 26.04 A
+
+pour tous les régimes.
+
+Cette hypothèse était acceptable pour le cas nominal, mais elle devient
+incohérente après mise à l'échelle puisque les courants cellule effectifs sont
+différents selon le régime.
+
+La loi Ballard étant :
+
+  purge après 2300 A.s,
+
+le compteur doit accumuler le courant cellulaire instantané :
+
+  Q_purge(t) = integral I_cell(t) dt
+
+et non une valeur nominale fixe.
+
+Les comparaisons dry_high_load et wet_low_load de la campagne actuelle ne
+doivent donc pas être utilisées pour conclure quantitativement sur la fréquence
+de purge ou l'utilisation H2.
+
+Le cas nominal reste le contrôle principal de cette campagne.
+
+*** Validation de la mise à l'échelle
+
+- [X] facteur d'aire positif et explicite
+- [X] nominal sec calibré à 26.04 A
+- [X] aire active inférée = 263.29 cm2
+- [X] courant H2 mis à l'échelle cellule
+- [X] flux d'eau mis à l'échelle cellule
+- [X] bilans H2 et H2O fermés
+- [X] ordre de grandeur H2 consommé / H2 purgé devenu cohérent
+- [X] utilisation H2 nominale proche de l'ordre de grandeur Ballard
+- [ ] horloge 2300 A.s basée sur le courant cellule instantané
+- [ ] comparaison purge standard avec durée 0.5 s / 20 mL
+- [ ] sensibilité au volume anodique après mise à l'échelle
+- [ ] N2 et crossover
+
+*** Décision de développement
+
+Avant l'ajout de N2, deux corrections sont maintenant prioritaires.
+
+Premièrement, la purge doit être déclenchée par l'intégrale du courant cellule
+réel de chaque régime, et non par 26.04 A constant.
+
+Deuxièmement, il faut séparer explicitement deux configurations :
+
+  purge laboratoire : 0.2 s
+  purge standard Ballard : jusqu'à 0.5 s.
+
+La configuration standard à 0.5 s doit être utilisée pour la comparaison à :
+
+  volume purge = 20 mL
+  utilisation H2 = 0.93.
+
+Une campagne de sensibilité :
+
+  0.2 s
+  0.5 s
+
+permettra alors de vérifier simultanément :
+
+- période de purge issue de 2300 A.s ;
+- volume standard évacué par événement ;
+- utilisation H2 ;
+- RH anodique ;
+- pression minimale.
+
+Après cette correction, le modèle pourra passer à N2 et au crossover sur une
+base quantitative beaucoup plus solide.
+
