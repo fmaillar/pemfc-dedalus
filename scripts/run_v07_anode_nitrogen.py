@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+from collections.abc import Callable
 from pathlib import Path
 from statistics import mean
 from typing import Any
@@ -85,6 +86,7 @@ def simulate_nitrogen_regime(
     hydrogen_feedback_exponent: float = 0.0,
     n2_crossover_permeance_mol_m2_s_pa: float | None = None,
     cathode_n2_partial_pressure_pa: float | None = None,
+    n2_permeance_model: Callable[[float], float] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Integrate H2/N2/H2O inventories with charge-triggered standard purges."""
     if stop_time_s <= 0.0 or dt_s <= 0.0:
@@ -98,6 +100,11 @@ def simulate_nitrogen_regime(
     if n2_crossover_permeance_mol_m2_s_pa is not None:
         if n2_crossover_permeance_mol_m2_s_pa < 0.0:
             raise ValueError("n2 crossover permeance must be non-negative")
+    pressure_driven = (
+        n2_crossover_permeance_mol_m2_s_pa is not None
+        or n2_permeance_model is not None
+    )
+    if pressure_driven:
         if cathode_n2_partial_pressure_pa is None:
             raise ValueError("cathode N2 partial pressure is required")
         if cathode_n2_partial_pressure_pa <= 0.0:
@@ -158,6 +165,8 @@ def simulate_nitrogen_regime(
     min_cell_current_a = float("inf")
     min_n2_crossover_flux = float("inf")
     max_n2_crossover_flux = 0.0
+    min_n2_permeance = float("inf")
+    max_n2_permeance = 0.0
 
     n_steps = int(np.ceil(stop_time_s / dt_s))
 
@@ -260,7 +269,15 @@ def simulate_nitrogen_regime(
         )
         cumulative_water_transfer_mol += water_source * actual_dt
 
-        if n2_crossover_permeance_mol_m2_s_pa is None:
+        dynamic_permeance = n2_crossover_permeance_mol_m2_s_pa
+        if n2_permeance_model is not None:
+            dynamic_permeance = n2_permeance_model(
+                water_state.relative_humidity
+            )
+            if dynamic_permeance < 0.0:
+                raise ValueError("n2 permeance model returned a negative value")
+
+        if dynamic_permeance is None:
             n2_flux = n2_crossover_flux_mol_m2_s
             n2_source_rate = constant_n2_source_rate
         else:
@@ -268,6 +285,8 @@ def simulate_nitrogen_regime(
                 raise RuntimeError(
                     "cathode N2 partial pressure missing in pressure-driven mode"
                 )
+            min_n2_permeance = min(min_n2_permeance, dynamic_permeance)
+            max_n2_permeance = max(max_n2_permeance, dynamic_permeance)
             anode_n2_partial_pressure_pa = (
                 nitrogen_mol
                 * gas_constant_j_mol_k
@@ -275,7 +294,7 @@ def simulate_nitrogen_regime(
                 / volume_m3
             )
             n2_flux = nitrogen_pressure_driven_flux(
-                n2_crossover_permeance_mol_m2_s_pa,
+                dynamic_permeance,
                 cathode_n2_partial_pressure_pa,
                 anode_n2_partial_pressure_pa,
             )
@@ -451,9 +470,13 @@ def simulate_nitrogen_regime(
         "mean_purge_period_s": mean(periods) if periods else None,
         "purge_duration_s": purge_duration_s,
         "n2_crossover_mode": (
-            "constant_flux"
-            if n2_crossover_permeance_mol_m2_s_pa is None
-            else "partial_pressure_driven"
+            "state_dependent_permeance"
+            if n2_permeance_model is not None
+            else (
+                "constant_flux"
+                if n2_crossover_permeance_mol_m2_s_pa is None
+                else "partial_pressure_driven"
+            )
         ),
         "n2_crossover_flux_mol_m2_s": n2_crossover_flux_mol_m2_s,
         "n2_crossover_permeance_mol_m2_s_pa": (
@@ -475,6 +498,14 @@ def simulate_nitrogen_regime(
             else min_n2_crossover_flux
         ),
         "max_n2_crossover_flux_mol_m2_s": max_n2_crossover_flux,
+        "min_n2_permeance_mol_m2_s_pa": (
+            None
+            if min_n2_permeance == float("inf")
+            else min_n2_permeance
+        ),
+        "max_n2_permeance_mol_m2_s_pa": (
+            None if max_n2_permeance == 0.0 else max_n2_permeance
+        ),
         "hydrogen_feedback_exponent": hydrogen_feedback_exponent,
         "min_hydrogen_feedback_factor": min_hydrogen_feedback_factor,
         "min_cell_current_a": min_cell_current_a,
