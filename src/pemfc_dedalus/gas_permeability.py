@@ -28,7 +28,6 @@ def membrane_permeance_from_permeability(
     return permeability_mol_m_per_m2_s_pa / membrane_thickness_m
 
 
-
 def arrhenius_permeability(
     reference_permeability: float,
     temperature_k: float,
@@ -93,7 +92,6 @@ def effective_membrane_relative_humidity(
     return 0.5 * (anode_relative_humidity + cathode_relative_humidity)
 
 
-
 def state_dependent_permeability(
     dry_reference_permeability: float,
     *,
@@ -126,7 +124,6 @@ def state_dependent_permeability(
         shape_exponent=humidity_shape_exponent,
     )
     return dry_at_temperature * humidity_factor
-
 
 
 def water_content_permeability_multiplier(
