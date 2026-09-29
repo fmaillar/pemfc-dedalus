@@ -6345,32 +6345,27 @@ Aucune dérive de conservation n'est introduite par la rétroaction du courant.
 La boucle couplée est donc validée comme premier incrément électrochimique
 réduit.
 
-*** Limite de métadonnée détectée
+*** Métadonnée de provenance corrigée
 
-Le fichier de résultats généré par cette campagne décrit encore la loi sous la
-forme non bornée :
+La campagne a été régénérée après correction de la métadonnée du driver.
 
-  (p_H2 / p_H2,ref)^gamma.
+Le fichier :
 
-Le code utilisé pour la simulation applique bien la loi bornée :
+  results/v07-h2-feedback-sensitivity.json
+
+décrit maintenant explicitement la loi réellement utilisée :
 
   min(p_H2 / p_H2,ref, 1)^gamma.
 
-La métadonnée du driver a été corrigée séparément afin que les prochains
-résultats reflètent exactement la loi réellement calculée.
-
-Les valeurs numériques déjà obtenues restent valides, mais les fichiers de
-résultats doivent être régénérés pour corriger cette description de provenance.
+Les résultats numériques sont inchangés par rapport à la campagne précédente ;
+la correction porte uniquement sur la description de provenance.
 
 *** Décision de développement
 
 La rétroaction électrochimique réduite reste modérée sur la plage de screening,
 mais elle affecte déjà la fréquence de purge dans le régime wet_low_load.
 
-Avant d'ajouter une loi HOR plus détaillée, il faut d'abord régénérer les
-résultats avec la métadonnée corrigée.
-
-Ensuite, la prochaine étape physique devra être choisie entre :
+La prochaine étape physique peut maintenant être choisie entre :
 
 - une loi de dépendance à p_H2 mieux fondée physiquement ;
 - ou l'introduction d'une vraie loi de crossover N2 dépendant des pressions
@@ -6378,4 +6373,18 @@ Ensuite, la prochaine étape physique devra être choisie entre :
 
 La seconde option est préférable pour progresser vers un modèle de transport
 plus physique sans multiplier trop tôt les paramètres cinétiques empiriques.
+
+La prochaine étape retenue est donc :
+
+  crossover N2 dépendant du gradient de pression partielle.
+
+Le flux imposé constant sera remplacé par une loi de type :
+
+  J_N2 = K_N2 * max(p_N2,cathode - p_N2,anode, 0)
+
+avec K_N2 paramétrique dans un premier temps.
+
+Cette évolution permettra de faire décroître naturellement le crossover lorsque
+N2 s'accumule à l'anode, au lieu d'imposer une source constante indépendante de
+l'état interne.
 
