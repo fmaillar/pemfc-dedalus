@@ -342,4 +342,4 @@ quick-volume-v07:
 	  --output-csv results/quick-v07-anode-volume-sensitivity.csv
 
 volume-v07:
-	$(PYTHON) scripts/run_v07_anode_volume_sensitivity.py
+	$(PYTHON) -m scripts.run_v07_anode_volume_sensitivity
