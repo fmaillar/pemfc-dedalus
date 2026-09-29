@@ -223,6 +223,10 @@ def simulate_purge_regime(
                 temperature_k=temperature_k,
                 gas_constant_j_mol_k=gas_constant_j_mol_k,
             )
+            max_total_pressure_pa = max(
+                max_total_pressure_pa,
+                pressure_before,
+            )
             rh_before = water_state.relative_humidity
 
             (
