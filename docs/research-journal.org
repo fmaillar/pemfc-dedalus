@@ -6900,3 +6900,232 @@ La campagne devra déterminer :
 L'objectif est de remplacer progressivement la plage arbitraire de J_N2 par une
 plage de propriétés membrane explicitement traçable dans la littérature.
 
+*** Résultats de l'ancrage littérature N2
+
+La campagne complète est terminée pour :
+
+  P_N2 =
+    0.24
+    2.4
+    24 Barrer
+
+avec :
+
+  gamma =
+    0
+    1.
+
+La conversion utilisée est :
+
+  1 Barrer = 3.348e-16 mol m / (m2 s Pa)
+
+et :
+
+  K_N2 = P_N2 / L_membrane
+
+avec :
+
+  L_membrane = 50 um.
+
+Les flux initiaux obtenus sont :
+
+  0.24 Barrer -> 1.241e-7 mol/m2/s
+  2.4  Barrer -> 1.241e-6 mol/m2/s
+  24   Barrer -> 1.241e-5 mol/m2/s.
+
+La valeur 2.4 Barrer tombe donc très près du domaine de screening utilisé dans
+les campagnes précédentes.
+
+*** Régime sec de référence : 0.24 Barrer
+
+À gamma = 0 :
+
+  dry_high_load :
+    x_N2,max = 2.75e-4
+    x_H2,min = 0.98613
+
+  nominal :
+    x_N2,max = 4.34e-4
+    x_H2,min = 0.97649
+
+  wet_low_load :
+    x_N2,max = 7.62e-4
+    x_H2,min = 0.95223.
+
+La contamination N2 ajoutée par rapport au cas sans crossover reste donc très
+faible à la perméabilité sèche.
+
+Avec gamma = 1, l'effet électrochimique est quasi négligeable :
+
+  nominal :
+    I_mean = 28.583 A
+    f_H2,min = 0.99956
+
+  wet_low_load :
+    I_mean = 16.200 A
+    f_H2,min = 0.99920.
+
+*** Cas 10x : 2.4 Barrer
+
+Le flux initial devient :
+
+  J_N2,0 = 1.241e-6 mol/m2/s.
+
+À gamma = 0 :
+
+  dry_high_load : x_N2,max = 0.002740
+  nominal       : x_N2,max = 0.004317
+  wet_low_load  : x_N2,max = 0.007556.
+
+Avec gamma = 1 :
+
+  dry_high_load :
+    I_mean = 45.064 A
+    f_H2,min = 0.99722
+    période purge = 51.04 s
+
+  nominal :
+    I_mean = 28.509 A
+    f_H2,min = 0.99557
+    période purge = 80.69 s
+
+  wet_low_load :
+    I_mean = 16.129 A
+    f_H2,min = 0.99203
+    période purge = 142.66 s.
+
+L'effet reste modéré et stable.
+
+*** Cas 100x : 24 Barrer
+
+Le flux initial atteint :
+
+  J_N2,0 = 1.241e-5 mol/m2/s.
+
+La réduction moyenne du flux par accumulation anodique devient alors
+significative.
+
+À gamma = 0 :
+
+  dry_high_load : réduction moyenne ≈ 3.20 %
+  nominal       : réduction moyenne ≈ 4.79 %
+  wet_low_load  : réduction moyenne ≈ 7.68 %.
+
+Les maxima N2 valent :
+
+  dry_high_load : 0.02657
+  nominal       : 0.04113
+  wet_low_load  : 0.06957.
+
+Dans wet_low_load, x_H2,min descend à :
+
+  0.88342.
+
+Avec gamma = 1, la rétroaction électrochimique devient clairement visible :
+
+  dry_high_load :
+    I_mean = 44.311 A
+    f_H2,min = 0.97255
+    période purge = 51.94 s
+    x_N2,max = 0.02708
+
+  nominal :
+    I_mean = 27.778 A
+    f_H2,min = 0.95662
+    période purge = 82.92 s
+    x_N2,max = 0.04238
+
+  wet_low_load :
+    I_mean = 15.453 A
+    f_H2,min = 0.92338
+    période purge = 149.50 s
+    x_N2,max = 0.07301
+    6 purges sur 1000 s.
+
+Le cas 24 Barrer constitue donc un régime où la perméabilité N2 devient un
+paramètre de premier ordre dans la dynamique de purge et la performance.
+
+*** Effet du gradient de pression
+
+Le transport piloté par pression réduit peu le flux dans le cas sec :
+
+  réduction moyenne < 0.1 % à 0.24 Barrer.
+
+À 2.4 Barrer, la réduction reste inférieure à environ :
+
+  0.82 %
+
+dans le pire régime.
+
+À 24 Barrer, elle atteint environ :
+
+  7.9 %
+
+dans wet_low_load avec gamma = 1.
+
+La rétroaction transport :
+
+  N2 anode augmente
+  -> gradient N2 diminue
+  -> crossover diminue
+
+devient donc réellement importante uniquement dans les cas de forte
+perméabilité.
+
+*** Conservation
+
+Les bilans H2, H2O et N2 restent fermés à la précision numérique dans les 18
+cas.
+
+Le modèle reste donc conservatif sur l'ensemble de la plage de perméabilité
+testée.
+
+*** Validation
+
+- [X] conversion Barrer -> SI explicite
+- [X] conversion perméabilité -> perméance explicite
+- [X] 0.24 Barrer produit un crossover faible
+- [X] 2.4 Barrer reproduit l'ordre de grandeur du screening précédent
+- [X] 24 Barrer produit une dynamique N2 significative mais stable
+- [X] le gradient de pression réduit davantage le flux à forte perméabilité
+- [X] wet_low_load reste le régime le plus sensible
+- [X] la rétroaction H2 reste stable
+- [X] bilans H2/H2O/N2 fermés
+
+*** Correction de style Ruff
+
+Une passe Ruff locale a identifié deux lignes blanches superflues dans :
+
+  src/pemfc_dedalus/gas_permeability.py
+  scripts/run_v07_n2_literature_permeability.py.
+
+Elles ont été corrigées dans le commit :
+
+  5a621d5 ruff corrections.
+
+Les prochaines modifications doivent continuer à respecter le gate complet :
+
+  make test
+
+avant toute campagne, y compris les règles de formatage Ruff.
+
+*** Décision de développement
+
+Les résultats montrent que le choix de perméabilité N2 domine désormais
+l'incertitude du sous-modèle.
+
+La référence sèche 0.24 Barrer donne un effet presque négligeable, tandis que
+la borne 100x à 24 Barrer produit une influence nette sur :
+
+- accumulation N2 ;
+- pression partielle H2 ;
+- courant ;
+- fréquence de purge.
+
+Avant de retenir une valeur nominale, il faut donc maintenant réconcilier les
+mesures ex situ en Barrer avec les mesures in situ fortement hydratées et leur
+dépendance en température/hydratation.
+
+La prochaine étape devra introduire une loi de perméabilité N2 dépendant de
+l'état de membrane, plutôt qu'un facteur arbitraire 1x/10x/100x.
+
