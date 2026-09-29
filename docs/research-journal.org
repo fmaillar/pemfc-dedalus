@@ -3477,3 +3477,153 @@ comparée à la loi Ballard :
 
   intervalle ≈ 2300 A.s.
 
+** V0.7 — Bilan dynamique H2 en anode dead-end
+
+Après validation de la dynamique d'eau et de la sensibilité au volume anodique,
+la V0.7 introduit maintenant explicitement l'inventaire d'hydrogène.
+
+La purge reste volontairement absente dans ce premier incrément H2.
+
+L'objectif est d'isoler et de valider :
+
+- consommation électrochimique de H2 ;
+- inventaire molaire H2 dans le volume anodique ;
+- apport de H2 par l'alimentation ;
+- pression partielle H2 ;
+- pression partielle H2O ;
+- pression totale ;
+- couplage avec RH_anode dynamique.
+
+*** Consommation électrochimique
+
+La consommation molaire d'hydrogène est calculée par la loi de Faraday :
+
+  n_dot_H2,cons = I / (2 F).
+
+Le courant utilisé à chaque instant provient de la même fermeture V0.6 que le
+flux d'eau :
+
+  RH_anode
+  -> courant
+  -> flux d'eau.
+
+Les deux grandeurs sont interpolées ensemble dans les résultats validés de :
+
+  results/v06-rha-sensitivity.csv.
+
+*** Pression et mélange gazeux
+
+Le mélange gazeux actuel contient uniquement :
+
+- H2 ;
+- vapeur d'eau.
+
+Les pressions partielles utilisent le gaz parfait :
+
+  p_i = n_i R T / V.
+
+La pression totale est :
+
+  p_total = p_H2 + p_H2O.
+
+L'azote n'est pas encore représenté.
+
+*** Alimentation H2 provisoire
+
+Le manuel Ballard donne une pression H2 optimale :
+
+  0.36 barg.
+
+Avec la pression atmosphérique de référence :
+
+  101325 Pa
+
+le modèle utilise donc une cible absolue :
+
+  p_target = 137325 Pa.
+
+L'alimentation est représentée par un régulateur idéal unidirectionnel.
+
+À chaque pas :
+
+1. H2 est consommé électrochimiquement ;
+2. l'état d'eau est mis à jour ;
+3. le régulateur peut ajouter du H2 pour remonter à la pression cible ;
+4. le régulateur ne peut jamais retirer de gaz.
+
+Cette dernière propriété est essentielle pour représenter qualitativement une
+anode dead-end.
+
+Si l'accumulation de vapeur d'eau suffit à maintenir ou dépasser la pression
+cible, l'entrée H2 se ferme.
+
+Une surpression peut donc apparaître puisque la purge n'existe pas encore.
+
+*** Limites explicites
+
+Ce sous-modèle ne représente pas encore :
+
+- la dynamique mécanique réelle du détendeur ;
+- une loi de débit fondée sur une perte de charge ;
+- la composition en azote ;
+- le crossover d'azote ;
+- la dépendance de l'électrochimie à p_H2 ;
+- une chute de pression le long des canaux ;
+- la purge.
+
+Le régulateur idéal sert uniquement à fermer proprement le bilan de matière H2
+avant d'ajouter ces phénomènes.
+
+*** Infrastructure
+
+Nouvelles relations dans :
+
+  src/pemfc_dedalus/anode.py
+
+Nouveau driver :
+
+  scripts/run_v07_anode_h2.py
+
+Nouveaux tests :
+
+  tests/test_v07_anode_h2.py
+
+Commandes :
+
+  make quick-h2-v07
+  make h2-v07
+
+Résultats :
+
+  results/quick-v07-anode-h2.json
+  results/quick-v07-anode-h2.csv
+  results/v07-anode-h2.json
+  results/v07-anode-h2.csv
+
+*** Validation attendue
+
+Avant toute campagne :
+
+  make test
+
+doit être entièrement vert.
+
+Le préflight doit vérifier :
+
+- inventaire H2 strictement positif ;
+- consommation H2 positive ;
+- apport H2 non négatif ;
+- pression totale positive ;
+- continuité de RH_anode avec le sous-modèle hydrique précédent.
+
+La campagne complète devra ensuite permettre de comparer les trois régimes et de
+déterminer :
+
+- si le régulateur reste actif ;
+- quand il se ferme éventuellement ;
+- l'écart maximal à la pression cible ;
+- la part de pression due à la vapeur d'eau ;
+- le bilan cumulé entre H2 consommé et H2 fourni.
+
+La purge ne sera introduite qu'après validation de ce bilan H2 sans purge.
+
