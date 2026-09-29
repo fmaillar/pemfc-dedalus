@@ -9,6 +9,7 @@ NUMEXPR_NUM_THREADS ?= 1
         quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh plot-v04-rh \
         quick-v05 study-v05 quick-sweep-v05 sweep-v05 quick-grid-v05 grid-v05 \
         quick-v06 study-v06 quick-ka-v06 ka-v06 quick-grid-v06 grid-v06 quick-rha-v06 rha-v06 \
+        quick-v07 study-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -43,6 +44,8 @@ help:
 	  'make grid-v06         run V0.6 dry/high-load spatial convergence' \
 	  'make quick-rha-v06    preflight one V0.6 RH_anode sensitivity case' \
 	  'make rha-v06          run V0.6 RH_anode sensitivity on three regimes' \
+	  'make quick-v07        preflight V0.7 dynamic anode water volume' \
+	  'make study-v07        run V0.7 dynamic anode water-volume study' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -317,3 +320,13 @@ rha-v06:
 	MPIEXEC=$(MPIEXEC) MPI_FLAGS='$(MPI_FLAGS)' MPI_N=$(MPI_N) \
 	  $(PYTHON) scripts/run_v06_rha_sensitivity.py \
 	  --mpi-n $(MPI_N)
+
+
+quick-v07:
+	$(PYTHON) scripts/run_v07_anode_volume.py \
+	  --regimes nominal --stop-time 60 --dt 1 --write-every 5 \
+	  --output-json results/quick-v07-anode-volume.json \
+	  --output-csv results/quick-v07-anode-volume.csv
+
+study-v07:
+	$(PYTHON) scripts/run_v07_anode_volume.py
