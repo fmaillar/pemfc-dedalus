@@ -7337,3 +7337,163 @@ L'étape suivante, après la campagne, sera de déterminer si la forme q_RH peut
 ou s'il faut passer à une loi en teneur en eau / fraction volumique d'eau
 plutôt qu'en RH.
 
+*** Résultats de la fermeture RH paramétrique
+
+La campagne q_RH = 1, 2, 4 est terminée.
+
+Elle montre que l'incertitude sur la forme de la loi hydrique domine très
+largement le résultat.
+
+Pour gamma = 1, le régime wet_low_load donne :
+
+q_RH = 1 :
+
+  J_N2,moy = 4.659e-6 mol/m2/s
+  x_N2,max = 0.02903
+  f_H2,min = 0.96953
+  I_moy = 15.906 A
+  période purge = 144.81 s
+  6 purges / 1000 s.
+
+q_RH = 2 :
+
+  J_N2,moy = 2.090e-6 mol/m2/s
+  x_N2,max = 0.01291
+  f_H2,min = 0.98646
+  I_moy = 16.073 A
+  période purge = 143.18 s
+  6 purges / 1000 s.
+
+q_RH = 4 :
+
+  J_N2,moy = 6.930e-7 mol/m2/s
+  x_N2,max = 0.00427
+  f_H2,min = 0.99552
+  I_moy = 16.163 A
+  période purge = 142.33 s
+  7 purges / 1000 s.
+
+La variation d'un seul exposant empirique modifie donc le crossover moyen d'un
+facteur supérieur à 6 dans le régime wet_low_load.
+
+Le système reste stable et les bilans H2/H2O/N2 restent fermés, mais la forme
+RH choisie est trop influente pour être retenue comme loi nominale.
+
+*** Conséquence physique
+
+Catalano et al. indiquent que la perméabilité des gaz augmente de manière
+exponentielle lorsqu'elle est tracée en fonction de la fraction volumique d'eau
+dans la membrane, dans leur domaine hydraté mesuré.
+
+Cette observation est physiquement plus utile que l'ajustement direct en RH,
+car :
+
+  RH
+  -> teneur en eau de membrane
+  -> gonflement / fraction volumique d'eau
+  -> perméabilité.
+
+La prochaine fermeture supprime donc q_RH.
+
+*** Nouvelle fermeture en teneur en eau
+
+Le modèle utilise la relation Nafion lambda(a) déjà présente dans le code :
+
+  lambda_anode = lambda(RH_anode)
+  lambda_cathode = lambda(RH_cathode).
+
+Une teneur en eau effective est définie au premier ordre par :
+
+  lambda_eff =
+    (lambda_anode + lambda_cathode) / 2.
+
+Les ancres sont :
+
+  lambda_dry = lambda(a=0)
+  lambda_ref = lambda(a=0.9).
+
+Le facteur hydrique devient :
+
+  F_water =
+    100^xi
+
+avec :
+
+  xi =
+    clip[
+      (lambda_eff - lambda_dry)
+      / (lambda_ref - lambda_dry),
+      0,
+      1
+    ].
+
+Cette loi est exponentielle en teneur en eau, conformément à la tendance
+rapportée par Catalano et al., mais lambda reste ici un proxy de la fraction
+volumique d'eau.
+
+Elle ne doit donc pas être présentée comme un fit direct de leurs données.
+
+La loi complète devient :
+
+  P_N2(T,lambda) =
+    P_dry(35 C)
+    * F_T(T)
+    * F_water(lambda_eff).
+
+Puis :
+
+  K_N2 = P_N2 / L_membrane
+
+et :
+
+  J_N2 =
+    K_N2
+    * max(p_N2,cathode - p_N2,anode, 0).
+
+*** Infrastructure de la campagne lambda
+
+Nouvelles fonctions :
+
+  water_content_permeability_multiplier(...)
+  water_content_dependent_permeability(...).
+
+Nouveau driver :
+
+  scripts/run_v07_n2_water_content_permeability.py
+
+Nouveau test :
+
+  tests/test_v07_n2_water_content_permeability.py
+
+Commandes :
+
+  make quick-n2-water-v07
+  make n2-water-v07
+
+Sorties :
+
+  results/quick-v07-n2-water-content-permeability.json
+  results/quick-v07-n2-water-content-permeability.csv
+  results/v07-n2-water-content-permeability.json
+  results/v07-n2-water-content-permeability.csv
+
+*** Validation attendue
+
+Le gate complet reste obligatoire :
+
+  make test.
+
+La campagne doit vérifier que :
+
+- lambda augmente avec l'activité d'eau ;
+- la perméance augmente avec lambda_eff ;
+- la fermeture ne dépend plus d'un exposant q_RH arbitraire ;
+- les bilans restent fermés ;
+- wet_low_load reste stable ;
+- la dynamique de purge reste cohérente.
+
+Si cette fermeture produit un comportement intermédiaire et robuste, l'étape
+suivante sera de convertir lambda en fraction volumique d'eau de façon
+explicite afin de se rapprocher directement de la variable utilisée par
+Catalano et al.
+
