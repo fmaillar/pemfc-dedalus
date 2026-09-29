@@ -7610,3 +7610,196 @@ La conversion additive sera donc explicitement identifiée comme une première
 approximation avant tout ajustement quantitatif direct aux données de
 perméabilité.
 
+*** Résultats de la fermeture en fraction volumique d'eau
+
+La campagne complète est terminée.
+
+La conversion additive lambda -> fraction volumique d'eau donne à l'état final :
+
+  dry_high_load :
+    phi_water = 0.09053
+
+  nominal :
+    phi_water = 0.09880
+
+  wet_low_load :
+    phi_water = 0.17530.
+
+Avec gamma = 1 :
+
+dry_high_load :
+
+  J_N2,moy = 8.467e-7 mol/m2/s
+  x_N2,max = 0.001879
+  f_H2,min = 0.99810
+  I_moy = 45.091 A
+  période purge = 51.01 s.
+
+nominal :
+
+  J_N2,moy = 1.044e-6 mol/m2/s
+  x_N2,max = 0.003660
+  f_H2,min = 0.99625
+  I_moy = 28.521 A
+  période purge = 80.65 s.
+
+wet_low_load :
+
+  J_N2,moy = 7.065e-6 mol/m2/s
+  x_N2,max = 0.04442
+  x_H2,min = 0.90857
+  f_H2,min = 0.95339
+  I_moy = 15.748 A
+  période purge = 146.41 s
+  6 purges / 1000 s.
+
+La conversion en fraction volumique rend donc l'effet de l'hydratation plus
+fort que la fermeture lambda précédente, particulièrement dans wet_low_load.
+
+Les bilans H2/H2O/N2 restent fermés à la précision numérique.
+
+*** Révision de la base littérature
+
+Une relecture directe de Catalano et al. permet de remplacer plusieurs
+approximations précédentes par des valeurs plus cohérentes entre elles.
+
+Pour Nafion 117, à 35 C, les auteurs rapportent dans leur propre campagne :
+
+  P_N2,dry = 0.18 Barrer.
+
+Leur Table 1 donne également pour N2 sec dans Nafion 117 une énergie
+d'activation de perméation de :
+
+  E_P,N2 = 49.6 kJ/mol.
+
+À activité d'eau :
+
+  a_w = 0.75
+
+ils indiquent que la perméabilité N2 de Nafion augmente d'environ :
+
+  P_N2 / P_N2,dry = 95.
+
+Ces trois données proviennent donc du même jeu expérimental et constituent une
+base plus homogène que le mélange précédent entre référence sèche et
+coefficient thermique in situ hydraté.
+
+La valeur :
+
+  E_a = 19.83 kJ/mol
+
+de Baik et Kim reste conservée comme comparaison pour la membrane pleinement
+hydratée en condition PEMFC.
+
+*** Limite de la conversion volumique
+
+Catalano et al. montrent explicitement que l'hypothèse d'additivité des volumes
+avec :
+
+  Vbar_water = 18 cm3/mol
+
+surestime le gonflement mesuré.
+
+Le volume molaire partiel de l'eau dans PFSI est inférieur à celui de l'eau
+liquide à 35 C.
+
+Une estimation récente pour Nafion 117 utilise environ :
+
+  Vbar_water = 17 cm3/mol
+
+et rappelle que la contraction est surtout marquée à faible hydratation.
+
+La prochaine campagne compare donc :
+
+  17.0 cm3/mol
+
+à :
+
+  18.01528 cm3/mol
+
+afin de quantifier l'impact de cette correction sans masquer l'incertitude.
+
+*** Nouvelle fermeture calibrée Catalano
+
+La nouvelle loi garde la fraction volumique d'eau comme variable mais remplace
+la pente arbitraire précédente par une calibration expérimentale.
+
+La référence sèche devient :
+
+  P_N2,dry(35 C) = 0.18 Barrer.
+
+La pente exponentielle est déterminée de façon à imposer :
+
+  P_N2 / P_N2,dry = 95
+
+pour une membrane uniformément équilibrée à :
+
+  a_w = 0.75.
+
+La loi est plafonnée à :
+
+  P_N2 / P_N2,dry = 100
+
+afin de respecter l'ordre de grandeur maximal rapporté par Catalano et al.
+
+Deux lois thermiques sont comparées :
+
+  E_a = 49.6 kJ/mol
+
+pour la mesure sèche ex situ de Catalano et al., et :
+
+  E_a = 19.83 kJ/mol
+
+pour la mesure in situ hydratée de Baik et Kim.
+
+Cette comparaison permettra de séparer l'incertitude liée :
+
+- au volume molaire partiel de l'eau ;
+- à la loi thermique ;
+- à la rétroaction H2.
+
+*** Infrastructure
+
+Nouvelles fonctions :
+
+  membrane_water_volume_fraction_from_partial_molar_volume(...)
+  calibrated_exponential_permeability_multiplier(...).
+
+Nouveau driver :
+
+  scripts/run_v07_n2_catalano_calibrated.py
+
+Nouveau test :
+
+  tests/test_v07_n2_catalano_calibrated.py
+
+Commandes :
+
+  make quick-n2-catalano-v07
+  make n2-catalano-v07
+
+Sorties :
+
+  results/quick-v07-n2-catalano-calibrated.json
+  results/quick-v07-n2-catalano-calibrated.csv
+  results/v07-n2-catalano-calibrated.json
+  results/v07-n2-catalano-calibrated.csv
+
+*** Validation attendue
+
+Le gate complet reste obligatoire :
+
+  make test.
+
+La campagne doit vérifier :
+
+- facteur 95 exactement retrouvé à a_w = 0.75 ;
+- effet du passage 18.01528 -> 17.0 cm3/mol ;
+- effet de E_a = 49.6 versus 19.83 kJ/mol ;
+- stabilité du régime wet_low_load ;
+- fermeture des bilans H2/H2O/N2.
+
+L'objectif est maintenant de réduire les degrés de liberté empiriques au lieu
+d'ajouter de nouvelles physiques tant que la loi de crossover N2 n'est pas
+suffisamment contrainte.
+
