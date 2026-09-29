@@ -8,8 +8,11 @@ from pemfc_dedalus.gas_permeability import (
     humidity_permeability_multiplier,
     membrane_permeance_from_permeability,
     state_dependent_permeability,
+    membrane_water_volume_fraction,
     water_content_dependent_permeability,
     water_content_permeability_multiplier,
+    water_volume_fraction_dependent_permeability,
+    water_volume_fraction_permeability_multiplier,
 )
 
 
@@ -132,5 +135,42 @@ def test_water_content_dependent_permeability_exceeds_dry_reference():
         water_content=8.0,
         dry_water_content=0.043,
         reference_water_content=13.0,
+    )
+    assert value > reference
+
+
+
+def test_membrane_water_volume_fraction_increases_with_lambda():
+    low = membrane_water_volume_fraction(
+        3.0,
+        membrane_equivalent_weight_kg_mol=1.10,
+        membrane_dry_density_kg_m3=2000.0,
+    )
+    high = membrane_water_volume_fraction(
+        9.0,
+        membrane_equivalent_weight_kg_mol=1.10,
+        membrane_dry_density_kg_m3=2000.0,
+    )
+    assert 0.0 < low < high < 1.0
+
+
+def test_water_volume_fraction_multiplier_uses_reported_interval():
+    assert water_volume_fraction_permeability_multiplier(
+        0.02
+    ) == pytest.approx(1.0)
+    assert water_volume_fraction_permeability_multiplier(
+        0.20
+    ) == pytest.approx(100.0)
+
+
+def test_water_volume_fraction_permeability_exceeds_dry_reference():
+    reference = barrer_to_si_permeability(0.24)
+    value = water_volume_fraction_dependent_permeability(
+        reference,
+        temperature_k=313.15,
+        reference_temperature_k=308.15,
+        activation_energy_j_mol=19_830.0,
+        gas_constant_j_mol_k=8.31446261815324,
+        water_volume_fraction=0.10,
     )
     assert value > reference
