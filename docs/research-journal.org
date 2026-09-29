@@ -6710,3 +6710,193 @@ entre :
 Cette étape permettra de remplacer le paramètre de screening par une plage
 physiquement défendable avant de poursuivre la complexification du modèle.
 
+** V0.7 — Ancrage littérature de la perméabilité N2
+
+Le coefficient K_N2 du crossover piloté par pression partielle est maintenant
+relié à une propriété de membrane publiée plutôt qu'à un flux de screening.
+
+*** Données de littérature retenues
+
+Deux résultats publiés servent de base à la campagne.
+
+1. Nafion H+ sec à 35 °C :
+
+   perméabilité N2 ≈ 0.24 Barrer.
+
+   Source :
+   Gas Sorption, Diffusion, and Permeation in Nafion,
+   Macromolecules, 2016,
+   DOI 10.1021/acs.macromol.5b02578.
+
+2. Pour les membranes PFSI Nafion 117 / Aquivion, l'humidité peut accroître la
+   perméabilité des gaz, notamment N2, jusqu'à environ deux ordres de grandeur.
+
+   Source :
+   The effect of relative humidity on the gas permeability and swelling in
+   PFSI membranes,
+   International Journal of Hydrogen Energy, 2012,
+   DOI 10.1016/j.ijhydene.2011.07.047.
+
+La campagne utilise donc comme plage de screening physiquement ancrée :
+
+  P_N2 =
+    0.24 Barrer
+    2.4 Barrer
+    24 Barrer.
+
+Ces trois valeurs représentent respectivement :
+
+  référence sèche
+  facteur 10
+  facteur 100.
+
+Cette plage n'est pas une calibration exacte de la membrane Ballard.
+
+Elle encadre simplement des niveaux cohérents avec les ordres de grandeur
+publiés pour Nafion sec et humidifié.
+
+*** Conversion en perméance
+
+La perméabilité matériau P_N2 est convertie en unités SI :
+
+  1 Barrer = 3.348e-16 mol m / (m2 s Pa).
+
+La perméance du modèle vaut ensuite :
+
+  K_N2 = P_N2 / L_membrane
+
+avec l'épaisseur provisoire :
+
+  L_membrane = 50 um.
+
+Pour la référence sèche 0.24 Barrer :
+
+  P_N2 ≈ 8.04e-17 mol m / (m2 s Pa)
+
+et :
+
+  K_N2 ≈ 1.61e-12 mol / (m2 s Pa).
+
+À 10x et 100x d'humidification, K_N2 est multiplié par les mêmes facteurs.
+
+*** Comparaison avec le screening précédent
+
+Les campagnes précédentes utilisaient des perméances dérivées d'un flux initial
+de screening :
+
+  environ 1.3e-11 à 6.5e-11 mol/(m2 s Pa).
+
+La plage littérature actuelle donne :
+
+  1.6e-12
+  1.6e-11
+  1.6e-10 mol/(m2 s Pa).
+
+Le domaine de screening utilisé jusque-là se situe donc entre la référence
+sèche et le cas fortement humidifié, ce qui est cohérent en ordre de grandeur.
+
+*** Autre résultat de littérature à traiter séparément
+
+Une étude in situ du crossover N2 en PEMFC rapporte, pour une membrane
+entièrement hydratée, un coefficient de perméabilité maximal de :
+
+  5.14e-13 mol m-1 s-1 Pa-1
+
+avec une énergie d'activation d'environ :
+
+  19.83 kJ/mol.
+
+Source :
+
+  Characterization of nitrogen gas crossover through the membrane in
+  proton-exchange membrane fuel cells,
+  International Journal of Hydrogen Energy, 2011,
+  DOI 10.1016/j.ijhydene.2010.09.046.
+
+Cette valeur est très supérieure aux mesures ex situ sèches en Barrer.
+
+Elle n'est pas utilisée directement dans la présente campagne, car les
+conditions d'hydratation, de mesure in situ et la définition exacte du
+coefficient doivent être reconciliées avant de l'introduire comme paramètre
+nominal.
+
+*** Loi utilisée
+
+Le crossover devient :
+
+  J_N2 =
+    (P_N2 / L_membrane)
+    * max(p_N2,cathode - p_N2,anode, 0).
+
+Il n'y a donc plus besoin de calibrer K_N2 à partir d'un flux arbitraire.
+
+*** Campagne
+
+La campagne teste les trois perméabilités :
+
+  0.24
+  2.4
+  24 Barrer
+
+avec :
+
+  gamma = 0
+  gamma = 1.
+
+Le premier cas isole le transport N2.
+
+Le second conserve la rétroaction électrochimique H2.
+
+*** Infrastructure
+
+Nouveau module :
+
+  src/pemfc_dedalus/gas_permeability.py
+
+Nouvelles fonctions :
+
+  barrer_to_si_permeability(...)
+  membrane_permeance_from_permeability(...)
+
+Nouveau driver :
+
+  scripts/run_v07_n2_literature_permeability.py
+
+Tests :
+
+  tests/test_gas_permeability.py
+  tests/test_v07_n2_literature_permeability.py
+
+Commandes :
+
+  make quick-n2-literature-v07
+  make n2-literature-v07
+
+Sorties :
+
+  results/quick-v07-n2-literature-permeability.json
+  results/quick-v07-n2-literature-permeability.csv
+  results/v07-n2-literature-permeability.json
+  results/v07-n2-literature-permeability.csv
+
+*** Validation attendue
+
+Avant toute exécution :
+
+  make test
+
+doit être entièrement vert.
+
+La campagne devra déterminer :
+
+- le flux initial correspondant à chaque perméabilité ;
+- x_N2,max ;
+- x_H2,min ;
+- l'effet sur le courant moyen ;
+- la période de purge ;
+- si le cas 100x reste stable ;
+- les bilans H2/H2O/N2.
+
+L'objectif est de remplacer progressivement la plage arbitraire de J_N2 par une
+plage de propriétés membrane explicitement traçable dans la littérature.
+
