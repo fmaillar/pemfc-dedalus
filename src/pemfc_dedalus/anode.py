@@ -269,3 +269,65 @@ def advance_pressure_regulated_hydrogen(
         inlet_mol / dt_s,
         consumption_rate,
     )
+
+
+
+def mixed_gas_purge_fraction(
+    exchange_volume_m3: float,
+    control_volume_m3: float,
+) -> float:
+    """Return well-mixed gas fraction removed by a purge exchange volume.
+
+    For a perfectly mixed constant-volume control volume, displacement by an
+    exchanged gas volume Vp leaves exp(-Vp / V) of the original gas inventory.
+    """
+    if exchange_volume_m3 < 0.0:
+        raise ValueError("exchange_volume_m3 must be non-negative")
+    if control_volume_m3 <= 0.0:
+        raise ValueError("control_volume_m3 must be positive")
+    return float(1.0 - np.exp(-exchange_volume_m3 / control_volume_m3))
+
+
+def purge_anode_gas(
+    hydrogen_mol: float,
+    water_state: AnodeWaterState,
+    *,
+    purge_fraction: float,
+    volume_m3: float,
+    temperature_k: float,
+    gas_constant_j_mol_k: float,
+) -> tuple[float, AnodeWaterState, float, float]:
+    """Apply an instantaneous well-mixed gas purge.
+
+    The purge removes the same fraction of H2 and gas-phase H2O.  Liquid water
+    is not directly expelled, but the remaining total water inventory is
+    repartitioned immediately to preserve the existing vapour/liquid
+    equilibrium assumption.
+
+    Returns:
+        (new_hydrogen_mol, new_water_state, purged_hydrogen_mol,
+         purged_water_mol)
+    """
+    if hydrogen_mol < 0.0:
+        raise ValueError("hydrogen_mol must be non-negative")
+    if not 0.0 <= purge_fraction <= 1.0:
+        raise ValueError("purge_fraction must be in [0, 1]")
+
+    purged_hydrogen = purge_fraction * hydrogen_mol
+    purged_water = purge_fraction * water_state.vapor_mol
+    remaining_hydrogen = hydrogen_mol - purged_hydrogen
+    remaining_total_water = (
+        water_state.vapor_mol + water_state.liquid_mol - purged_water
+    )
+    new_water_state = repartition_anode_water(
+        max(remaining_total_water, 0.0),
+        volume_m3=volume_m3,
+        temperature_k=temperature_k,
+        gas_constant_j_mol_k=gas_constant_j_mol_k,
+    )
+    return (
+        remaining_hydrogen,
+        new_water_state,
+        purged_hydrogen,
+        purged_water,
+    )
