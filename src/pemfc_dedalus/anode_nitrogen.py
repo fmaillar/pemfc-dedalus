@@ -40,6 +40,32 @@ def nitrogen_crossover_molar_rate(
 
 
 
+
+
+def humid_air_nitrogen_partial_pressure_pa(
+    total_pressure_pa: float,
+    oxygen_dry_mole_fraction: float,
+    relative_humidity: float,
+    saturation_water_pressure_pa: float,
+) -> float:
+    """Return cathode N2 partial pressure using a dry-air N2 surrogate.
+
+    The dry non-O2 fraction is treated as N2, so argon and trace gases are
+    lumped into the inert nitrogen surrogate used by this reduced model.
+    """
+    if total_pressure_pa <= 0.0:
+        raise ValueError("total_pressure_pa must be positive")
+    if not 0.0 <= oxygen_dry_mole_fraction <= 1.0:
+        raise ValueError("oxygen_dry_mole_fraction must be in [0, 1]")
+    if not 0.0 <= relative_humidity <= 1.0:
+        raise ValueError("relative_humidity must be in [0, 1]")
+    if saturation_water_pressure_pa < 0.0:
+        raise ValueError("saturation_water_pressure_pa must be non-negative")
+
+    water_partial_pressure = relative_humidity * saturation_water_pressure_pa
+    dry_gas_pressure = max(total_pressure_pa - water_partial_pressure, 0.0)
+    return (1.0 - oxygen_dry_mole_fraction) * dry_gas_pressure
+
 def nitrogen_permeance_from_reference_flux(
     reference_flux_mol_m2_s: float,
     cathode_partial_pressure_pa: float,
