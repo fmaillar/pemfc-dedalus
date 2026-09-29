@@ -37,6 +37,9 @@ from pemfc_dedalus.anode_nitrogen import (
     remove_well_mixed_h2_n2_h2o,
     total_gas_pressure_with_nitrogen_pa,
 )
+from pemfc_dedalus.hydrogen_feedback import (
+    hydrogen_partial_pressure_feedback_factor,
+)
 from pemfc_dedalus.membrane import membrane_fixed_charge_concentration
 from pemfc_dedalus.parameters import CathodeParameters
 from pemfc_dedalus.scaling import infer_active_area_scaling
@@ -78,6 +81,7 @@ def simulate_nitrogen_regime(
     purge_reference_flow_slpm: float,
     current_scale_factor: float,
     n2_crossover_flux_mol_m2_s: float,
+    hydrogen_feedback_exponent: float = 0.0,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Integrate H2/N2/H2O inventories with charge-triggered standard purges."""
     if stop_time_s <= 0.0 or dt_s <= 0.0:
@@ -86,6 +90,8 @@ def simulate_nitrogen_regime(
         raise ValueError("purge parameters must be positive")
     if current_scale_factor <= 0.0:
         raise ValueError("current_scale_factor must be positive")
+    if hydrogen_feedback_exponent < 0.0:
+        raise ValueError("hydrogen_feedback_exponent must be non-negative")
 
     initial_water = water_vapor_moles_from_relative_humidity(
         initial_rh,
@@ -138,6 +144,7 @@ def simulate_nitrogen_regime(
     max_total_pressure_pa = target_total_pressure_pa
     max_n2_mole_fraction = 0.0
     min_h2_mole_fraction = 1.0
+    min_hydrogen_feedback_factor = 1.0
 
     n_steps = int(np.ceil(stop_time_s / dt_s))
 
@@ -147,11 +154,38 @@ def simulate_nitrogen_regime(
             water_state.relative_humidity,
             closure,
         )
-        cell_current_a = patch_current_a * current_scale_factor
+        base_cell_current_a = patch_current_a * current_scale_factor
 
         gas_total = hydrogen_mol + nitrogen_mol + water_state.vapor_mol
         h2_mole_fraction = hydrogen_mol / gas_total if gas_total > 0.0 else 0.0
         n2_mole_fraction = nitrogen_mol / gas_total if gas_total > 0.0 else 0.0
+        hydrogen_partial_pressure_pa = (
+            hydrogen_mol
+            * gas_constant_j_mol_k
+            * temperature_k
+            / volume_m3
+        )
+        reference_hydrogen_mol = hydrogen_moles_for_pressure_with_nitrogen(
+            target_total_pressure_pa,
+            nitrogen_mol=0.0,
+            water_vapor_mol=water_state.vapor_mol,
+            volume_m3=volume_m3,
+            temperature_k=temperature_k,
+            gas_constant_j_mol_k=gas_constant_j_mol_k,
+        )
+        reference_hydrogen_partial_pressure_pa = (
+            reference_hydrogen_mol
+            * gas_constant_j_mol_k
+            * temperature_k
+            / volume_m3
+        )
+        hydrogen_feedback_factor = hydrogen_partial_pressure_feedback_factor(
+            hydrogen_partial_pressure_pa,
+            reference_hydrogen_partial_pressure_pa,
+            hydrogen_feedback_exponent,
+        )
+        cell_current_a = base_cell_current_a * hydrogen_feedback_factor
+
         total_pressure = total_gas_pressure_with_nitrogen_pa(
             hydrogen_mol,
             nitrogen_mol,
@@ -164,6 +198,10 @@ def simulate_nitrogen_regime(
         max_total_pressure_pa = max(max_total_pressure_pa, total_pressure)
         max_n2_mole_fraction = max(max_n2_mole_fraction, n2_mole_fraction)
         min_h2_mole_fraction = min(min_h2_mole_fraction, h2_mole_fraction)
+        min_hydrogen_feedback_factor = min(
+            min_hydrogen_feedback_factor,
+            hydrogen_feedback_factor,
+        )
 
         if step % write_every == 0 or step == n_steps:
             rows.append(
@@ -174,6 +212,8 @@ def simulate_nitrogen_regime(
                     "purge_count": len(purge_events),
                     "anode_relative_humidity": water_state.relative_humidity,
                     "patch_current_a": patch_current_a,
+                    "base_cell_current_a": base_cell_current_a,
+                    "hydrogen_feedback_factor": hydrogen_feedback_factor,
                     "cell_current_a": cell_current_a,
                     "charge_since_purge_as": charge_since_purge_as,
                     "hydrogen_mol": hydrogen_mol,
@@ -373,6 +413,8 @@ def simulate_nitrogen_regime(
         "purge_duration_s": purge_duration_s,
         "n2_crossover_flux_mol_m2_s": n2_crossover_flux_mol_m2_s,
         "n2_crossover_rate_mol_s": n2_source_rate,
+        "hydrogen_feedback_exponent": hydrogen_feedback_exponent,
+        "min_hydrogen_feedback_factor": min_hydrogen_feedback_factor,
         "final_relative_humidity": water_state.relative_humidity,
         "final_hydrogen_mol": hydrogen_mol,
         "final_nitrogen_mol": nitrogen_mol,
