@@ -156,6 +156,8 @@ def simulate_nitrogen_regime(
     min_h2_mole_fraction = 1.0
     min_hydrogen_feedback_factor = 1.0
     min_cell_current_a = float("inf")
+    min_n2_crossover_flux = float("inf")
+    max_n2_crossover_flux = 0.0
 
     n_steps = int(np.ceil(stop_time_s / dt_s))
 
@@ -277,6 +279,8 @@ def simulate_nitrogen_regime(
                 n2_flux,
                 active_area_m2,
             )
+        min_n2_crossover_flux = min(min_n2_crossover_flux, n2_flux)
+        max_n2_crossover_flux = max(max_n2_crossover_flux, n2_flux)
         n2_added = n2_source_rate * actual_dt
         nitrogen_mol += n2_added
         cumulative_n2_crossover_mol += n2_added
@@ -452,9 +456,21 @@ def simulate_nitrogen_regime(
             n2_crossover_permeance_mol_m2_s_pa
         ),
         "cathode_n2_partial_pressure_pa": cathode_n2_partial_pressure_pa,
+        "n2_crossover_rate_mol_s": (
+            cumulative_n2_crossover_mol / stop_time_s
+        ),
         "mean_n2_crossover_rate_mol_s": (
             cumulative_n2_crossover_mol / stop_time_s
         ),
+        "mean_n2_crossover_flux_mol_m2_s": (
+            cumulative_n2_crossover_mol / (active_area_m2 * stop_time_s)
+        ),
+        "min_n2_crossover_flux_mol_m2_s": (
+            0.0
+            if min_n2_crossover_flux == float("inf")
+            else min_n2_crossover_flux
+        ),
+        "max_n2_crossover_flux_mol_m2_s": max_n2_crossover_flux,
         "hydrogen_feedback_exponent": hydrogen_feedback_exponent,
         "min_hydrogen_feedback_factor": min_hydrogen_feedback_factor,
         "min_cell_current_a": min_cell_current_a,
