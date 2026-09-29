@@ -1077,7 +1077,7 @@ régularisation numérique.
 - [ ] contrôle V0.6 avec k_a = 0
 - [ ] matrice dry / nominal / wet V0.6
 - [X] sensibilité à k_a
-- [ ] sensibilité à RH_anode
+- [X] sensibilité à RH_anode
 - [X] convergence spatiale V0.6
 - [ ] dynamique du volume anodique
 - [ ] purge transitoire
@@ -1472,7 +1472,7 @@ sans devoir reconstruire toute la logique à partir des diffs.
 - [X] continuité V0.6 -> V0.5 vérifiée à la précision machine
 - [X] comparaison dry / nominal / wet V0.6
 - [X] sensibilité à k_a
-- [ ] sensibilité à RH_anode
+- [X] sensibilité à RH_anode
 - [X] convergence spatiale V0.6
 - [ ] volume anodique dynamique
 - [ ] purge transitoire
@@ -2391,7 +2391,7 @@ Toutes les campagnes V0.6 précédentes avec transfert fini utilisaient :
 Cette hypothèse représente une anode sèche au sens de l'équilibre hydrique
 imposé par la condition de transfert.
 
-*** Valeurs prévues
+*** Valeurs étudiées
 
 La campagne utilise :
 
@@ -2427,7 +2427,7 @@ Les nouveaux calculs sont donc au nombre de :
 
   15.
 
-*** Questions étudiées
+*** Questions évaluées
 
 L'étude doit déterminer :
 
@@ -2479,4 +2479,304 @@ que :
   make test
 
 soit entièrement vert.
+
+*** Résultats de la campagne RH_anode
+
+La campagne complète :
+
+  make rha-v06
+
+est terminée.
+
+Les 18 points :
+
+  3 régimes × 6 valeurs de RH_anode
+
+sont disponibles dans :
+
+  results/v06-rha-sensitivity.json
+  results/v06-rha-sensitivity.csv
+
+Les trois points :
+
+  RH_anode = 0
+
+réutilisent les références V0.6 déjà validées.
+
+Tous les cas convergent.
+
+*** Tendances globales
+
+Lorsque RH_anode augmente, on observe dans les trois régimes :
+
+  lambda_eq,anode ↑
+  lambda_anode ↑
+  lambda_mean ↑
+  sigma_m ↑
+  ASR ↓
+  courant ↑.
+
+La réponse est monotone sur toute la plage :
+
+  0 <= RH_anode <= 0.9.
+
+La sensibilité électrique dépend cependant fortement du régime.
+
+Entre :
+
+  RH_anode = 0
+
+et :
+
+  RH_anode = 0.9
+
+les variations sont :
+
+dry_high_load :
+
+  courant      : +44.67 %
+  ASR          : -49.88 %
+  lambda_anode : +181.54 %
+  lambda_mean  : +71.18 %
+  sigma_min    : +97.18 %
+
+nominal :
+
+  courant      : +22.67 %
+  ASR          : -42.79 %
+  lambda_anode : +145.21 %
+  lambda_mean  : +57.26 %
+  sigma_min    : +80.21 %
+
+wet_low_load :
+
+  courant      : +2.39 %
+  ASR          : -19.32 %
+  lambda_anode : +50.56 %
+  lambda_mean  : +20.01 %
+  sigma_min    : +56.04 %
+
+Le régime dry_high_load reste donc, de très loin, le plus sensible
+électriquement à l'état hydrique anodique.
+
+*** Inversion du flux anodique
+
+Le flux de retrait d'eau change de signe dans les trois régimes.
+
+Convention :
+
+  flux > 0
+  -> eau quittant la membrane vers l'anode
+
+  flux < 0
+  -> eau entrant dans la membrane depuis l'environnement anodique.
+
+L'inversion est observée entre les points échantillonnés suivants :
+
+dry_high_load :
+
+  RH_anode = 0.10 : +1.400e-6 lambda m/s
+  RH_anode = 0.30 : -4.009e-7 lambda m/s
+
+nominal :
+
+  RH_anode = 0.30 : +6.470e-7 lambda m/s
+  RH_anode = 0.50 : -3.211e-7 lambda m/s
+
+wet_low_load :
+
+  RH_anode = 0.70 : +5.794e-6 lambda m/s
+  RH_anode = 0.90 : -5.271e-7 lambda m/s
+
+Une interpolation linéaire entre les deux points encadrants donne des valeurs
+indicatives de RH_anode pour flux nul :
+
+  dry_high_load : RH_anode ≈ 0.255
+  nominal       : RH_anode ≈ 0.434
+  wet_low_load  : RH_anode ≈ 0.883
+
+Ces valeurs ne constituent pas des seuils physiques calibrés.
+
+Elles indiquent seulement, pour la loi de transfert actuelle et les paramètres
+retenus, le voisinage dans lequel l'environnement anodique cesse de drainer la
+membrane et commence à l'humidifier.
+
+*** Réponse dry_high_load
+
+Courant :
+
+  RH_anode = 0.00 : 2.9781 mA
+  RH_anode = 0.10 : 3.2628 mA
+  RH_anode = 0.30 : 3.4781 mA
+  RH_anode = 0.50 : 3.5831 mA
+  RH_anode = 0.70 : 3.8237 mA
+  RH_anode = 0.90 : 4.3085 mA
+
+Le flux anodique passe de :
+
+  +3.350e-6 lambda m/s
+
+à :
+
+  -1.040e-5 lambda m/s.
+
+Ce résultat montre qu'une anode suffisamment humide devient une source nette
+d'eau pour la membrane dans ce régime.
+
+À forte humidité anodique, lambda_anode devient même supérieur à
+lambda_cathode :
+
+  lambda_anode = 4.837
+  lambda_cathode = 2.771
+
+pour :
+
+  RH_anode = 0.9.
+
+Le profil hydrique est alors inversé par rapport au cas d'anode sèche.
+
+*** Réponse nominale
+
+Courant :
+
+  RH_anode = 0.00 : 1.9781 mA
+  RH_anode = 0.10 : 2.0760 mA
+  RH_anode = 0.30 : 2.1481 mA
+  RH_anode = 0.50 : 2.1839 mA
+  RH_anode = 0.70 : 2.2656 mA
+  RH_anode = 0.90 : 2.4265 mA
+
+Le flux change de signe entre :
+
+  RH_anode = 0.30
+
+et :
+
+  RH_anode = 0.50.
+
+À :
+
+  RH_anode = 0.5
+
+le modèle donne :
+
+  lambda_eq,anode = 3.4855
+  lambda_anode = 3.3250
+  flux = -3.211e-7 lambda m/s.
+
+L'environnement anodique commence donc déjà à humidifier légèrement la
+membrane, même si lambda_anode reste inférieur à la valeur d'équilibre imposée.
+
+*** Réponse wet_low_load
+
+Courant :
+
+  RH_anode = 0.00 : 1.2035 mA
+  RH_anode = 0.10 : 1.2081 mA
+  RH_anode = 0.30 : 1.2121 mA
+  RH_anode = 0.50 : 1.2141 mA
+  RH_anode = 0.70 : 1.2190 mA
+  RH_anode = 0.90 : 1.2323 mA
+
+La réponse électrique reste très faible :
+
+  +2.39 %
+
+entre RH_anode = 0 et 0.9.
+
+Le flux reste positif jusqu'à une humidité anodique élevée et ne devient
+légèrement négatif qu'à :
+
+  RH_anode = 0.9.
+
+Ce régime reste donc dominé par l'état hydrique très favorable imposé côté
+cathode.
+
+*** Interprétation physique
+
+Cette campagne confirme que RH_anode n'agit pas comme un simple paramètre
+secondaire.
+
+Dans la formulation actuelle, RH_anode fixe :
+
+  lambda_eq,anode
+
+dans la condition de Robin.
+
+Elle peut donc changer non seulement l'intensité mais également le sens du
+transfert d'eau.
+
+Pour une anode sèche :
+
+  lambda_anode > lambda_eq,anode
+  -> drainage de la membrane.
+
+Pour une anode suffisamment humide :
+
+  lambda_anode < lambda_eq,anode
+  -> humidification de la membrane depuis le côté anode.
+
+La conséquence électrique dépend ensuite du niveau absolu d'hydratation et du
+courant.
+
+Le régime dry_high_load bénéficie donc fortement de l'humidification anodique,
+alors que le régime wet_low_load est déjà suffisamment hydraté pour que
+l'effet sur le courant reste limité.
+
+*** Validation de la sensibilité RH_anode
+
+- [X] quick-rha-v06 terminé
+- [X] 18 points disponibles
+- [X] 3 références RH_anode = 0 réutilisées
+- [X] 15 nouveaux calculs terminés
+- [X] tous les cas convergent
+- [X] lambda_anode augmente monotoniquement avec RH_anode
+- [X] lambda_mean augmente monotoniquement
+- [X] ASR diminue monotoniquement
+- [X] courant augmente monotoniquement
+- [X] inversion du signe du flux observée dans les trois régimes
+- [X] dry_high_load reste le régime le plus sensible électriquement
+- [X] wet_low_load reste peu sensible électriquement
+
+La campagne de sensibilité à RH_anode est donc complète.
+
+*** Décision de développement après la sensibilité RH_anode
+
+Les trois validations principales de V0.6 sont maintenant complètes :
+
+- sensibilité à k_a ;
+- convergence spatiale à transfert fini ;
+- sensibilité à RH_anode.
+
+La condition de transfert anodique fini se comporte de manière régulière,
+monotone et physiquement interprétable sur les plages étudiées.
+
+La principale limite restante n'est donc plus numérique.
+
+Elle est structurelle :
+
+  RH_anode
+
+est encore imposée de l'extérieur.
+
+Dans une anode dead-end réelle, l'humidité anodique doit au contraire émerger
+d'un bilan dynamique dans un volume gazeux fini, avec :
+
+- apport d'hydrogène ;
+- consommation électrochimique ;
+- transfert d'eau avec la membrane ;
+- accumulation de vapeur d'eau ;
+- éventuellement accumulation d'azote ;
+- purge périodique.
+
+La prochaine version doit donc remplacer progressivement :
+
+  RH_anode imposée
+
+par :
+
+  état anodique dynamique.
+
+La prochaine étape de développement devient ainsi le volume anodique dynamique,
+avant l'introduction de la purge transitoire.
 
