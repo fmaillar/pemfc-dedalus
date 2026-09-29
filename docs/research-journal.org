@@ -7497,3 +7497,116 @@ suivante sera de convertir lambda en fraction volumique d'eau de façon
 explicite afin de se rapprocher directement de la variable utilisée par
 Catalano et al.
 
+*** Résultats de la fermeture en teneur en eau lambda
+
+La campagne complète est terminée pour gamma = 0 et gamma = 1.
+
+Les ancres utilisées sont :
+
+  lambda_dry = 0.043
+  lambda_cathode = 3.4855
+  lambda_ref(a=0.9) = 10.0375.
+
+À l'état final :
+
+  dry_high_load :
+    lambda_anode = 2.5924
+    lambda_eff = 3.0389
+
+  nominal :
+    lambda_anode = 3.2083
+    lambda_eff = 3.3469
+
+  wet_low_load :
+    lambda_anode = 9.4936
+    lambda_eff = 6.4896.
+
+Pour gamma = 1 :
+
+dry_high_load :
+
+  J_N2,moy = 5.546e-7 mol/m2/s
+  x_N2,max = 0.001230
+  f_H2,min = 0.99875
+  I_moy = 45.111 A
+  période purge = 50.99 s.
+
+nominal :
+
+  J_N2,moy = 6.384e-7 mol/m2/s
+  x_N2,max = 0.002237
+  f_H2,min = 0.99771
+  I_moy = 28.548 A
+  période purge = 80.57 s.
+
+wet_low_load :
+
+  J_N2,moy = 2.674e-6 mol/m2/s
+  x_N2,max = 0.016545
+  x_H2,min = 0.93645
+  f_H2,min = 0.98264
+  I_moy = 16.036 A
+  période purge = 143.55 s
+  6 purges / 1000 s.
+
+La fermeture lambda produit donc un comportement intermédiaire entre les
+fermetures RH q_RH = 1 et q_RH = 2 dans le régime wet_low_load.
+
+Elle supprime l'exposant q_RH arbitraire, mais conserve une autre approximation
+importante : lambda est seulement utilisé comme proxy de la fraction volumique
+d'eau.
+
+Les bilans H2/H2O/N2 restent fermés à la précision numérique.
+
+*** Correction Ruff observée pendant cette étape
+
+Le driver de campagne avait initialement importé Callable depuis typing.
+
+Ruff a imposé l'import moderne :
+
+  from collections.abc import Callable
+
+tout en conservant :
+
+  from typing import Any.
+
+La correction est présente dans la branche distante.
+
+Cette erreur doit être évitée dans les prochains ajouts ; les imports de types
+ABC doivent suivre les règles UP de Ruff avant de remettre du code à tester.
+
+*** Étape suivante : fraction volumique d'eau explicite
+
+La littérature indique que la relation la plus directement exploitable pour la
+perméabilité hydratée est la fraction volumique d'eau dans l'ionomère.
+
+Une conversion explicite de lambda vers une fraction volumique d'eau sera donc
+introduite.
+
+Dans une approximation additive des volumes :
+
+  V_water =
+    lambda * M_water / rho_water
+
+et, par mole de sites sulfoniques :
+
+  V_polymer =
+    EW / rho_dry.
+
+La fraction volumique d'eau vaut alors :
+
+  phi_water =
+    V_water
+    / (V_water + V_polymer).
+
+Cette relation est cohérente avec les formulations usuelles reliant lambda,
+densité sèche, EW et fraction volumique d'eau.
+
+La limitation est importante : Catalano et al. déterminent la fraction
+volumique d'eau à partir du gonflement mesuré et signalent que le volume molaire
+partiel de l'eau dans les PFSI est inférieur à celui de l'eau liquide.
+
+La conversion additive sera donc explicitement identifiée comme une première
+approximation avant tout ajustement quantitatif direct aux données de
+perméabilité.
+
