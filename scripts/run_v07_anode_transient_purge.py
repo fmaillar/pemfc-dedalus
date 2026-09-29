@@ -412,12 +412,36 @@ def main() -> None:
 
     p = CathodeParameters()
     volume_m3 = p.anode_gas_volume_m3 if args.anode_gas_volume is None else args.anode_gas_volume
-    target_pressure = p.anode_target_total_pressure_pa if args.target_total_pressure is None else args.target_total_pressure
-    ambient_pressure = p.pressure if args.ambient_pressure is None else args.ambient_pressure
-    purge_interval_as = p.tech.purge_interval_as if args.purge_interval_as is None else args.purge_interval_as
-    purge_clock_current = p.stack_current_a if args.purge_clock_current is None else args.purge_clock_current
-    purge_duration = p.tech.lab_purge_duration_s if args.purge_duration is None else args.purge_duration
-    purge_reference_flow = p.tech.purge_rate_min_slpm_per_cell if args.purge_reference_flow_slpm is None else args.purge_reference_flow_slpm
+    target_pressure = (
+        p.anode_target_total_pressure_pa
+        if args.target_total_pressure is None
+        else args.target_total_pressure
+    )
+    ambient_pressure = (
+        p.pressure
+        if args.ambient_pressure is None
+        else args.ambient_pressure
+    )
+    purge_interval_as = (
+        p.tech.purge_interval_as
+        if args.purge_interval_as is None
+        else args.purge_interval_as
+    )
+    purge_clock_current = (
+        p.stack_current_a
+        if args.purge_clock_current is None
+        else args.purge_clock_current
+    )
+    purge_duration = (
+        p.tech.lab_purge_duration_s
+        if args.purge_duration is None
+        else args.purge_duration
+    )
+    purge_reference_flow = (
+        p.tech.purge_rate_min_slpm_per_cell
+        if args.purge_reference_flow_slpm is None
+        else args.purge_reference_flow_slpm
+    )
 
     if not 0.0 <= args.initial_rh <= 1.0:
         parser.error("--initial-rh must be in [0, 1]")
