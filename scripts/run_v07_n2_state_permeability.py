@@ -54,6 +54,38 @@ DEFAULT_HUMIDITY_SHAPE_EXPONENTS = [1.0, 2.0, 4.0]
 DEFAULT_FEEDBACK_EXPONENTS = [0.0, 1.0]
 
 
+def make_permeance_model(
+    *,
+    shape_exponent: float,
+    dry_reference_si: float,
+    stack_temperature_k: float,
+    gas_constant_j_mol_k: float,
+    cathode_relative_humidity: float,
+    membrane_thickness_m: float,
+):
+    """Build a one-argument anode-RH permeance closure."""
+
+    def permeance_model(anode_rh: float) -> float:
+        permeability = state_dependent_permeability(
+            dry_reference_si,
+            temperature_k=stack_temperature_k,
+            reference_temperature_k=REFERENCE_TEMPERATURE_K,
+            activation_energy_j_mol=ACTIVATION_ENERGY_J_MOL,
+            gas_constant_j_mol_k=gas_constant_j_mol_k,
+            anode_relative_humidity=anode_rh,
+            cathode_relative_humidity=cathode_relative_humidity,
+            maximum_humidity_factor=MAXIMUM_HUMIDITY_FACTOR,
+            humidity_reference_relative_humidity=HUMIDITY_REFERENCE_RH,
+            humidity_shape_exponent=shape_exponent,
+        )
+        return membrane_permeance_from_permeability(
+            permeability,
+            membrane_thickness_m,
+        )
+
+    return permeance_model
+
+
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     if not rows:
@@ -165,24 +197,14 @@ def main() -> None:
     for shape_exponent in args.humidity_shape_exponents:
         for feedback_exponent in args.feedback_exponents:
             for regime in args.regimes:
-
-                def permeance_model(anode_rh: float) -> float:
-                    permeability = state_dependent_permeability(
-                        dry_reference_si,
-                        temperature_k=p.stack_temperature,
-                        reference_temperature_k=REFERENCE_TEMPERATURE_K,
-                        activation_energy_j_mol=ACTIVATION_ENERGY_J_MOL,
-                        gas_constant_j_mol_k=p.gas_constant,
-                        anode_relative_humidity=anode_rh,
-                        cathode_relative_humidity=p.relative_humidity,
-                        maximum_humidity_factor=MAXIMUM_HUMIDITY_FACTOR,
-                        humidity_reference_relative_humidity=HUMIDITY_REFERENCE_RH,
-                        humidity_shape_exponent=shape_exponent,
-                    )
-                    return membrane_permeance_from_permeability(
-                        permeability,
-                        p.membrane_thickness,
-                    )
+                permeance_model = make_permeance_model(
+                    shape_exponent=shape_exponent,
+                    dry_reference_si=dry_reference_si,
+                    stack_temperature_k=p.stack_temperature,
+                    gas_constant_j_mol_k=p.gas_constant,
+                    cathode_relative_humidity=p.relative_humidity,
+                    membrane_thickness_m=p.membrane_thickness,
+                )
 
                 _, summary = simulate_nitrogen_regime(
                     regime,
