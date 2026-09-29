@@ -5088,3 +5088,206 @@ La campagne complète devra ensuite vérifier que :
 Si ces conditions sont satisfaites, l'horloge de purge et la purge standard
 seront suffisamment structurées pour passer ensuite à N2 et au crossover.
 
+*** Résultats de l'horloge dynamique et de la comparaison 0.2 s / 0.5 s
+
+La campagne complète confirme le comportement attendu de l'horloge de purge
+pilotée par le courant cellule instantané.
+
+Avec :
+
+  Q_purge = 2300 A.s
+
+les périodes moyennes observées sont :
+
+dry_high_load :
+
+  environ 50.94 s
+  19 purges sur 1000 s
+
+nominal :
+
+  environ 80.44 s
+  12 purges sur 1000 s
+
+wet_low_load :
+
+  environ 141.91 s
+  7 purges sur 1000 s.
+
+Le classement est donc physiquement cohérent :
+
+  dry_high_load purge le plus souvent
+  nominal est intermédiaire
+  wet_low_load purge le moins souvent.
+
+L'horloge dynamique corrige ainsi l'hypothèse précédente d'une fréquence
+identique dans les trois régimes.
+
+*** Comparaison des utilisations H2
+
+Pour une purge de :
+
+  0.2 s
+
+les utilisations H2 valent :
+
+  dry_high_load : 0.97239
+  nominal       : 0.97260
+  wet_low_load  : 0.97240.
+
+Pour une purge de :
+
+  0.5 s
+
+elles deviennent :
+
+  dry_high_load : 0.93367
+  nominal       : 0.93407
+  wet_low_load  : 0.93372.
+
+La référence Ballard est :
+
+  U_H2 ≈ 0.93.
+
+Le cas :
+
+  0.5 s
+  2.4 slpm
+
+reproduit donc remarquablement bien l'ordre de grandeur de la référence, dans
+les trois régimes, sans calibration directe sur l'utilisation H2.
+
+L'écart nominal est seulement de l'ordre de :
+
+  +0.4 point de pourcentage.
+
+Le cas 0.2 s reste autour de :
+
+  97.25 %
+
+et correspond donc bien à une purge plus courte de type laboratoire.
+
+*** Quantité H2 purgée par événement
+
+À 0.2 s, le H2 purgé par événement vaut environ :
+
+  dry_high_load : 3.497e-4 mol
+  nominal       : 3.479e-4 mol
+  wet_low_load  : 3.405e-4 mol.
+
+À 0.5 s :
+
+  dry_high_load : 8.749e-4 mol
+  nominal       : 8.715e-4 mol
+  wet_low_load  : 8.518e-4 mol.
+
+Le rapport est voisin de :
+
+  2.5,
+
+ce qui est exactement cohérent avec le rapport des durées :
+
+  0.5 / 0.2 = 2.5.
+
+*** Hydratation et pression
+
+Les états RH finaux restent les points fixes V0.6 :
+
+  dry_high_load : 0.25547
+  nominal       : 0.43367
+  wet_low_load  : 0.88332.
+
+Les pressions minimales pendant purge restent toujours supérieures à
+l'ambiante :
+
+  dry_high_load : 1.34718 bar
+  nominal       : 1.34823 bar
+  wet_low_load  : 1.34901 bar.
+
+Les pressions maximales restent :
+
+  dry_high_load : 1.37325 bar
+  nominal       : 1.37475 bar
+  wet_low_load  : 1.42001 bar.
+
+Le régime wet_low_load reste donc le plus sensible à la surpression liée à la
+vapeur d'eau, même avec une purge correctement déclenchée par la charge.
+
+*** Conservation
+
+Les bilans restent fermés à la précision numérique pour les six cas.
+
+Les erreurs H2 restent au plus de l'ordre de :
+
+  1e-14 mol
+
+et les erreurs H2O de l'ordre de :
+
+  1e-18 mol
+
+ou moins.
+
+La nouvelle horloge dynamique et le changement de durée de purge
+n'introduisent donc pas de défaut de conservation.
+
+*** Validation
+
+- [X] horloge pilotée par I_cell(t)
+- [X] dry_high_load purge plus souvent que nominal
+- [X] wet_low_load purge moins souvent que nominal
+- [X] 0.2 s donne une utilisation H2 d'environ 97.25 %
+- [X] 0.5 s donne une utilisation H2 d'environ 93.4 %
+- [X] accord étroit avec la référence Ballard de 93 %
+- [X] H2 purgé par événement multiplié d'environ 2.5 entre 0.2 s et 0.5 s
+- [X] pressions minimales toujours physiques
+- [X] bilans H2/H2O fermés
+
+La purge standard :
+
+  0.5 s à 2.4 slpm
+
+est désormais la configuration de référence pour les comparaisons quantitatives
+avec le stack Ballard.
+
+La purge à :
+
+  0.2 s
+
+reste une configuration laboratoire utile pour les études de sensibilité.
+
+*** Décision de développement
+
+La chaîne :
+
+  mise à l'échelle aire active
+  -> courant cellule
+  -> intégrale 2300 A.s
+  -> purge transitoire
+  -> utilisation H2
+
+est maintenant cohérente et reproduit un contrôle externe important du manuel
+Ballard sans ajustement direct.
+
+La prochaine étape peut donc être l'introduction de :
+
+  N2 dans le volume anodique
+  +
+  crossover cathode -> anode
+  +
+  accumulation entre purges
+  +
+  évacuation N2/H2/H2O pendant la purge.
+
+Le premier incrément N2 devra rester réduit et conservatif :
+
+- inventaire molaire N2 explicite ;
+- source de crossover paramétrique ;
+- pression partielle N2 ;
+- dilution de H2 ;
+- purge du mélange complet ;
+- bilan N2 fermé.
+
+L'effet de p_H2 et de la fraction molaire H2 sur l'électrochimie pourra ensuite
+être ajouté dans un incrément distinct, afin de ne pas mélanger validation du
+transport N2 et rétroaction électrochimique.
+
