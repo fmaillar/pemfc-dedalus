@@ -196,7 +196,7 @@ def test_pressure_regulator_closes_when_water_already_overpressurizes_volume():
 
 def test_mixed_gas_purge_fraction_matches_one_volume_exchange():
     fraction = mixed_gas_purge_fraction(20.0e-6, 20.0e-6)
-    assert fraction == pytest.approx(1.0 - 1.0 / pytest.approx(2.718281828459045))
+    assert fraction == pytest.approx(0.6321205588285577)
 
 
 def test_purge_removes_same_fraction_of_h2_and_vapor_water():
