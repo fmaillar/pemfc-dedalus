@@ -1076,7 +1076,7 @@ régularisation numérique.
 - [X] premier cas V0.6 convergé
 - [ ] contrôle V0.6 avec k_a = 0
 - [ ] matrice dry / nominal / wet V0.6
-- [ ] sensibilité à k_a
+- [X] sensibilité à k_a
 - [ ] sensibilité à RH_anode
 - [ ] convergence spatiale V0.6
 - [ ] dynamique du volume anodique
@@ -1471,7 +1471,7 @@ sans devoir reconstruire toute la logique à partir des diffs.
 - [X] point nominal V0.6 convergé
 - [X] continuité V0.6 -> V0.5 vérifiée à la précision machine
 - [X] comparaison dry / nominal / wet V0.6
-- [ ] sensibilité à k_a
+- [X] sensibilité à k_a
 - [ ] sensibilité à RH_anode
 - [ ] convergence spatiale V0.6
 - [ ] volume anodique dynamique
@@ -1826,10 +1826,10 @@ La campagne multi-régime à :
 est complète.
 
 La valeur de k_a reste cependant un paramètre phénoménologique provisoire.
-La prochaine campagne doit donc mesurer explicitement la sensibilité des
+Une campagne complète mesure maintenant explicitement la sensibilité des
 résultats à ce coefficient.
 
-*** Valeurs prévues
+*** Valeurs étudiées
 
   k_a = 0
   k_a = 5e-7 m/s
@@ -1868,7 +1868,7 @@ Les nouveaux calculs concernent donc seulement :
 
 soit 12 nouvelles simulations au lieu de 18.
 
-*** Questions étudiées
+*** Questions évaluées
 
 La campagne doit déterminer :
 
@@ -1947,3 +1947,265 @@ existant mais non convergé comme un cas réutilisable.
 
 Un nouveau répertoire d'itérations est créé lors de chaque reprise afin de
 conserver la tentative précédente pour diagnostic.
+
+*** Résultats de la campagne complète
+
+La campagne complète :
+
+  make ka-v06
+
+est terminée.
+
+Les 18 points de la matrice :
+
+  3 régimes × 6 valeurs de k_a
+
+sont disponibles dans :
+
+  results/v06-ka-sensitivity.json
+  results/v06-ka-sensitivity.csv
+
+Les références k_a = 0 proviennent de V0.5 et les points k_a = 2e-6 m/s
+réutilisent les résultats V0.6 déjà validés.
+
+Tous les cas sont convergés.
+
+Le cas le plus difficile numériquement reste :
+
+  dry_high_load
+  k_a = 1e-5 m/s
+
+Il converge finalement en :
+
+  11 itérations
+
+avec :
+
+  variation relative finale du courant = 0.382 %
+  correction finale de potentiel = 0.111 mV
+
+soit sous les critères de convergence retenus.
+
+La hausse de la limite à 12 itérations était donc suffisante et il n'a pas été
+nécessaire de relâcher les tolérances.
+
+*** Tendances globales
+
+Sur les trois régimes, lorsque k_a augmente :
+
+  I diminue monotoniquement ;
+  ASR augmente monotoniquement ;
+  lambda_anode diminue monotoniquement ;
+  lambda_mean diminue monotoniquement ;
+  sigma_min diminue monotoniquement ;
+  le flux de retrait anodique augmente monotoniquement.
+
+Aucune inversion de tendance ni branche qualitative distincte n'est observée
+sur l'intervalle :
+
+  0 <= k_a <= 1e-5 m/s.
+
+Le mécanisme introduit en V0.6 produit donc une réponse régulière et cohérente
+sur toute la plage étudiée.
+
+*** Réponse dry_high_load
+
+Courant :
+
+  k_a = 0       : 3.4333 mA
+  k_a = 5e-7    : 3.3022 mA
+  k_a = 1e-6    : 3.1855 mA
+  k_a = 2e-6    : 2.9781 mA
+  k_a = 5e-6    : 2.5164 mA
+  k_a = 1e-5    : 1.9124 mA
+
+Entre k_a = 0 et 1e-5 m/s :
+
+  courant      : -44.30 %
+  ASR          : +165.11 %
+  lambda_anode : -68.09 %
+  lambda_mean  : -32.47 %
+  sigma_min    : -91.50 %
+
+Ce régime est de loin le plus sensible électriquement.
+
+À :
+
+  k_a = 1e-5 m/s
+
+on obtient :
+
+  sigma_min = 0.0921 S/m
+
+pour un floor numérique de :
+
+  0.05 S/m.
+
+Le floor n'est donc toujours pas actif, mais la solution s'en rapproche.
+Une extension de la plage de k_a au-delà de 1e-5 m/s nécessiterait de surveiller
+explicitement l'influence de cette régularisation.
+
+*** Réponse nominale
+
+Courant :
+
+  k_a = 0       : 2.1722 mA
+  k_a = 5e-7    : 2.1169 mA
+  k_a = 1e-6    : 2.0681 mA
+  k_a = 2e-6    : 1.9781 mA
+  k_a = 5e-6    : 1.7768 mA
+  k_a = 1e-5    : 1.5239 mA
+
+Entre k_a = 0 et 1e-5 m/s :
+
+  courant      : -29.84 %
+  ASR          : +128.43 %
+  lambda_anode : -69.37 %
+  lambda_mean  : -33.74 %
+  sigma_min    : -86.20 %
+
+La sensibilité est forte, mais inférieure à celle du régime dry_high_load.
+
+*** Réponse wet_low_load
+
+Courant :
+
+  k_a = 0       : 1.2315 mA
+  k_a = 5e-7    : 1.2217 mA
+  k_a = 1e-6    : 1.2152 mA
+  k_a = 2e-6    : 1.2035 mA
+  k_a = 5e-6    : 1.1753 mA
+  k_a = 1e-5    : 1.1408 mA
+
+Entre k_a = 0 et 1e-5 m/s :
+
+  courant      : -7.36 %
+  ASR          : +86.54 %
+  lambda_anode : -70.65 %
+  lambda_mean  : -34.84 %
+  sigma_min    : -75.62 %
+
+Le drainage hydrique est donc très important même dans ce régime, mais sa
+conséquence électrique reste faible relativement aux deux autres régimes.
+
+Le flux de retrait à k_a = 1e-5 m/s atteint :
+
+  2.788e-5 lambda m/s
+
+soit une valeur nettement supérieure à celles des régimes dry et nominal.
+
+Cela confirme que le flux d'eau retiré, pris isolément, n'est pas un indicateur
+direct de la pénalité électrique.
+
+*** Position de k_a = 2e-6 m/s dans la sensibilité
+
+La valeur provisoire actuellement utilisée :
+
+  k_a = 2e-6 m/s
+
+se situe dans une zone de réponse encore régulière.
+
+Elle ne correspond pas à un changement brutal de régime.
+
+Par rapport à k_a = 0, elle donne :
+
+  dry_high_load :
+    courant = -13.26 %
+
+  nominal :
+    courant = -8.94 %
+
+  wet_low_load :
+    courant = -2.27 %
+
+Cette valeur produit donc déjà un effet physique mesurable, sans atteindre les
+états très fortement asséchés observés à k_a = 1e-5 m/s.
+
+Elle reste néanmoins un paramètre phénoménologique non calibré.
+
+La campagne valide la robustesse qualitative des conclusions obtenues à
+k_a = 2e-6 m/s, mais elle ne permet pas de déterminer que cette valeur est la
+bonne valeur physique pour la pile réelle.
+
+*** Interprétation physique
+
+La campagne confirme la chaîne :
+
+  k_a ↑
+  -> retrait d'eau anodique ↑
+  -> lambda_anode ↓
+  -> lambda_mean ↓
+  -> sigma_m ↓
+  -> ASR ↑
+  -> chute protonique J * ASR ↑
+  -> courant ↓.
+
+L'effet électrique dépend cependant fortement du point de fonctionnement.
+
+Dans le régime sec à forte charge :
+
+- la membrane part déjà d'un état moins hydraté ;
+- la conductivité minimale devient très faible lorsque k_a augmente ;
+- la densité de courant est élevée ;
+- la hausse d'ASR est donc fortement pénalisante.
+
+Dans le régime humide à faible charge :
+
+- le drainage retire davantage d'eau en valeur de flux ;
+- la membrane conserve néanmoins une hydratation absolue plus élevée ;
+- la densité de courant est plus faible ;
+- la pénalité électrique reste donc modérée.
+
+La distinction entre :
+
+  intensité du drainage hydrique
+
+et :
+
+  conséquence électrique du drainage
+
+est ainsi confirmée sur toute la plage de k_a étudiée.
+
+*** Validation de la sensibilité k_a
+
+- [X] quick run terminé
+- [X] k_a = 0 couvert par les références V0.5 validées
+- [X] k_a = 2e-6 m/s couvert par les références V0.6 validées
+- [X] 12 nouveaux calculs terminés
+- [X] tous les cas convergent
+- [X] I(k_a) décroît monotoniquement dans les trois régimes
+- [X] ASR(k_a) croît monotoniquement dans les trois régimes
+- [X] lambda_anode(k_a) décroît monotoniquement
+- [X] lambda_mean(k_a) décroît monotoniquement
+- [X] le régime dry_high_load présente la plus forte sensibilité électrique
+- [X] le régime wet_low_load conserve une faible sensibilité électrique malgré
+      le plus fort flux de retrait
+- [X] k_a = 2e-6 m/s se situe sur une branche régulière de la réponse
+
+La campagne de sensibilité à k_a est donc complète.
+
+*** Décision de développement après la campagne k_a
+
+La sensibilité à k_a ne révèle pas de comportement non physique ni de changement
+de branche sur la plage étudiée.
+
+Il n'est donc pas nécessaire de complexifier immédiatement la loi de transfert
+anodique.
+
+En revanche, la valeur de k_a ne peut pas être calibrée à partir de cette seule
+campagne.
+
+Deux vérifications deviennent prioritaires avant d'introduire la dynamique de
+purge :
+
+1. vérifier la convergence spatiale V0.6 avec transfert fini, au minimum sur le
+   régime dry_high_load qui est le cas le plus sévère ;
+
+2. étudier la sensibilité à RH_anode, puisque toutes les campagnes V0.6
+   actuelles utilisent :
+
+     RH_anode = 0.
+
+Après ces contrôles, l'étape physique suivante sera le volume anodique dynamique,
+puis la purge transitoire.
+
