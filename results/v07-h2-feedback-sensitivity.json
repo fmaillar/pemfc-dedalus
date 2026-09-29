@@ -15,7 +15,7 @@
     0.5,
     1.0
   ],
-  "feedback_law": "(p_H2 / p_H2_ref_same_RH_no_N2) ** gamma",
+  "feedback_law": "min(p_H2 / p_H2_ref_same_RH_no_N2, 1) ** gamma",
   "purge_duration_s": 0.5,
   "purge_reference_flow_slpm": 2.4,
   "purge_interval_as": 2300.0,
