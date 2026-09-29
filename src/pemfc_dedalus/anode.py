@@ -331,3 +331,108 @@ def purge_anode_gas(
         purged_hydrogen,
         purged_water,
     )
+
+
+
+def standard_lpm_to_molar_rate(
+    flow_slpm: float,
+    *,
+    standard_pressure_pa: float = 101325.0,
+    standard_temperature_k: float = 273.15,
+    gas_constant_j_mol_k: float = 8.31446261815324,
+) -> float:
+    """Convert standard litres per minute to mol/s."""
+    if flow_slpm < 0.0:
+        raise ValueError("flow_slpm must be non-negative")
+    if standard_pressure_pa <= 0.0:
+        raise ValueError("standard_pressure_pa must be positive")
+    if standard_temperature_k <= 0.0:
+        raise ValueError("standard_temperature_k must be positive")
+    if gas_constant_j_mol_k <= 0.0:
+        raise ValueError("gas_constant_j_mol_k must be positive")
+
+    flow_m3_s = flow_slpm * 1.0e-3 / 60.0
+    return (
+        flow_m3_s
+        * standard_pressure_pa
+        / (gas_constant_j_mol_k * standard_temperature_k)
+    )
+
+
+def purge_pressure_conductance_mol_s_pa(
+    reference_flow_slpm: float,
+    *,
+    reference_upstream_pressure_pa: float,
+    downstream_pressure_pa: float,
+    gas_constant_j_mol_k: float,
+) -> float:
+    """Calibrate linear purge conductance from a reference standard flow."""
+    delta_p = reference_upstream_pressure_pa - downstream_pressure_pa
+    if delta_p <= 0.0:
+        raise ValueError("reference upstream pressure must exceed downstream")
+    reference_molar_rate = standard_lpm_to_molar_rate(
+        reference_flow_slpm,
+        gas_constant_j_mol_k=gas_constant_j_mol_k,
+    )
+    return reference_molar_rate / delta_p
+
+
+def pressure_driven_purge_molar_rate(
+    upstream_pressure_pa: float,
+    downstream_pressure_pa: float,
+    conductance_mol_s_pa: float,
+) -> float:
+    """Return one-way purge molar outflow from a linear pressure law."""
+    if upstream_pressure_pa < 0.0:
+        raise ValueError("upstream_pressure_pa must be non-negative")
+    if downstream_pressure_pa < 0.0:
+        raise ValueError("downstream_pressure_pa must be non-negative")
+    if conductance_mol_s_pa < 0.0:
+        raise ValueError("conductance_mol_s_pa must be non-negative")
+    return conductance_mol_s_pa * max(
+        upstream_pressure_pa - downstream_pressure_pa,
+        0.0,
+    )
+
+
+def remove_well_mixed_gas_moles(
+    hydrogen_mol: float,
+    water_state: AnodeWaterState,
+    *,
+    gas_outflow_mol: float,
+    volume_m3: float,
+    temperature_k: float,
+    gas_constant_j_mol_k: float,
+) -> tuple[float, AnodeWaterState, float, float]:
+    """Remove a finite molar amount from a well-mixed H2/H2O gas phase."""
+    if hydrogen_mol < 0.0:
+        raise ValueError("hydrogen_mol must be non-negative")
+    if gas_outflow_mol < 0.0:
+        raise ValueError("gas_outflow_mol must be non-negative")
+
+    gas_total = hydrogen_mol + water_state.vapor_mol
+    if gas_total <= 0.0 or gas_outflow_mol == 0.0:
+        return hydrogen_mol, water_state, 0.0, 0.0
+
+    removed_total = min(gas_outflow_mol, gas_total)
+    hydrogen_fraction = hydrogen_mol / gas_total
+    water_fraction = water_state.vapor_mol / gas_total
+
+    removed_hydrogen = removed_total * hydrogen_fraction
+    removed_water = removed_total * water_fraction
+    new_hydrogen = hydrogen_mol - removed_hydrogen
+    remaining_water_total = (
+        water_state.vapor_mol + water_state.liquid_mol - removed_water
+    )
+    new_water_state = repartition_anode_water(
+        max(remaining_water_total, 0.0),
+        volume_m3=volume_m3,
+        temperature_k=temperature_k,
+        gas_constant_j_mol_k=gas_constant_j_mol_k,
+    )
+    return (
+        new_hydrogen,
+        new_water_state,
+        removed_hydrogen,
+        removed_water,
+    )
