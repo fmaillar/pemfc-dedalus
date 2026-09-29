@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "model": "v07-n2-crossover-sensitivity",
+  "closure_source": "results/v06-rha-sensitivity.csv",
+  "area_scale_factor": 13164.368459728226,
+  "inferred_active_area_cm2": 263.2873691945645,
+  "fluxes_mol_m2_s": [
+    0.0,
+    5e-07,
+    1e-06,
+    2e-06
+  ],
+  "purge_duration_s": 0.5,
+  "purge_reference_flow_slpm": 2.4,
+  "purge_interval_as": 2300.0,
+  "stop_time_s": 200.0,
+  "dt_s": 0.01,
+  "regimes": [
+    "nominal"
+  ],
+  "monotonicity": {
+    "nominal": {
+      "max_n2_non_decreasing": true,
+      "min_h2_non_increasing": true
+    }
+  },
+  "summaries": [
+    {
+      "regime": "nominal",
+      "n2_crossover_flux_mol_m2_s": 0.0,
+      "n2_crossover_rate_mol_s": 0.0,
+      "purge_count": 2,
+      "first_purge_time_s": 80.45,
+      "mean_purge_period_s": 80.45,
+      "max_nitrogen_mole_fraction": 0.0,
+      "min_hydrogen_mole_fraction": 0.9769203742645083,
+      "final_nitrogen_mole_fraction": 0.0,
+      "final_nitrogen_mol": 0.0,
+      "cumulative_n2_crossover_mol": 0.0,
+      "cumulative_n2_purged_mol": 0.0,
+      "min_total_pressure_pa": 134822.79288851458,
+      "max_total_pressure_pa": 137475.4891901925,
+      "h2_balance_error_mol": 8.630249292984615e-16,
+      "n2_balance_error_mol": 0.0,
+      "water_balance_error_mol": 1.2874900798265365e-19
+    },
+    {
+      "regime": "nominal",
+      "n2_crossover_flux_mol_m2_s": 5e-07,
+      "n2_crossover_rate_mol_s": 1.3164368459728225e-08,
+      "purge_count": 2,
+      "first_purge_time_s": 80.45,
+      "mean_purge_period_s": 80.45,
+      "max_nitrogen_mole_fraction": 0.0014303197193277688,
+      "min_hydrogen_mole_fraction": 0.9754900545451805,
+      "final_nitrogen_mole_fraction": 0.0010971226685297167,
+      "final_nitrogen_mol": 1.1580041302911613e-06,
+      "cumulative_n2_crossover_mol": 2.6328736919464346e-06,
+      "cumulative_n2_purged_mol": 1.4748695616546305e-06,
+      "min_total_pressure_pa": 134822.80891138507,
+      "max_total_pressure_pa": 137475.54057278016,
+      "h2_balance_error_mol": -3.35907517079459e-15,
+      "n2_balance_error_mol": 6.426862487292004e-19,
+      "water_balance_error_mol": 1.4907779871675686e-19
+    },
+    {
+      "regime": "nominal",
+      "n2_crossover_flux_mol_m2_s": 1e-06,
+      "n2_crossover_rate_mol_s": 2.632873691945645e-08,
+      "purge_count": 2,
+      "first_purge_time_s": 80.45,
+      "mean_purge_period_s": 80.45,
+      "max_nitrogen_mole_fraction": 0.00286063917781044,
+      "min_hydrogen_mole_fraction": 0.9740597350866977,
+      "final_nitrogen_mole_fraction": 0.0021942448541781407,
+      "final_nitrogen_mol": 2.3160077509050122e-06,
+      "cumulative_n2_crossover_mol": 5.265747383892869e-06,
+      "cumulative_n2_purged_mol": 2.9497396329865703e-06,
+      "min_total_pressure_pa": 134822.8249342556,
+      "max_total_pressure_pa": 137475.59195536782,
+      "h2_balance_error_mol": 1.6748755160556072e-14,
+      "n2_balance_error_mol": 1.2866430468792822e-18,
+      "water_balance_error_mol": 1.7618285302889447e-19
+    },
+    {
+      "regime": "nominal",
+      "n2_crossover_flux_mol_m2_s": 2e-06,
+      "n2_crossover_rate_mol_s": 5.26574738389129e-08,
+      "purge_count": 2,
+      "first_purge_time_s": 80.45,
+      "mean_purge_period_s": 80.45,
+      "max_nitrogen_mole_fraction": 0.005721277312241341,
+      "min_hydrogen_mole_fraction": 0.9711990969522669,
+      "final_nitrogen_mole_fraction": 0.004388487776833101,
+      "final_nitrogen_mol": 4.632013463102882e-06,
+      "cumulative_n2_crossover_mol": 1.0531494767785738e-05,
+      "cumulative_n2_purged_mol": 5.899481304680285e-06,
+      "min_total_pressure_pa": 134822.8569799966,
+      "max_total_pressure_pa": 137475.6947205431,
+      "h2_balance_error_mol": -6.173447170132462e-16,
+      "n2_balance_error_mol": 2.5707449949168015e-18,
+      "water_balance_error_mol": 1.0842021724855044e-19
+    }
+  ]
+}
