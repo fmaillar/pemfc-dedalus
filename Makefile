@@ -96,7 +96,8 @@ unit:
 	$(PYTHON) -m pytest -q
 
 lint:
-	$(PYTHON) -m ruff check src tests scripts
+	$(PYTHON) -m ruff check --fix --unsafe-fixes src tests scripts
+	git commit -am 'Ruff fixes'
 
 typecheck:
 	$(PYTHON) -m mypy src tests scripts
