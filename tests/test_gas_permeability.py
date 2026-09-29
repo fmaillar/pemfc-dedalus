@@ -7,6 +7,7 @@ from pemfc_dedalus.gas_permeability import (
     effective_membrane_relative_humidity,
     humidity_permeability_multiplier,
     membrane_permeance_from_permeability,
+    state_dependent_permeability,
 )
 
 
@@ -68,3 +69,21 @@ def test_humidity_multiplier_is_bounded_and_nonlinear():
 
 def test_effective_membrane_rh_is_mean_boundary_rh():
     assert effective_membrane_relative_humidity(0.2, 0.8) == pytest.approx(0.5)
+
+
+
+def test_state_dependent_permeability_combines_temperature_and_humidity():
+    reference = barrer_to_si_permeability(0.24)
+    value = state_dependent_permeability(
+        reference,
+        temperature_k=313.15,
+        reference_temperature_k=308.15,
+        activation_energy_j_mol=19_830.0,
+        gas_constant_j_mol_k=8.31446261815324,
+        anode_relative_humidity=0.5,
+        cathode_relative_humidity=0.5,
+        maximum_humidity_factor=100.0,
+        humidity_reference_relative_humidity=0.9,
+        humidity_shape_exponent=2.0,
+    )
+    assert value > reference
