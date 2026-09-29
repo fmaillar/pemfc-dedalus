@@ -335,7 +335,7 @@ study-v07:
 
 
 quick-volume-v07:
-	$(PYTHON) scripts/run_v07_anode_volume_sensitivity.py \
+	$(PYTHON) -m scripts.run_v07_anode_volume_sensitivity \
 	  --regimes nominal --volumes-ml 10 20 40 \
 	  --horizon-per-ml 100 --dt 1 --write-every 5 \
 	  --output-json results/quick-v07-anode-volume-sensitivity.json \
