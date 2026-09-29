@@ -4069,3 +4069,259 @@ Elle valide la structure événementielle et les bilans.
 Une mise à l'échelle géométrique cohérente aire active / volume / débit restera
 nécessaire avant toute comparaison absolue avec le système réel.
 
+*** Résultats de la purge discrète
+
+La campagne complète :
+
+  make purge-v07
+
+est terminée sur les trois régimes.
+
+Chaque régime produit :
+
+  11 purges
+
+sur :
+
+  1000 s.
+
+La première purge apparaît à :
+
+  88.4 s
+
+et la période moyenne mesurée est :
+
+  88.32 s.
+
+La valeur théorique issue de :
+
+  2300 A.s / 26.04 A
+
+est :
+
+  88.3257 s.
+
+La logique événementielle reproduit donc correctement l'horloge Ballard à la
+résolution temporelle choisie.
+
+*** Cycle hydrique établi
+
+Après les premiers cycles, le système atteint un cycle périodique stable.
+
+Sur les cinq dernières purges, les valeurs moyennes juste avant et juste après
+purge sont environ :
+
+dry_high_load :
+
+  RH avant ≈ 0.02701
+  RH après ≈ 0.00994
+
+nominal :
+
+  RH avant ≈ 0.03510
+  RH après ≈ 0.01291
+
+wet_low_load :
+
+  RH avant ≈ 0.10427
+  RH après ≈ 0.03836.
+
+La baisse relative de RH à chaque purge vaut :
+
+  environ 63.21 %
+
+dans les trois régimes.
+
+Cette valeur est directement imposée par :
+
+  f_purge = 1 - exp(-V_purge / V_anode)
+          = 0.63212
+
+avec :
+
+  V_purge = V_anode = 20 mL.
+
+Le cycle hydrique est donc stable, mais son amplitude dépend encore
+directement de cette hypothèse de purge parfaitement mélangée.
+
+*** Pression entre purges
+
+Les pressions maximales observées sont :
+
+dry_high_load :
+
+  p_max = 137325 Pa
+  surpression ≈ 0 %
+
+nominal :
+
+  p_max = 137379 Pa
+  surpression ≈ 0.039 %
+
+wet_low_load :
+
+  p_max = 137764 Pa
+  surpression ≈ 0.320 %.
+
+La purge réduit fortement la surpression observée auparavant dans le modèle
+sans purge, particulièrement dans wet_low_load.
+
+Le mécanisme joue donc bien son rôle qualitatif d'évacuation périodique de
+vapeur.
+
+*** Fermeture des bilans
+
+Les bilans sont fermés à la précision numérique.
+
+Erreurs finales H2 :
+
+  dry_high_load : -1.78e-17 mol
+  nominal       : -2.60e-18 mol
+  wet_low_load  : -2.17e-18 mol
+
+Erreurs finales H2O :
+
+  dry_high_load : +2.13e-20 mol
+  nominal       : -1.72e-20 mol
+  wet_low_load  : +6.18e-20 mol.
+
+La structure événementielle conserve donc correctement les inventaires malgré
+les purges répétées.
+
+*** Quantités cumulées
+
+Sur 1000 s :
+
+dry_high_load :
+
+  H2 consommé = 1.569e-5 mol
+  H2 purgé    = 7.329e-3 mol
+  H2 fourni   = 7.344e-3 mol
+
+nominal :
+
+  H2 consommé = 1.036e-5 mol
+  H2 purgé    = 7.328e-3 mol
+  H2 fourni   = 7.338e-3 mol
+
+wet_low_load :
+
+  H2 consommé = 6.253e-6 mol
+  H2 purgé    = 7.322e-3 mol
+  H2 fourni   = 7.326e-3 mol.
+
+Le H2 expulsé par purge domine donc très largement la consommation
+électrochimique dans ce modèle réduit.
+
+Ce résultat ne doit pas être interprété comme un rendement H2 du système
+Ballard.
+
+Il reflète principalement deux hypothèses encore non calibrées :
+
+- le volume anodique de 20 mL ;
+- le traitement d'un volume de purge de 20 mL comme échange parfaitement
+  mélangé dans un contrôle-volume de même taille.
+
+Il est également amplifié par l'incohérence d'échelle déjà identifiée entre :
+
+  courant du patch de 2 mm x 1 mm
+
+et :
+
+  volume anodique lumped de 20 mL.
+
+*** Limite physique importante du modèle de purge actuel
+
+Le modèle applique la purge en deux opérations successives :
+
+1. retrait instantané d'une fraction du gaz ;
+2. recharge H2 par le régulateur.
+
+Avec :
+
+  f_purge = 0.63212
+
+la pression immédiatement après le retrait tombe vers :
+
+  50.5 kPa absolus
+
+avant de revenir à :
+
+  137.325 kPa
+
+après recharge.
+
+Cette chute sous la pression atmosphérique n'est pas une description physique
+acceptable d'une purge réelle vers l'environnement.
+
+Elle est une conséquence mathématique du schéma :
+
+  retrait instantané
+  puis
+  refill.
+
+Une purge réelle est un écoulement transitoire avec alimentation et évacuation
+simultanées, et sa pression ne doit pas être interprétée à partir de cet état
+intermédiaire artificiel.
+
+La campagne valide donc :
+
+- l'horloge de purge ;
+- la logique événementielle ;
+- les signes ;
+- la fermeture des bilans ;
+- l'établissement d'un cycle périodique ;
+
+mais elle ne valide pas encore quantitativement :
+
+- l'amplitude réelle de la chute de pression ;
+- la quantité réelle de H2 expulsée ;
+- le rendement H2 associé à la purge.
+
+*** Validation de l'incrément purge
+
+- [X] make test vert avant campagne
+- [X] quick-purge-v07 passé
+- [X] première purge à 88.4 s
+- [X] période moyenne 88.32 s
+- [X] 11 purges sur 1000 s
+- [X] cycle RH périodique établi
+- [X] surpression inter-purge fortement réduite
+- [X] bilan H2 fermé à la précision numérique
+- [X] bilan H2O fermé à la précision numérique
+- [X] inventaires non négatifs
+- [ ] dynamique de pression pendant la purge physiquement réaliste
+- [ ] débit H2 purgé quantitativement calibré
+- [ ] échelle aire active / volume anodique cohérente
+
+Le premier modèle de purge est donc validé comme mécanisme événementiel et
+comme test de conservation, mais pas encore comme modèle quantitatif de la
+purge Ballard.
+
+*** Décision de développement après la première purge
+
+Avant d'ajouter N2 ou de tirer des conclusions quantitatives sur l'utilisation
+H2, il faut corriger le modèle de purge lui-même.
+
+La prochaine étape doit remplacer :
+
+  purge = retrait instantané + refill
+
+par une purge transitoire résolue sur une durée finie, avec :
+
+- vanne ouverte pendant environ 0.2 s comme ordre de grandeur de laboratoire ;
+- alimentation H2 active pendant la purge ;
+- débit sortant dépendant de la pression ;
+- pression bornée naturellement par les conditions amont/aval ;
+- conservation simultanée de H2 et H2O.
+
+Cette étape permettra ensuite de réexaminer :
+
+- la quantité de H2 perdue par purge ;
+- l'amplitude de RH ;
+- le minimum de pression ;
+- le retour à la pression régulée.
+
+La mise à l'échelle géométrique aire active / volume devra également être
+traitée avant toute comparaison absolue avec les débits Ballard.
+
