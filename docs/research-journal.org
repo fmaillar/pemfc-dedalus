@@ -4325,3 +4325,206 @@ Cette étape permettra ensuite de réexaminer :
 La mise à l'échelle géométrique aire active / volume devra également être
 traitée avant toute comparaison absolue avec les débits Ballard.
 
+** V0.7 — Purge transitoire à durée finie
+
+La première purge discrète a validé :
+
+- l'horloge à 2300 A.s ;
+- la logique événementielle ;
+- la conservation de H2 et H2O ;
+- l'établissement d'un cycle périodique.
+
+Elle a également révélé une limite physique claire :
+
+  retrait instantané du gaz
+  puis recharge H2
+
+produisait un état intermédiaire artificiel autour de :
+
+  50.5 kPa absolus.
+
+La purge est donc reformulée comme un écoulement transitoire pendant une durée
+finie.
+
+*** Durée d'ouverture
+
+La durée de laboratoire donnée dans la référence Ballard est utilisée comme
+valeur nominale :
+
+  t_purge = 0.2 s.
+
+La simulation principale utilise :
+
+  dt = 0.01 s
+
+soit environ :
+
+  20 pas temporels
+
+pendant chaque ouverture de vanne.
+
+*** Débit de sortie dépendant de la pression
+
+Le débit sortant est représenté par une conductance linéaire :
+
+  n_dot_out = C_purge * max(p_anode - p_amb, 0).
+
+La conductance est calibrée pour retrouver le débit minimal Ballard :
+
+  2.4 slpm par cellule
+
+lorsque :
+
+  p_anode = 137325 Pa
+  p_amb   = 101325 Pa.
+
+La conversion slpm -> mol/s suppose, pour cette première fermeture :
+
+  1 atm
+  273.15 K
+
+comme conditions standard.
+
+Cette loi est volontairement simple.
+
+Elle garantit néanmoins que :
+
+- aucun débit sortant n'existe sous la pression ambiante ;
+- le débit augmente avec la surpression ;
+- la pression n'est plus imposée par un retrait instantané arbitraire.
+
+*** Alimentation H2 pendant la purge
+
+Le régulateur H2 reste actif pendant l'ouverture.
+
+À chaque pas de purge :
+
+1. le transfert d'eau membrane -> anode est intégré ;
+2. H2 est consommé électrochimiquement ;
+3. le débit sortant est calculé à partir de la pression instantanée ;
+4. le mélange gazeux sort avec la composition H2/H2O du volume ;
+5. la pression après écoulement est évaluée ;
+6. le régulateur ajoute ensuite du H2 si nécessaire pour revenir vers la
+   pression cible.
+
+Le régulateur reste idéal dans cet incrément.
+
+La nouveauté est donc principalement :
+
+  sortie gazeuse résolue dans le temps
+  +
+  alimentation simultanément active.
+
+*** Tension entre les données Ballard utilisées
+
+Deux données de purge sont disponibles :
+
+  volume de purge : 20 mL par cellule
+  débit minimal   : 2.4 slpm par cellule.
+
+Avec une ouverture de :
+
+  0.2 s
+
+un débit constant de :
+
+  2.4 slpm
+
+correspond seulement à environ :
+
+  8 mL standard.
+
+Les trois nombres :
+
+  20 mL
+  2.4 slpm
+  0.2 s
+
+ne définissent donc pas un même échange volumique simple.
+
+Le nouveau modèle ne force plus artificiellement le retrait de 20 mL à chaque
+purge.
+
+Il privilégie pour cet incrément :
+
+- la durée de 0.2 s ;
+- le débit minimal de 2.4 slpm ;
+- la dépendance du débit à la pression.
+
+Le volume de 20 mL reste une information à utiliser ultérieurement pour la
+calibration ou une étude de sensibilité.
+
+*** Bilans
+
+Le nouveau driver conserve explicitement :
+
+- H2 fourni ;
+- H2 consommé ;
+- H2 purgé ;
+- H2 final ;
+- H2O transférée ;
+- H2O purgée ;
+- H2O finale.
+
+Les erreurs de fermeture H2 et H2O restent des critères de validation.
+
+*** Infrastructure
+
+Nouvelles fonctions :
+
+  standard_lpm_to_molar_rate(...)
+  purge_pressure_conductance_mol_s_pa(...)
+  pressure_driven_purge_molar_rate(...)
+  remove_well_mixed_gas_moles(...)
+
+Nouveau driver :
+
+  scripts/run_v07_anode_transient_purge.py
+
+Nouveaux tests :
+
+  tests/test_v07_anode_transient_purge.py
+
+Commandes :
+
+  make quick-transient-purge-v07
+  make transient-purge-v07
+
+Sorties :
+
+  results/quick-v07-anode-transient-purge.json
+  results/quick-v07-anode-transient-purge.csv
+  results/v07-anode-transient-purge.json
+  results/v07-anode-transient-purge.csv
+
+*** Validation attendue
+
+Avant le préflight :
+
+  make test
+
+doit être entièrement vert.
+
+Le préflight doit notamment vérifier :
+
+- deux purges environ sur 200 s ;
+- première purge proche de 88.33 s ;
+- durée de chaque ouverture proche de 0.2 s ;
+- pression minimale supérieure à la pression ambiante ;
+- débit sortant positif uniquement lorsque p_anode > p_amb ;
+- bilan H2 fermé ;
+- bilan H2O fermé.
+
+La campagne complète sur 1000 s devra ensuite permettre de comparer avec la
+purge instantanée :
+
+- pression minimale réelle pendant la purge ;
+- pression maximale entre purges ;
+- quantité H2 perdue par événement ;
+- quantité H2O évacuée ;
+- amplitude du cycle RH ;
+- volume standard effectivement évacué par événement.
+
+Cette comparaison déterminera si la purge transitoire fournit une base assez
+physique pour introduire ensuite N2.
+
