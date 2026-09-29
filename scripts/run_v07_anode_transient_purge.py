@@ -75,6 +75,7 @@ def simulate_transient_purge_regime(
     purge_clock_current_a: float,
     purge_duration_s: float,
     purge_reference_flow_slpm: float,
+    current_scale_factor: float = 1.0,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Integrate H2/H2O inventories with a finite-duration purge valve."""
     if stop_time_s <= 0.0 or dt_s <= 0.0:
@@ -83,6 +84,8 @@ def simulate_transient_purge_regime(
         raise ValueError("purge clock parameters must be positive")
     if purge_duration_s <= 0.0:
         raise ValueError("purge_duration_s must be positive")
+    if current_scale_factor <= 0.0:
+        raise ValueError("current_scale_factor must be positive")
     if ambient_pressure_pa <= 0.0:
         raise ValueError("ambient_pressure_pa must be positive")
 
@@ -131,10 +134,11 @@ def simulate_transient_purge_regime(
 
     for step in range(n_steps + 1):
         time_s = min(step * dt_s, stop_time_s)
-        flux_lambda, current_a = interpolate_flux_and_current(
+        flux_lambda, patch_current_a = interpolate_flux_and_current(
             water_state.relative_humidity,
             closure,
         )
+        cell_current_a = patch_current_a * current_scale_factor
         water_source = lambda_flux_to_water_molar_rate(
             flux_lambda,
             membrane_area_m2=membrane_area_m2,
@@ -158,7 +162,8 @@ def simulate_transient_purge_regime(
                     "purge_open": purge_remaining_s > 0.0,
                     "purge_count": len(purge_events),
                     "anode_relative_humidity": water_state.relative_humidity,
-                    "patch_current_a": current_a,
+                    "patch_current_a": patch_current_a,
+                    "cell_current_a": cell_current_a,
                     "charge_since_purge_as": charge_since_purge_as,
                     "hydrogen_mol": hydrogen_mol,
                     "water_vapor_mol": water_state.vapor_mol,
@@ -184,7 +189,7 @@ def simulate_transient_purge_regime(
 
         if purge_remaining_s > 0.0:
             consumption_rate = hydrogen_consumption_molar_rate(
-                current_a,
+                cell_current_a,
                 faraday_c_mol,
             )
             consumed_h2 = min(
@@ -276,7 +281,7 @@ def simulate_transient_purge_regime(
             hydrogen_mol, inlet_rate, consumption_rate = (
                 advance_pressure_regulated_hydrogen(
                     hydrogen_mol,
-                    current_a=current_a,
+                    current_a=cell_current_a,
                     water_vapor_mol=water_state.vapor_mol,
                     dt_s=actual_dt,
                     target_total_pressure_pa=target_total_pressure_pa,
