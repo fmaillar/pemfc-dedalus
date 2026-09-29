@@ -126,3 +126,66 @@ def state_dependent_permeability(
         shape_exponent=humidity_shape_exponent,
     )
     return dry_at_temperature * humidity_factor
+
+
+
+def water_content_permeability_multiplier(
+    water_content: float,
+    *,
+    dry_water_content: float,
+    reference_water_content: float,
+    maximum_factor: float = 100.0,
+) -> float:
+    """Return an exponential multiplier based on membrane water content.
+
+    The closure maps the dry reference water content to 1x permeability and a
+    chosen hydrated reference water content to maximum_factor. It is a
+    screening proxy for the exponential permeability increase reported versus
+    membrane water volume fraction.
+    """
+    if water_content < 0.0:
+        raise ValueError("water_content must be non-negative")
+    if dry_water_content < 0.0:
+        raise ValueError("dry_water_content must be non-negative")
+    if reference_water_content <= dry_water_content:
+        raise ValueError(
+            "reference_water_content must exceed dry_water_content"
+        )
+    if maximum_factor < 1.0:
+        raise ValueError("maximum_factor must be >= 1")
+
+    normalized = (
+        (water_content - dry_water_content)
+        / (reference_water_content - dry_water_content)
+    )
+    bounded = min(max(normalized, 0.0), 1.0)
+    return maximum_factor**bounded
+
+
+def water_content_dependent_permeability(
+    dry_reference_permeability: float,
+    *,
+    temperature_k: float,
+    reference_temperature_k: float,
+    activation_energy_j_mol: float,
+    gas_constant_j_mol_k: float,
+    water_content: float,
+    dry_water_content: float,
+    reference_water_content: float,
+    maximum_humidity_factor: float = 100.0,
+) -> float:
+    """Combine Arrhenius scaling with a membrane-water-content closure."""
+    dry_at_temperature = arrhenius_permeability(
+        dry_reference_permeability,
+        temperature_k,
+        reference_temperature_k,
+        activation_energy_j_mol,
+        gas_constant_j_mol_k,
+    )
+    water_factor = water_content_permeability_multiplier(
+        water_content,
+        dry_water_content=dry_water_content,
+        reference_water_content=reference_water_content,
+        maximum_factor=maximum_humidity_factor,
+    )
+    return dry_at_temperature * water_factor
