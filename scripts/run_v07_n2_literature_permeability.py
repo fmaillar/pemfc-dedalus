@@ -44,7 +44,6 @@ from scripts.run_v07_anode_h2 import (
 )
 from scripts.run_v07_anode_nitrogen import simulate_nitrogen_regime
 
-
 DEFAULT_PERMEABILITIES_BARRER = [0.24, 2.4, 24.0]
 DEFAULT_FEEDBACK_EXPONENTS = [0.0, 1.0]
 
