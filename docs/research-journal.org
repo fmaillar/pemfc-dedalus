@@ -4595,3 +4595,163 @@ courant cellulaire, volume anodique et débit de purge. L'ajout de N2 doit venir
 après cette étape afin que les bilans absolus soient physiquement
 interprétables.
 
+** V0.7 — Mise à l'échelle aire active / cellule
+
+La purge transitoire a validé la dynamique événementielle et les bilans, mais
+les quantités absolues restaient incohérentes parce que le modèle mélangeait :
+
+- un patch numérique de 2 mm x 1 mm ;
+- un courant de patch de quelques mA ;
+- un volume anodique de 20 mL par cellule ;
+- un débit de purge de 2.4 slpm par cellule.
+
+La V0.7 introduit maintenant une calibration d'aire active afin de placer le
+courant, le transfert d'eau, le volume anodique et la purge sur une même échelle
+cellulaire.
+
+*** Principe
+
+Au point nominal de calibration :
+
+  regime = nominal
+  RH_anode = 0
+
+le modèle fournit un courant intégré sur le patch :
+
+  I_patch,ref.
+
+La densité de courant représentative est :
+
+  j_ref = I_patch,ref / A_patch.
+
+L'aire active cellulaire est ensuite inférée par :
+
+  A_active = I_cell,ref / j_ref
+
+avec :
+
+  I_cell,ref = 26.04 A.
+
+Le facteur d'échelle est donc :
+
+  S_A = A_active / A_patch
+      = I_cell,ref / I_patch,ref.
+
+Cette aire est une calibration dérivée du modèle, pas une mesure géométrique du
+stack Ballard.
+
+*** Application du facteur d'échelle
+
+Le facteur S_A est appliqué à deux grandeurs auparavant définies au niveau du
+patch :
+
+1. courant intégré :
+
+     I_cell = S_A * I_patch
+
+   pour la consommation électrochimique de H2 ;
+
+2. aire membrane :
+
+     A_membrane = A_active
+
+   pour convertir le flux lambda en débit molaire d'eau.
+
+Le volume anodique :
+
+  20 mL
+
+et le débit de purge :
+
+  2.4 slpm
+
+restent définis par cellule.
+
+La loi de purge à :
+
+  2300 A.s
+
+continue d'utiliser le courant cellulaire nominal de :
+
+  26.04 A.
+
+*** Grandeurs de contrôle
+
+La campagne doit produire explicitement :
+
+- facteur d'échelle d'aire ;
+- aire active inférée en cm2 ;
+- volume anodique en mL/cm2 ;
+- débit de purge en slpm/cm2 ;
+- courant cellulaire instantané issu de chaque courant patch ;
+- consommation H2 à l'échelle cellule ;
+- H2 purgé ;
+- utilisation H2 :
+
+    U_H2 = n_H2,consomme /
+           (n_H2,consomme + n_H2,purge).
+
+La référence Ballard disponible est :
+
+  U_H2 ≈ 0.93
+
+avec purge standard.
+
+Cette valeur est utilisée comme contrôle de cohérence, pas comme cible de
+calibration automatique.
+
+*** Infrastructure
+
+Nouveau module :
+
+  src/pemfc_dedalus/scaling.py
+
+Nouveau driver :
+
+  scripts/run_v07_active_area_scaling.py
+
+Tests :
+
+  tests/test_scaling.py
+
+Le driver de purge transitoire accepte maintenant :
+
+  current_scale_factor
+
+afin de conserver le comportement historique par défaut tout en permettant une
+simulation à l'échelle cellulaire.
+
+Commandes :
+
+  make quick-scaling-v07
+  make scaling-v07
+
+Sorties :
+
+  results/quick-v07-active-area-scaling.json
+  results/quick-v07-active-area-scaling.csv
+  results/v07-active-area-scaling.json
+  results/v07-active-area-scaling.csv
+
+*** Validation attendue
+
+Avant toute exécution :
+
+  make test
+
+doit être entièrement vert.
+
+Le préflight nominal devra vérifier :
+
+- aire active inférée positive ;
+- courant nominal mis à l'échelle égal à 26.04 A au point de calibration ;
+- bilans H2 et H2O fermés ;
+- pression toujours physique ;
+- aucune régression de la logique de purge.
+
+La campagne complète permettra ensuite d'évaluer si la mise à l'échelle réduit
+l'écart artificiel entre consommation H2 et perte H2 par purge.
+
+Si les ordres de grandeur deviennent cohérents, la V0.7 pourra ensuite passer à
+l'introduction de N2 et du crossover.
+
