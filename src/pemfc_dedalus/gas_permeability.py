@@ -273,3 +273,51 @@ def water_volume_fraction_dependent_permeability(
         upper_factor=upper_factor,
     )
     return dry_at_temperature * water_factor
+
+
+
+def membrane_water_volume_fraction_from_partial_molar_volume(
+    water_content: float,
+    *,
+    membrane_equivalent_weight_kg_mol: float,
+    membrane_dry_density_kg_m3: float,
+    water_partial_molar_volume_m3_mol: float,
+) -> float:
+    """Convert lambda to water volume fraction using partial molar volume."""
+    if water_content < 0.0:
+        raise ValueError("water_content must be non-negative")
+    if membrane_equivalent_weight_kg_mol <= 0.0:
+        raise ValueError("membrane equivalent weight must be positive")
+    if membrane_dry_density_kg_m3 <= 0.0:
+        raise ValueError("membrane dry density must be positive")
+    if water_partial_molar_volume_m3_mol <= 0.0:
+        raise ValueError("water partial molar volume must be positive")
+
+    water_volume = water_content * water_partial_molar_volume_m3_mol
+    polymer_volume = (
+        membrane_equivalent_weight_kg_mol / membrane_dry_density_kg_m3
+    )
+    return water_volume / (water_volume + polymer_volume)
+
+
+def calibrated_exponential_permeability_multiplier(
+    water_volume_fraction: float,
+    *,
+    baseline_fraction: float,
+    anchor_fraction: float,
+    anchor_factor: float,
+    maximum_factor: float,
+) -> float:
+    """Return an exponential multiplier calibrated at one hydrated anchor."""
+    if not 0.0 <= water_volume_fraction <= 1.0:
+        raise ValueError("water_volume_fraction must be in [0, 1]")
+    if not 0.0 <= baseline_fraction < anchor_fraction <= 1.0:
+        raise ValueError("invalid baseline and anchor fractions")
+    if anchor_factor <= 1.0:
+        raise ValueError("anchor_factor must exceed 1")
+    if maximum_factor < anchor_factor:
+        raise ValueError("maximum_factor must be >= anchor_factor")
+
+    slope = math.log(anchor_factor) / (anchor_fraction - baseline_fraction)
+    exponent = slope * max(water_volume_fraction - baseline_fraction, 0.0)
+    return min(math.exp(exponent), maximum_factor)
