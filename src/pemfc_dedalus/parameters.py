@@ -97,6 +97,10 @@ class CathodeParameters:
     # internal channel volume. This parameter must be sensitivity-tested later.
     anode_gas_volume_m3: float = 20.0e-6
 
+    # V0.7 idealized dead-end pressure-regulator target.
+    # Ballard gives 0.36 barg as the optimal H2 supply pressure.
+    anode_target_total_pressure_pa: float = 101325.0 + 0.36e5
+
     membrane_current_density: float = 2.15e3
 
     @property
