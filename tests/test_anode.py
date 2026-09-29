@@ -11,7 +11,11 @@ from pemfc_dedalus.anode import (
     lambda_flux_to_water_molar_rate,
     mixed_gas_purge_fraction,
     purge_anode_gas,
+    purge_pressure_conductance_mol_s_pa,
+    pressure_driven_purge_molar_rate,
+    remove_well_mixed_gas_moles,
     repartition_anode_water,
+    standard_lpm_to_molar_rate,
     saturated_water_vapor_moles,
     water_saturation_pressure_pa,
     water_vapor_moles_from_relative_humidity,
@@ -218,3 +222,64 @@ def test_purge_removes_same_fraction_of_h2_and_vapor_water():
     assert h2_new == pytest.approx(7.5e-4)
     assert water_new.vapor_mol == pytest.approx(1.5e-5)
     assert water_new.liquid_mol == 0.0
+
+
+
+def test_standard_lpm_conversion_is_positive():
+    rate = standard_lpm_to_molar_rate(2.4)
+    assert rate > 0.0
+
+
+def test_pressure_driven_purge_matches_reference_flow_at_calibration_point():
+    gas_constant = 8.31446261815324
+    conductance = purge_pressure_conductance_mol_s_pa(
+        2.4,
+        reference_upstream_pressure_pa=137325.0,
+        downstream_pressure_pa=101325.0,
+        gas_constant_j_mol_k=gas_constant,
+    )
+    rate = pressure_driven_purge_molar_rate(
+        137325.0,
+        101325.0,
+        conductance,
+    )
+    assert rate == pytest.approx(
+        standard_lpm_to_molar_rate(
+            2.4,
+            gas_constant_j_mol_k=gas_constant,
+        )
+    )
+
+
+def test_pressure_driven_purge_closes_at_or_below_ambient():
+    conductance = 1.0e-8
+    assert pressure_driven_purge_molar_rate(
+        101325.0,
+        101325.0,
+        conductance,
+    ) == 0.0
+    assert pressure_driven_purge_molar_rate(
+        100000.0,
+        101325.0,
+        conductance,
+    ) == 0.0
+
+
+def test_well_mixed_molar_outflow_preserves_gas_composition():
+    state = AnodeWaterState(
+        vapor_mol=2.0e-4,
+        liquid_mol=0.0,
+        relative_humidity=0.5,
+    )
+    h2_new, water_new, h2_out, water_out = remove_well_mixed_gas_moles(
+        8.0e-4,
+        state,
+        gas_outflow_mol=1.0e-4,
+        volume_m3=20.0e-6,
+        temperature_k=313.15,
+        gas_constant_j_mol_k=8.31446261815324,
+    )
+    assert h2_out == pytest.approx(8.0e-5)
+    assert water_out == pytest.approx(2.0e-5)
+    assert h2_new == pytest.approx(7.2e-4)
+    assert water_new.vapor_mol == pytest.approx(1.8e-4)
