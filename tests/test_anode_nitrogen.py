@@ -5,6 +5,8 @@ from pemfc_dedalus.anode_nitrogen import (
     AnodeGasState,
     hydrogen_moles_for_pressure_with_nitrogen,
     nitrogen_crossover_molar_rate,
+    nitrogen_permeance_from_reference_flux,
+    nitrogen_pressure_driven_flux,
     remove_well_mixed_h2_n2_h2o,
     total_gas_pressure_with_nitrogen_pa,
 )
@@ -61,3 +63,24 @@ def test_well_mixed_three_species_purge_preserves_composition():
     assert new_state.hydrogen_mol == pytest.approx(6.3e-5)
     assert new_state.nitrogen_mol == pytest.approx(9.0e-6)
     assert new_state.water.vapor_mol == pytest.approx(1.8e-5)
+
+
+
+def test_pressure_driven_nitrogen_flux_matches_reference_at_zero_anode_pressure():
+    permeance = nitrogen_permeance_from_reference_flux(1.0e-6, 80000.0)
+    flux = nitrogen_pressure_driven_flux(permeance, 80000.0, 0.0)
+    assert flux == pytest.approx(1.0e-6)
+
+
+def test_pressure_driven_nitrogen_flux_falls_with_anode_pressure():
+    permeance = nitrogen_permeance_from_reference_flux(1.0e-6, 80000.0)
+    assert nitrogen_pressure_driven_flux(
+        permeance,
+        80000.0,
+        40000.0,
+    ) == pytest.approx(5.0e-7)
+    assert nitrogen_pressure_driven_flux(
+        permeance,
+        80000.0,
+        90000.0,
+    ) == 0.0
