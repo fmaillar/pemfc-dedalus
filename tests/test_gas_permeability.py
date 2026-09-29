@@ -2,7 +2,10 @@ import pytest
 
 from pemfc_dedalus.gas_permeability import (
     BARRER_TO_MOL_M_PER_M2_S_PA,
+    arrhenius_permeability,
     barrer_to_si_permeability,
+    effective_membrane_relative_humidity,
+    humidity_permeability_multiplier,
     membrane_permeance_from_permeability,
 )
 
@@ -33,3 +36,35 @@ def test_gas_permeability_rejects_invalid_inputs():
         membrane_permeance_from_permeability(-1.0, 50.0e-6)
     with pytest.raises(ValueError):
         membrane_permeance_from_permeability(1.0, 0.0)
+
+
+
+def test_arrhenius_permeability_increases_with_temperature():
+    reference = barrer_to_si_permeability(0.24)
+    at_reference = arrhenius_permeability(
+        reference,
+        308.15,
+        308.15,
+        19_830.0,
+        8.31446261815324,
+    )
+    warmer = arrhenius_permeability(
+        reference,
+        318.15,
+        308.15,
+        19_830.0,
+        8.31446261815324,
+    )
+    assert at_reference == pytest.approx(reference)
+    assert warmer > reference
+
+
+def test_humidity_multiplier_is_bounded_and_nonlinear():
+    assert humidity_permeability_multiplier(0.0) == 1.0
+    assert humidity_permeability_multiplier(0.9) == pytest.approx(100.0)
+    assert humidity_permeability_multiplier(1.0) == pytest.approx(100.0)
+    assert 1.0 < humidity_permeability_multiplier(0.5) < 100.0
+
+
+def test_effective_membrane_rh_is_mean_boundary_rh():
+    assert effective_membrane_relative_humidity(0.2, 0.8) == pytest.approx(0.5)
