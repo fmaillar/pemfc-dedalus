@@ -10,6 +10,7 @@ NUMEXPR_NUM_THREADS ?= 1
         quick-v05 study-v05 quick-sweep-v05 sweep-v05 quick-grid-v05 grid-v05 \
         quick-v06 study-v06 quick-ka-v06 ka-v06 quick-grid-v06 grid-v06 quick-rha-v06 rha-v06 \
         quick-v07 study-v07 quick-volume-v07 volume-v07 quick-h2-v07 h2-v07 quick-purge-v07 purge-v07 \
+        quick-transient-purge-v07 transient-purge-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -52,6 +53,8 @@ help:
 	  'make h2-v07           run V0.7 dead-end H2 inventory study' \
 	  'make quick-purge-v07  preflight V0.7 discrete purge model' \
 	  'make purge-v07        run V0.7 charge-triggered purge study' \
+	  'make quick-transient-purge-v07 preflight finite-duration purge' \
+	  'make transient-purge-v07 run finite-duration pressure-driven purge' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -367,3 +370,13 @@ quick-purge-v07:
 
 purge-v07:
 	$(PYTHON) -m scripts.run_v07_anode_purge
+
+
+quick-transient-purge-v07:
+	$(PYTHON) -m scripts.run_v07_anode_transient_purge \
+	  --regimes nominal --stop-time 200 --dt 0.01 --write-every 100 \
+	  --output-json results/quick-v07-anode-transient-purge.json \
+	  --output-csv results/quick-v07-anode-transient-purge.csv
+
+transient-purge-v07:
+	$(PYTHON) -m scripts.run_v07_anode_transient_purge
