@@ -3256,3 +3256,224 @@ Comme pour les campagnes précédentes :
 
 doit être entièrement vert avant le préflight puis la campagne complète.
 
+*** Résultats de la sensibilité au volume anodique
+
+La campagne complète :
+
+  make volume-v07
+
+est terminée pour :
+
+  5, 10, 20, 40 et 80 mL
+
+sur les trois régimes.
+
+Tous les cas atteignent le même point fixe hydrique propre à leur régime.
+
+Aucune formation d'eau liquide n'est observée.
+
+*** Loi d'échelle temporelle
+
+La propriété attendue :
+
+  t_x ∝ V_anode
+
+est vérifiée avec une très bonne précision.
+
+dry_high_load :
+
+  t90 / V ≈ 189.7 s/mL
+  t95 / V ≈ 249.2 s/mL
+  t99 / V ≈ 387.2 s/mL
+
+La dispersion maximale autour de ces valeurs normalisées reste inférieure à
+environ 0.4 % pour t90, t95 et t99.
+
+nominal :
+
+  t90 / V = 318.0 s/mL
+  t95 / V ≈ 429.0 s/mL
+  t99 / V ≈ 685.7 s/mL
+
+Pour t90, la proportionnalité est exactement observée aux résolutions
+temporelles enregistrées.
+
+wet_low_load :
+
+  t90 / V ≈ 79.7 s/mL
+  t95 / V ≈ 96.9 s/mL
+  t99 / V ≈ 135.9 s/mL.
+
+La plus grande dispersion relative apparaît sur t50 aux petits volumes, ce qui
+est cohérent avec la résolution temporelle discrète de 10 s utilisée pour
+l'enregistrement des trajectoires.
+
+Sur l'intervalle :
+
+  5 -> 80 mL
+
+le volume est multiplié par :
+
+  16.
+
+Les temps t90 et t99 sont eux aussi multipliés par environ 16 dans les trois
+régimes.
+
+*** Tableau des temps t90
+
+dry_high_load :
+
+  5 mL  :   950 s
+  10 mL :  1900 s
+  20 mL :  3790 s
+  40 mL :  7580 s
+  80 mL : 15160 s
+
+nominal :
+
+  5 mL  :  1590 s
+  10 mL :  3180 s
+  20 mL :  6360 s
+  40 mL : 12720 s
+  80 mL : 25440 s
+
+wet_low_load :
+
+  5 mL  :  400 s
+  10 mL :  800 s
+  20 mL : 1590 s
+  40 mL : 3180 s
+  80 mL : 6360 s.
+
+*** Tableau des temps t99
+
+dry_high_load :
+
+  5 mL  :  1940 s
+  10 mL :  3870 s
+  20 mL :  7740 s
+  40 mL : 15480 s
+  80 mL : 30960 s
+
+nominal :
+
+  5 mL  :  3430 s
+  10 mL :  6860 s
+  20 mL : 13710 s
+  40 mL : 27420 s
+  80 mL : 54830 s
+
+wet_low_load :
+
+  5 mL  :   680 s
+  10 mL :  1360 s
+  20 mL :  2720 s
+  40 mL :  5430 s
+  80 mL : 10860 s.
+
+*** Point fixe indépendant du volume
+
+La RH finale reste pratiquement inchangée lorsqu'on modifie V_anode.
+
+dry_high_load :
+
+  RH finale ≈ 0.255434
+
+nominal :
+
+  RH finale ≈ 0.43078
+
+wet_low_load :
+
+  RH finale ≈ 0.883323.
+
+Cette indépendance est cohérente avec la structure du modèle :
+
+  le volume fixe la capacité de stockage
+  -> donc l'échelle de temps,
+
+mais le zéro de la loi de transfert membrane/anode fixe :
+
+  l'état stationnaire.
+
+Le résultat confirme donc la séparation attendue entre :
+
+  dynamique
+  et
+  point fixe.
+
+*** Interprétation
+
+La sensibilité au volume ne révèle pas de changement de régime, ni de
+non-linéarité inattendue.
+
+Elle confirme au contraire que le premier modèle V0.7 se comporte comme un
+système lumped de capacité proportionnelle au volume.
+
+Le volume anodique provisoire :
+
+  20 mL
+
+n'est donc pas une valeur critique du modèle.
+
+Changer cette hypothèse décale presque linéairement les temps caractéristiques
+sans modifier les états stationnaires.
+
+Cela signifie également qu'il serait incorrect de chercher à ajuster
+l'échelle de temps système uniquement en choisissant un volume plus petit.
+
+La période de purge Ballard :
+
+  environ 88.3 s
+
+reste très inférieure aux temps d'humidification obtenus, même à :
+
+  V_anode = 5 mL.
+
+Par exemple, au régime nominal :
+
+  t90 = 1590 s
+
+à 5 mL.
+
+Il manque donc bien des mécanismes dynamiques majeurs du système réel.
+
+*** Validation de la sensibilité au volume
+
+- [X] make test vert avant campagne
+- [X] quick-volume-v07 cohérent
+- [X] cinq volumes étudiés
+- [X] trois régimes étudiés
+- [X] point fixe RH indépendant du volume
+- [X] t50 augmente avec le volume
+- [X] t90 augmente linéairement avec le volume
+- [X] t95 augmente linéairement avec le volume
+- [X] t99 augmente linéairement avec le volume
+- [X] aucune eau liquide observée
+- [X] aucune anomalie numérique détectée
+
+La sensibilité au volume anodique est donc considérée comme validée.
+
+*** Décision de développement après la sensibilité au volume
+
+La dépendance temporelle au volume est maintenant caractérisée et ne justifie
+pas davantage de raffinements dans ce sous-modèle isolé.
+
+La prochaine étape physique devient le bilan d'hydrogène dans le volume
+dead-end.
+
+Ce nouvel état devra introduire au minimum :
+
+- inventaire molaire H2 ;
+- consommation électrochimique par la loi de Faraday ;
+- apport d'H2 côté alimentation ;
+- pression anodique issue du gaz idéal ;
+- couplage avec l'inventaire de vapeur d'eau.
+
+La purge restera d'abord absente afin de valider séparément le bilan H2.
+
+Une fois cette dynamique validée, une purge discrète pourra être introduite et
+comparée à la loi Ballard :
+
+  intervalle ≈ 2300 A.s.
+
