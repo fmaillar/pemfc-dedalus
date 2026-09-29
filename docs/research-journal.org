@@ -5956,3 +5956,185 @@ Cette loi devra être introduite comme hypothèse de modèle, avec :
 Avant toute loi plus détaillée, il faudra choisir et documenter précisément la
 forme de f et sa justification physique.
 
+** V0.7 — Première rétroaction électrochimique de la dilution H2
+
+La sensibilité au crossover N2 a montré que la dilution reste modérée pour les
+flux faibles, mais devient de quelques pourcents dans le régime wet_low_load
+pour les valeurs de screening les plus élevées.
+
+Le modèle introduit maintenant une première rétroaction électrochimique simple,
+sans modifier la fermeture RH de V0.6 elle-même.
+
+*** Loi de rétroaction
+
+Le courant issu de V0.6 est multiplié par :
+
+  f_H2 = (p_H2 / p_H2,ref)^gamma
+
+avec :
+
+  I = I_V0.6 * f_H2.
+
+La pression de référence p_H2,ref est évaluée au même état hydrique mais avec :
+
+  n_N2 = 0.
+
+Cette normalisation est importante : elle évite de compter une seconde fois
+l'effet de l'humidité déjà inclus dans la fermeture V0.6.
+
+Ainsi, le facteur ne représente que la perte supplémentaire liée à la dilution
+de H2 par N2.
+
+*** Exposant de sensibilité
+
+L'exposant :
+
+  gamma
+
+est un paramètre de screening.
+
+La campagne étudie :
+
+  gamma = 0
+  gamma = 0.5
+  gamma = 1.
+
+Le cas :
+
+  gamma = 0
+
+désactive exactement la rétroaction et doit reproduire la campagne N2
+précédente.
+
+Les cas 0.5 et 1 encadrent une réponse sous-linéaire et linéaire à la pression
+partielle H2.
+
+Cette loi n'est pas présentée comme un modèle cinétique HOR calibré.
+
+Elle sert à mesurer la sensibilité de la dynamique couplée à une première
+rétroaction explicite.
+
+*** Flux de crossover étudiés
+
+La campagne utilise :
+
+  J_N2 =
+    0
+    1e-6
+    2e-6
+    5e-6 mol/m2/s.
+
+Le cas J_N2 = 0 doit donner :
+
+  f_H2 = 1
+
+même lorsque gamma > 0.
+
+Il constitue donc un deuxième test de continuité indépendant de gamma = 0.
+
+*** Boucle de couplage introduite
+
+Le système contient maintenant la boucle :
+
+  RH_anode
+  -> courant V0.6
+  -> facteur f_H2
+  -> courant cellule corrigé
+  -> consommation H2
+  -> intégrale de courant
+  -> fréquence de purge
+  -> accumulation N2
+  -> p_H2
+  -> facteur f_H2.
+
+La purge n'est donc plus strictement indépendante de N2 dès que gamma > 0.
+
+Une diminution du courant peut :
+
+- allonger la période de purge ;
+- augmenter l'accumulation N2 ;
+- réduire encore p_H2.
+
+Cette rétroaction doit rester monotone et stable sur la plage étudiée.
+
+*** Grandeurs suivies
+
+Pour chaque régime, J_N2 et gamma, la campagne extrait :
+
+- facteur f_H2 minimal ;
+- courant cellule minimal ;
+- courant cellule moyen ;
+- nombre de purges ;
+- première purge ;
+- période moyenne ;
+- x_N2 maximal ;
+- x_H2 minimal ;
+- H2 consommé ;
+- H2 purgé ;
+- N2 purgé ;
+- bilans H2, H2O et N2.
+
+*** Infrastructure
+
+Nouveau module :
+
+  src/pemfc_dedalus/hydrogen_feedback.py
+
+Nouvelle fonction :
+
+  hydrogen_partial_pressure_feedback_factor(...)
+
+Le driver N2 accepte maintenant :
+
+  hydrogen_feedback_exponent
+
+avec :
+
+  0
+
+comme valeur par défaut afin de préserver exactement le comportement
+historique.
+
+Nouvelle campagne :
+
+  scripts/run_v07_h2_feedback_sensitivity.py
+
+Tests :
+
+  tests/test_hydrogen_feedback.py
+  tests/test_v07_h2_feedback.py
+
+Commandes :
+
+  make quick-h2-feedback-v07
+  make h2-feedback-v07
+
+Sorties :
+
+  results/quick-v07-h2-feedback-sensitivity.json
+  results/quick-v07-h2-feedback-sensitivity.csv
+  results/v07-h2-feedback-sensitivity.json
+  results/v07-h2-feedback-sensitivity.csv
+
+*** Validation attendue
+
+Avant toute exécution :
+
+  make test
+
+doit être entièrement vert.
+
+Le préflight doit vérifier :
+
+- gamma = 0 donne exactement f_H2 = 1 ;
+- J_N2 = 0 donne f_H2 = 1 même pour gamma > 0 ;
+- pour J_N2 > 0, f_H2 diminue lorsque gamma augmente ;
+- le courant moyen diminue avec la dilution ;
+- les bilans H2/H2O/N2 restent fermés ;
+- aucune instabilité ou branche non physique n'apparaît.
+
+La campagne complète devra ensuite déterminer si la rétroaction reste faible,
+modérée ou devient significative sur la plage de crossover déjà étudiée.
+
+Aucune valeur de gamma ne sera considérée comme calibrée à ce stade.
+
