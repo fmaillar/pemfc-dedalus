@@ -4,6 +4,7 @@ from pemfc_dedalus.anode import AnodeWaterState
 from pemfc_dedalus.anode_nitrogen import (
     AnodeGasState,
     hydrogen_moles_for_pressure_with_nitrogen,
+    humid_air_nitrogen_partial_pressure_pa,
     nitrogen_crossover_molar_rate,
     nitrogen_permeance_from_reference_flux,
     nitrogen_pressure_driven_flux,
@@ -84,3 +85,14 @@ def test_pressure_driven_nitrogen_flux_falls_with_anode_pressure():
         80000.0,
         90000.0,
     ) == 0.0
+
+
+
+def test_humid_air_nitrogen_partial_pressure_uses_dry_gas_fraction():
+    pressure = humid_air_nitrogen_partial_pressure_pa(
+        total_pressure_pa=100000.0,
+        oxygen_dry_mole_fraction=0.20,
+        relative_humidity=0.50,
+        saturation_water_pressure_pa=10000.0,
+    )
+    assert pressure == pytest.approx(0.80 * 95000.0)
