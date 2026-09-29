@@ -9,6 +9,8 @@ from pemfc_dedalus.anode import (
     hydrogen_moles_for_total_pressure,
     ideal_gas_partial_pressure_pa,
     lambda_flux_to_water_molar_rate,
+    mixed_gas_purge_fraction,
+    purge_anode_gas,
     repartition_anode_water,
     saturated_water_vapor_moles,
     water_saturation_pressure_pa,
@@ -189,3 +191,30 @@ def test_pressure_regulator_closes_when_water_already_overpressurizes_volume():
     assert inlet_rate == 0.0
     assert h2_new == pytest.approx(h2_initial)
     assert anode_total_gas_pressure_pa(h2_new, water_mol, **kwargs) > target_pressure
+
+
+
+def test_mixed_gas_purge_fraction_matches_one_volume_exchange():
+    fraction = mixed_gas_purge_fraction(20.0e-6, 20.0e-6)
+    assert fraction == pytest.approx(1.0 - 1.0 / pytest.approx(2.718281828459045))
+
+
+def test_purge_removes_same_fraction_of_h2_and_vapor_water():
+    state = AnodeWaterState(
+        vapor_mol=2.0e-5,
+        liquid_mol=0.0,
+        relative_humidity=0.4,
+    )
+    h2_new, water_new, h2_purged, water_purged = purge_anode_gas(
+        1.0e-3,
+        state,
+        purge_fraction=0.25,
+        volume_m3=20.0e-6,
+        temperature_k=313.15,
+        gas_constant_j_mol_k=8.31446261815324,
+    )
+    assert h2_purged == pytest.approx(2.5e-4)
+    assert water_purged == pytest.approx(5.0e-6)
+    assert h2_new == pytest.approx(7.5e-4)
+    assert water_new.vapor_mol == pytest.approx(1.5e-5)
+    assert water_new.liquid_mol == 0.0
