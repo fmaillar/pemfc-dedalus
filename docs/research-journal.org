@@ -3879,3 +3879,193 @@ Une première loi de déclenchement peut reprendre la référence Ballard :
 
 avant de tester ensuite une logique fondée sur l'état interne de l'anode.
 
+** V0.7 — Purge anodique discrète
+
+Après validation séparée :
+
+- du volume hydrique dynamique ;
+- de la sensibilité à V_anode ;
+- du bilan H2 sans purge ;
+
+la V0.7 introduit maintenant une première purge discrète.
+
+Cette purge reste un modèle réduit destiné à valider les bilans et les
+échelles de temps avant d'introduire une dynamique de vanne plus réaliste.
+
+*** Déclenchement
+
+La référence Ballard utilisée est :
+
+  2300 A.s.
+
+Le déclenchement est piloté par le courant stack de référence :
+
+  I_stack = 26.04 A
+
+et non par le courant du patch numérique.
+
+La période théorique correspondante est :
+
+  T_purge = 2300 / 26.04
+          ≈ 88.33 s.
+
+Cette séparation est volontaire.
+
+Le courant du patch reste utilisé pour :
+
+- la fermeture électrochimique V0.6 ;
+- la consommation H2 locale du modèle réduit.
+
+Le courant stack est utilisé uniquement comme horloge de purge issue de la loi
+Ballard.
+
+*** Modèle de purge
+
+Le volume anodique est traité comme un volume parfaitement mélangé.
+
+Pour un volume échangé V_purge, la fraction du gaz initial retirée est :
+
+  f_purge = 1 - exp(-V_purge / V_anode).
+
+Avec les valeurs provisoires actuelles :
+
+  V_purge = 20 mL
+  V_anode = 20 mL
+
+on obtient :
+
+  f_purge ≈ 0.6321.
+
+Une purge retire cette même fraction de :
+
+- H2 ;
+- vapeur d'eau.
+
+L'eau liquide n'est pas expulsée directement dans ce premier modèle.
+
+Après retrait du gaz, l'équilibre vapeur/liquide est recalculé.
+
+Le régulateur H2 idéal recharge ensuite uniquement la quantité d'H2 nécessaire
+pour revenir à la pression totale cible.
+
+*** Bilans suivis
+
+La campagne suit séparément :
+
+- H2 fourni par le régulateur ;
+- H2 consommé électrochimiquement ;
+- H2 expulsé par purge ;
+- variation de stock H2 ;
+- eau transférée par la membrane ;
+- eau expulsée par purge ;
+- inventaire final d'eau.
+
+Les deux fermetures à vérifier sont :
+
+  n_H2,initial
+  + n_H2,in
+  - n_H2,cons
+  - n_H2,purge
+  - n_H2,final
+  ≈ 0
+
+et :
+
+  n_H2O,initial
+  + n_H2O,membrane
+  - n_H2O,purge
+  - n_H2O,final
+  ≈ 0.
+
+*** Résolution temporelle
+
+La campagne utilise :
+
+  dt = 0.1 s
+
+afin de résoudre correctement la période de purge proche de :
+
+  88.3 s.
+
+Le calcul complet dure :
+
+  1000 s
+
+soit environ onze cycles de purge.
+
+Le préflight dure :
+
+  200 s
+
+et doit donc contenir environ deux purges.
+
+*** Infrastructure
+
+Nouvelles relations :
+
+  mixed_gas_purge_fraction(...)
+  purge_anode_gas(...)
+
+dans :
+
+  src/pemfc_dedalus/anode.py
+
+Nouveau driver :
+
+  scripts/run_v07_anode_purge.py
+
+Tests :
+
+  tests/test_v07_anode_purge.py
+
+Commandes :
+
+  make quick-purge-v07
+  make purge-v07
+
+Sorties :
+
+  results/quick-v07-anode-purge.json
+  results/quick-v07-anode-purge.csv
+  results/v07-anode-purge.json
+  results/v07-anode-purge.csv
+
+*** Validation attendue
+
+Avant le préflight :
+
+  make test
+
+doit être entièrement vert.
+
+Le préflight doit vérifier :
+
+- environ deux purges sur 200 s ;
+- première purge proche de 88.3 s ;
+- période moyenne proche de 88.3 s ;
+- pression toujours positive ;
+- inventaires H2/H2O non négatifs ;
+- bilans H2 et H2O fermés.
+
+La campagne complète doit ensuite permettre de mesurer :
+
+- amplitude du cycle RH avant/après purge ;
+- pression maximale entre purges ;
+- quantité H2 expulsée ;
+- quantité d'eau expulsée ;
+- recharge H2 après purge ;
+- stabilité du cycle sur plusieurs événements.
+
+*** Limite d'échelle conservée
+
+Le déclenchement de purge est ici directement issu de la loi système Ballard,
+alors que les flux H2 et H2O restent ceux du patch numérique.
+
+La campagne ne doit donc pas encore être interprétée comme une prédiction
+quantitative du rendement ou de la consommation H2 du stack complet.
+
+Elle valide la structure événementielle et les bilans.
+
+Une mise à l'échelle géométrique cohérente aire active / volume / débit restera
+nécessaire avant toute comparaison absolue avec le système réel.
+
