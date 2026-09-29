@@ -6,9 +6,9 @@ the membrane is converted from the V0.6 lambda-space flux into a molar source
 term for a finite anode gas volume.
 
 The gas phase is assumed to remain in instantaneous vapour/liquid equilibrium
-at the stack temperature.  Hydrogen pressure dynamics are intentionally not
-included yet; V0.7 first isolates the water-inventory dynamics before adding
-full dead-end H2 consumption and purge transients.
+at the stack temperature.  V0.7 first isolates the water-inventory dynamics, then adds a lumped
+hydrogen inventory and an idealized dead-end pressure-regulated inlet before
+introducing purge transients.
 """
 
 from __future__ import annotations
@@ -141,4 +141,131 @@ def advance_anode_water_state(
         volume_m3=volume_m3,
         temperature_k=temperature_k,
         gas_constant_j_mol_k=gas_constant_j_mol_k,
+    )
+
+
+
+def hydrogen_consumption_molar_rate(
+    current_a: float,
+    faraday_c_mol: float,
+) -> float:
+    """Return electrochemical H2 consumption [mol/s] from I = 2 F n_dot."""
+    if current_a < 0.0:
+        raise ValueError("current_a must be non-negative")
+    if faraday_c_mol <= 0.0:
+        raise ValueError("faraday_c_mol must be positive")
+    return current_a / (2.0 * faraday_c_mol)
+
+
+def ideal_gas_partial_pressure_pa(
+    moles: float,
+    *,
+    volume_m3: float,
+    temperature_k: float,
+    gas_constant_j_mol_k: float,
+) -> float:
+    """Return ideal-gas partial pressure [Pa] for one gas species."""
+    if moles < 0.0:
+        raise ValueError("moles must be non-negative")
+    if volume_m3 <= 0.0:
+        raise ValueError("volume_m3 must be positive")
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+    if gas_constant_j_mol_k <= 0.0:
+        raise ValueError("gas_constant_j_mol_k must be positive")
+    return moles * gas_constant_j_mol_k * temperature_k / volume_m3
+
+
+def hydrogen_moles_for_total_pressure(
+    total_pressure_pa: float,
+    *,
+    water_vapor_mol: float,
+    volume_m3: float,
+    temperature_k: float,
+    gas_constant_j_mol_k: float,
+) -> float:
+    """Return H2 moles required for a target total H2+H2O pressure."""
+    if total_pressure_pa <= 0.0:
+        raise ValueError("total_pressure_pa must be positive")
+    if water_vapor_mol < 0.0:
+        raise ValueError("water_vapor_mol must be non-negative")
+    water_pressure = ideal_gas_partial_pressure_pa(
+        water_vapor_mol,
+        volume_m3=volume_m3,
+        temperature_k=temperature_k,
+        gas_constant_j_mol_k=gas_constant_j_mol_k,
+    )
+    hydrogen_pressure = max(total_pressure_pa - water_pressure, 0.0)
+    return (
+        hydrogen_pressure
+        * volume_m3
+        / (gas_constant_j_mol_k * temperature_k)
+    )
+
+
+def anode_total_gas_pressure_pa(
+    hydrogen_mol: float,
+    water_vapor_mol: float,
+    *,
+    volume_m3: float,
+    temperature_k: float,
+    gas_constant_j_mol_k: float,
+) -> float:
+    """Return ideal total pressure [Pa] of H2 plus water vapour."""
+    return ideal_gas_partial_pressure_pa(
+        hydrogen_mol + water_vapor_mol,
+        volume_m3=volume_m3,
+        temperature_k=temperature_k,
+        gas_constant_j_mol_k=gas_constant_j_mol_k,
+    )
+
+
+def advance_pressure_regulated_hydrogen(
+    hydrogen_mol: float,
+    *,
+    current_a: float,
+    water_vapor_mol: float,
+    dt_s: float,
+    target_total_pressure_pa: float,
+    volume_m3: float,
+    temperature_k: float,
+    gas_constant_j_mol_k: float,
+    faraday_c_mol: float,
+) -> tuple[float, float, float]:
+    """Advance H2 inventory with consumption and an ideal one-way regulator.
+
+    The dead-end inlet can add hydrogen but cannot remove gas.  During each
+    step, electrochemical consumption is applied first.  The regulator then
+    adds the minimum H2 needed to recover the target total H2+H2O pressure.
+    If water accumulation already keeps total pressure above target, the inlet
+    closes and no hydrogen is added.
+
+    Returns:
+        (new_hydrogen_mol, inlet_rate_mol_s, consumption_rate_mol_s)
+    """
+    if hydrogen_mol < 0.0:
+        raise ValueError("hydrogen_mol must be non-negative")
+    if dt_s <= 0.0:
+        raise ValueError("dt_s must be positive")
+
+    consumption_rate = hydrogen_consumption_molar_rate(
+        current_a,
+        faraday_c_mol,
+    )
+    after_consumption = max(
+        hydrogen_mol - consumption_rate * dt_s,
+        0.0,
+    )
+    target_hydrogen = hydrogen_moles_for_total_pressure(
+        target_total_pressure_pa,
+        water_vapor_mol=water_vapor_mol,
+        volume_m3=volume_m3,
+        temperature_k=temperature_k,
+        gas_constant_j_mol_k=gas_constant_j_mol_k,
+    )
+    inlet_mol = max(target_hydrogen - after_consumption, 0.0)
+    return (
+        after_consumption + inlet_mol,
+        inlet_mol / dt_s,
+        consumption_rate,
     )
