@@ -88,6 +88,46 @@ def nafion_water_interfacial_transfer_coefficient_ge(
     return prefactor * fraction
 
 
+def nafion_water_interfacial_transfer_coefficient_grimaldi(
+    water_content: np.ndarray | float,
+    temperature_k: float,
+    *,
+    reference_temperature_k: float = 303.0,
+    prefactor_m_s: float = 0.66e-6,
+    activation_energy_j_mol: float = 6_000.0,
+    gas_constant_j_mol_k: float = 8.31446261815324,
+) -> np.ndarray:
+    """Return Grimaldi et al. interfacial water coefficient [m/s].
+
+    Uses the literature form
+
+        k_g = xi_ad * lambda**1.6
+              * exp[E_act / R * (1/T_ref - 1/T)].
+
+    The default parameters reproduce the values reported for the calibrated
+    PFSA interfacial transport model.
+    """
+    if temperature_k <= 0.0 or reference_temperature_k <= 0.0:
+        raise ValueError("temperatures must be positive")
+    if prefactor_m_s <= 0.0:
+        raise ValueError("prefactor_m_s must be positive")
+    if activation_energy_j_mol < 0.0:
+        raise ValueError("activation_energy_j_mol must be non-negative")
+    if gas_constant_j_mol_k <= 0.0:
+        raise ValueError("gas_constant_j_mol_k must be positive")
+
+    lam = np.asarray(water_content, dtype=float)
+    if np.any(lam < 0.0):
+        raise ValueError("water_content must be non-negative")
+
+    temperature_factor = np.exp(
+        activation_energy_j_mol
+        / gas_constant_j_mol_k
+        * (1.0 / reference_temperature_k - 1.0 / temperature_k)
+    )
+    return prefactor_m_s * lam**1.6 * temperature_factor
+
+
 def electro_osmotic_drag_coefficient(
     water_content: np.ndarray | float,
 ) -> np.ndarray:
