@@ -9458,3 +9458,36 @@ non-zero drag.
 
 The 2D parallel lookup strategy is retained. Run make test, then rerun the
 21x21 quick lookup before any full campaign.
+
+
+*** Gate cassé après refonte du solveur : arguments API obsolètes
+
+Après le passage au shooting sur le flux J_lambda, le wrapper Motupally
+appelait encore :
+
+  lambda_lower_bound
+  lambda_upper_bound
+
+alors que ces arguments n'existent plus dans :
+
+  steady_membrane_water_profile_variable_diffusivity(...).
+
+Conséquence :
+
+  4 tests Motupally échouent immédiatement avec TypeError
+
+tandis que :
+
+  138 tests passent.
+
+Il s'agit d'un défaut de maintenance d'API, pas d'un défaut physique ou
+numérique.
+
+Correction :
+
+  suppression des deux arguments obsolètes dans
+  steady_membrane_water_profile_motupally(...).
+
+Décision :
+
+  relancer make test avant toute relance du quick 2D Motupally.
