@@ -11314,3 +11314,66 @@ Avant toute nouvelle tentative de full :
 
 Cette étape est désormais une validation de cohérence physique, pas une simple
 correction numérique.
+
+
+*** Infrastructure de cartographie du domaine de validité Grimaldi hybride
+
+Pour distinguer une vraie absence de solution stationnaire d'un simple échec
+numérique ponctuel, un diagnostic dédié est ajouté :
+
+  scripts/analyze_v07_grimaldi_hybrid_validity.py
+
+Il balaie directement l'espace :
+
+  RH_anode
+  x
+  densité de courant
+
+sur le domaine couvrant les trois régimes V0.7.
+
+Chaque point évalue uniquement la fermeture :
+
+  Motupally
+  + Springer
+  + Robin Grimaldi.
+
+Les points sont indépendants et distribués sur :
+
+  JOBS = 8.
+
+Le diagnostic capture les RuntimeError du solveur et enregistre pour chaque
+état :
+
+- RH_anode ;
+- densité de courant ;
+- validité ;
+- perméance si valide ;
+- message d'erreur sinon.
+
+Quick diagnostic :
+
+  make analyze-grimaldi-validity-v07
+
+avec :
+
+  21 x 21 = 441 états.
+
+Sortie :
+
+  results/v07-grimaldi-hybrid-validity-domain.csv
+
+Le diagnostic imprime également :
+
+- nombre de points valides ;
+- nombre de points invalides ;
+- fraction valide ;
+- enveloppe RH/j des états invalides ;
+- premiers messages d'échec.
+
+Décision :
+
+  ne pas relancer le full Grimaldi avant cette cartographie ;
+
+  si les états invalides correspondent à des zones réellement parcourues par
+  dry_high_load, abandonner l'hybride partiel et implémenter une fermeture
+  Grimaldi cohérente plutôt que forcer le solveur.
