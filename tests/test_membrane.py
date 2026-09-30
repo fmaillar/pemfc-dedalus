@@ -11,6 +11,7 @@ from pemfc_dedalus.membrane import (
     membrane_water_content_from_activity,
     membrane_water_diffusivity_motupally,
     nafion_water_interfacial_transfer_coefficient_ge,
+    nafion_water_interfacial_transfer_coefficient_grimaldi,
     steady_membrane_water_profile,
     steady_membrane_water_profile_anode_transfer,
     steady_membrane_water_profile_motupally,
@@ -57,6 +58,45 @@ def test_ge_interfacial_transfer_correlation_rejects_invalid_inputs():
             0.1,
             mode="invalid",
         )
+
+
+def test_grimaldi_interfacial_transfer_correlation_matches_formula():
+    water_content = np.array([2.0, 4.0])
+    temperature = 313.15
+    expected = (
+        0.66e-6
+        * water_content**1.6
+        * np.exp(
+            6000.0
+            / 8.31446261815324
+            * (1.0 / 303.0 - 1.0 / temperature)
+        )
+    )
+
+    actual = nafion_water_interfacial_transfer_coefficient_grimaldi(
+        water_content,
+        temperature,
+    )
+
+    assert np.allclose(actual, expected)
+
+
+def test_grimaldi_interfacial_transfer_increases_with_lambda_and_temperature():
+    low_lambda = nafion_water_interfacial_transfer_coefficient_grimaldi(
+        2.0,
+        313.15,
+    ).item()
+    high_lambda = nafion_water_interfacial_transfer_coefficient_grimaldi(
+        4.0,
+        313.15,
+    ).item()
+    hotter = nafion_water_interfacial_transfer_coefficient_grimaldi(
+        4.0,
+        333.15,
+    ).item()
+
+    assert high_lambda > low_lambda > 0.0
+    assert hotter > high_lambda
 
 def test_motupally_water_diffusivity_matches_published_branches():
     temperature = 313.15
