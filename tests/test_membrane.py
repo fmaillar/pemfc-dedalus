@@ -384,6 +384,24 @@ def test_motupally_grimaldi_profile_hits_cathode_boundary():
     assert np.all(profile < 17.0)
     assert profile[-1] == pytest.approx(3.4855, abs=1.0e-8)
 
+
+def test_grimaldi_profile_handles_wet_high_lambda_state():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 129)
+
+    profile = steady_membrane_water_profile_motupally_grimaldi(
+        z,
+        lambda_cathode=3.4855,
+        lambda_anode_equilibrium=10.0,
+        temperature_k=p.stack_temperature,
+        drag_velocity_m_s=2.0e-7,
+        gas_constant_j_mol_k=p.gas_constant,
+    )
+
+    assert np.all(profile > 0.0)
+    assert np.all(profile < 17.0)
+    assert profile[-1] == pytest.approx(3.4855, abs=1.0e-8)
+
 def test_membrane_asr_is_positive_and_decreases_with_hydration():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 65)
