@@ -8614,3 +8614,181 @@ Sortie :
 L'objectif est de relier directement la variation de J_N2 à la structure
 spatiale de résistance et aux groupes sans dimension avant de choisir une
 nouvelle calibration ou une nouvelle physique.
+
+
+*** Résultats du diagnostic spatial de résistance N2
+
+Le post-traitement des 54 cas permet maintenant d'expliquer l'inversion de
+sensibilité entre régimes.
+
+Pour gamma = 1, trois cas représentatifs sont particulièrement instructifs.
+
+dry_high_load, D = 2e-10 m2/s, k_a = 2e-6 m/s :
+
+  Pe_w = 0.111
+  Bi_a = 0.50
+
+  lambda_anode = 2.950
+  lambda_cathode = 3.485
+  lambda_mean = 3.213
+
+  fraction de résistance N2 :
+    moitié anodique = 54.9 %
+    moitié cathodique = 45.1 %
+
+  quart anodique = 28.8 %
+  quart cathodique = 21.4 %.
+
+L'anode est donc la zone la plus sèche et la plus résistive.
+
+wet_low_load, D = 2e-10 m2/s, k_a = 2e-6 m/s :
+
+  Pe_w = 0.0393
+  Bi_a = 0.50
+
+  lambda_anode = 5.372
+  lambda_cathode = 3.485
+  lambda_mean = 4.435
+
+  fraction de résistance N2 :
+    moitié anodique = 34.3 %
+    moitié cathodique = 65.7 %
+
+  quart anodique = 14.5 %
+  quart cathodique = 38.3 %.
+
+Le côté cathodique devient donc la zone sèche dominante.
+
+Dans le cas wet_low_load le plus hydraté de la grille :
+
+  D = 1e-10 m2/s
+  k_a = 4e-6 m/s
+
+on obtient :
+
+  lambda_anode = 7.349
+  lambda_cathode = 3.485
+
+et le quart cathodique porte à lui seul environ :
+
+  50.0 %
+
+de toute la résistance N2 through-plane.
+
+A l'autre extrême :
+
+  D = 4e-10 m2/s
+  k_a = 1e-6 m/s
+
+le profil wet est beaucoup plus plat :
+
+  lambda_anode = 4.087
+  lambda_cathode = 3.485
+
+et le quart cathodique ne porte plus qu'environ :
+
+  29.2 %
+
+de la résistance.
+
+*** Explication du changement de signe
+
+Dans dry_high_load :
+
+  lambda_anode,equilibre < lambda_cathode.
+
+Augmenter D_water favorise la diffusion de l'eau depuis la cathode vers
+l'anode.
+
+La zone anodique sèche s'hydrate, sa perméabilité N2 augmente et la résistance
+through-plane diminue.
+
+Donc :
+
+  D_water augmente
+  -> J_N2 augmente.
+
+Dans wet_low_load :
+
+  lambda_anode,equilibre >> lambda_cathode.
+
+Le gradient hydrique est inversé.
+
+Augmenter D_water rapproche davantage le profil de l'état cathodique plus sec
+et réduit l'excès d'hydratation du côté anodique.
+
+La zone cathodique, dont la perméabilité est la plus faible, domine alors
+davantage l'intégrale de résistance.
+
+Donc :
+
+  D_water augmente
+  -> J_N2 diminue.
+
+Le coefficient k_a agit en sens opposé parce qu'il couple plus fortement
+l'interface anodique à son état d'équilibre gazeux.
+
+Ainsi, dans wet_low_load :
+
+  k_a augmente
+  -> lambda_anode augmente fortement
+  -> une plus grande fraction de membrane devient très hydratée
+  -> J_N2 augmente.
+
+Dans dry_high_load, le même mécanisme rapproche au contraire l'anode de son
+équilibre plus sec et diminue J_N2.
+
+Le nominal se situe près de l'état où les teneurs en eau anodique et
+cathodique sont proches ; la distribution de résistance est presque symétrique,
+ce qui explique sa faible sensibilité.
+
+*** Conséquence pour D_water
+
+Le paramètre constant :
+
+  D_water = 2e-10 m2/s
+
+est désormais trop grossier pour être conservé sans vérification.
+
+Springer et al. utilisent déjà une diffusivité d'eau dépendant de lambda dans
+leur modèle Nafion 117.
+
+Motupally, Becker et Weidner (J. Electrochem. Soc. 147, 3171-3177, 2000,
+DOI 10.1149/1.1393879) donnent une corrélation Fickienne explicite issue des
+mesures de Zawodzinski et du facteur de Darken :
+
+pour 0 < lambda <= 3 :
+
+  D_w,F =
+    3.10e-3
+    * lambda
+    * (exp(0.28 lambda) - 1)
+    * exp(-2436/T)
+
+en cm2/s,
+
+et pour 3 <= lambda < 17 :
+
+  D_w,F =
+    4.17e-4
+    * (1 + 161 exp(-lambda))
+    * exp(-2436/T)
+
+en cm2/s.
+
+Cette corrélation est fortement non linéaire et présente une discontinuité à
+lambda = 3 héritée de la formulation du facteur de Darken.
+
+Autour de la température actuelle de pile, elle donne des diffusivités très
+différentes du D constant actuel suivant lambda.
+
+La prochaine étape doit donc quantifier cette différence sur les profils déjà
+calculés avant d'introduire une résolution non linéaire dynamique.
+
+Décision :
+
+  ajouter la corrélation Motupally comme relation constitutive testée ;
+
+  comparer D_Motupally(lambda(z)) à D_water constant sur les profils V0.7 ;
+
+  ne remplacer le solveur constant-D qu'après cette validation diagnostique.
