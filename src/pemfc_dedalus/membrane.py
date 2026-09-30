@@ -361,8 +361,6 @@ def steady_membrane_water_profile_motupally(
         drag_velocity_m_s=drag_velocity_m_s,
         anode_transfer_coefficient_m_s=anode_transfer_coefficient_m_s,
         diffusivity_model=diffusivity_model,
-        lambda_lower_bound=1.0e-4,
-        lambda_upper_bound=16.99,
     )
 
 def membrane_area_specific_resistance(
