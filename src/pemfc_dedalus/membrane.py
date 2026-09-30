@@ -406,6 +406,191 @@ def steady_membrane_water_profile_variable_diffusivity(
     return profile
 
 
+
+def steady_membrane_water_profile_variable_transfer(
+    z_m: np.ndarray,
+    *,
+    lambda_cathode: float,
+    lambda_anode_equilibrium: float,
+    drag_velocity_m_s: float,
+    diffusivity_model: Callable[[float], float],
+    transfer_coefficient_model: Callable[[float], float],
+    lambda_scan_points: int = 129,
+    root_iterations: int = 60,
+    substeps_per_interval: int = 4,
+) -> np.ndarray:
+    """Return steady lambda profile with state-dependent interfacial transfer.
+
+    The anode boundary condition is
+
+        J_lambda = -k(lambda_anode)
+                   * (lambda_anode - lambda_anode_equilibrium).
+
+    The unknown scalar is lambda_anode. For each trial, the corresponding
+    through-plane flux is obtained from the Robin condition and the profile is
+    integrated in physical z-space. This avoids assuming a monotone lambda(z).
+    """
+    z = np.asarray(z_m, dtype=float)
+    if z.ndim != 1 or z.size < 2:
+        raise ValueError("z_m must be a one-dimensional grid with at least two points")
+    if np.any(np.diff(z) <= 0.0):
+        raise ValueError("z_m must be strictly increasing")
+    if not 0.0 < lambda_cathode < 17.0:
+        raise ValueError("lambda_cathode must satisfy 0 < lambda < 17")
+    if not 0.0 < lambda_anode_equilibrium < 17.0:
+        raise ValueError("lambda_anode_equilibrium must satisfy 0 < lambda < 17")
+    if lambda_scan_points < 3 or root_iterations < 1:
+        raise ValueError("lambda_scan_points and root_iterations are too small")
+
+    def flux_for(lambda_anode: float) -> float:
+        coefficient = float(transfer_coefficient_model(lambda_anode))
+        if not np.isfinite(coefficient) or coefficient <= 0.0:
+            raise ValueError(
+                "transfer_coefficient_model must return finite positive values"
+            )
+        return -coefficient * (
+            lambda_anode - lambda_anode_equilibrium
+        )
+
+    def integrate_for_lambda_anode(lambda_anode: float) -> np.ndarray:
+        return _integrate_variable_diffusivity_flux_profile(
+            z,
+            lambda_anode=lambda_anode,
+            flux_lambda_m_s=flux_for(lambda_anode),
+            drag_velocity_m_s=drag_velocity_m_s,
+            diffusivity_model=diffusivity_model,
+            substeps_per_interval=substeps_per_interval,
+        )
+
+    def residual(lambda_anode: float) -> float:
+        try:
+            profile = integrate_for_lambda_anode(lambda_anode)
+        except (ValueError, FloatingPointError, OverflowError):
+            return float("nan")
+        return float(profile[-1] - lambda_cathode)
+
+    candidates = [
+        1.0e-4,
+        16.999,
+        lambda_anode_equilibrium,
+        lambda_cathode,
+        3.0 - 1.0e-6,
+        3.0,
+        3.0 + 1.0e-6,
+    ]
+    candidates.extend(
+        float(value)
+        for value in np.linspace(
+            1.0e-4,
+            16.999,
+            lambda_scan_points,
+        )
+    )
+
+    trials: list[tuple[float, float]] = []
+    seen: set[float] = set()
+    for candidate in sorted(candidates):
+        value = float(np.clip(candidate, 1.0e-4, 16.999))
+        key = round(value, 12)
+        if key in seen:
+            continue
+        seen.add(key)
+        residual_value = residual(value)
+        if np.isfinite(residual_value):
+            trials.append((value, residual_value))
+
+    bracket: tuple[float, float] | None = None
+    for (left, left_value), (right, right_value) in zip(
+        trials,
+        trials[1:],
+        strict=False,
+    ):
+        if left_value == 0.0:
+            bracket = (left, left)
+            break
+        if left_value * right_value <= 0.0:
+            bracket = (left, right)
+            break
+
+    if bracket is None:
+        if not trials:
+            raise RuntimeError(
+                "no physical variable-transfer membrane trial"
+            )
+        best_lambda, best_residual = min(
+            trials,
+            key=lambda item: abs(item[1]),
+        )
+        raise RuntimeError(
+            "could not bracket variable-transfer membrane solution; "
+            f"best lambda_anode={best_lambda:.6g}, "
+            f"lambda residual={best_residual:.6g}"
+        )
+
+    lower, upper = bracket
+    if lower == upper:
+        lambda_anode = lower
+    else:
+        lower_value = residual(lower)
+        for _ in range(root_iterations):
+            midpoint = 0.5 * (lower + upper)
+            midpoint_value = residual(midpoint)
+            if not np.isfinite(midpoint_value):
+                upper = midpoint
+                continue
+            if abs(midpoint_value) <= 1.0e-9:
+                lower = midpoint
+                upper = midpoint
+                break
+            if lower_value * midpoint_value <= 0.0:
+                upper = midpoint
+            else:
+                lower = midpoint
+                lower_value = midpoint_value
+        lambda_anode = 0.5 * (lower + upper)
+
+    profile = integrate_for_lambda_anode(lambda_anode)
+    profile[-1] = lambda_cathode
+    return profile
+
+
+def steady_membrane_water_profile_motupally_grimaldi(
+    z_m: np.ndarray,
+    *,
+    lambda_cathode: float,
+    lambda_anode_equilibrium: float,
+    temperature_k: float,
+    drag_velocity_m_s: float,
+    gas_constant_j_mol_k: float = 8.31446261815324,
+) -> np.ndarray:
+    """Return steady Motupally profile with Grimaldi interfacial transfer."""
+
+    def diffusivity_model(water_content: float) -> float:
+        return float(
+            membrane_water_diffusivity_motupally(
+                water_content,
+                temperature_k,
+            ).item()
+        )
+
+    def transfer_model(water_content: float) -> float:
+        return float(
+            nafion_water_interfacial_transfer_coefficient_grimaldi(
+                water_content,
+                temperature_k,
+                gas_constant_j_mol_k=gas_constant_j_mol_k,
+            ).item()
+        )
+
+    return steady_membrane_water_profile_variable_transfer(
+        z_m,
+        lambda_cathode=lambda_cathode,
+        lambda_anode_equilibrium=lambda_anode_equilibrium,
+        drag_velocity_m_s=drag_velocity_m_s,
+        diffusivity_model=diffusivity_model,
+        transfer_coefficient_model=transfer_model,
+    )
+
 def steady_membrane_water_profile_motupally(
     z_m: np.ndarray,
     *,
