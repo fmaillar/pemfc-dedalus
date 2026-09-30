@@ -9317,3 +9317,125 @@ Décision :
   conserver cette granularité de parallélisation pour la campagne Motupally,
   car elle correspond mieux à la structure réellement embarrassingly parallel
   du problème.
+
+
+*** Optimisation du coût Motupally : table de perméance pré-calculée
+
+L'observation en temps réel de la charge CPU montre que la campagne Motupally
+reste lente malgré le découpage en plusieurs processus.
+
+La cause principale n'est pas le nombre de workers mais la granularité du
+calcul.
+
+Dans l'implémentation précédente, le modèle Motupally résout le profil
+membranaire non linéaire à chaque pas de temps.
+
+Pour un quick de :
+
+  200 s
+  dt = 0.01 s
+
+cela représente environ :
+
+  20 000 évaluations temporelles
+
+par simulation Motupally.
+
+Chaque évaluation reconstruit :
+
+  lambda(z)
+  -> D_Motupally(lambda,T)
+  -> P_N2(z)
+  -> perméance N2 effective.
+
+Le coût est donc dominé par une résolution stationnaire répétée sur des états
+(RH_anode, densité de courant) qui évoluent continûment mais restent dans un
+domaine compact.
+
+*** Nouvelle stratégie : lookup 2D K_N2(RH,j)
+
+Le modèle Motupally est désormais pré-calculé sur une grille bidimensionnelle :
+
+  RH_anode
+  x
+  densité de courant.
+
+Pour chaque point de grille, la chaîne complète est évaluée une seule fois :
+
+  profil Motupally variable-D
+  -> profil de perméabilité Catalano
+  -> perméance N2 through-plane.
+
+Le pré-calcul est parallélisé par lignes de RH avec ProcessPoolExecutor.
+
+Une fois la table construite, la dynamique utilise uniquement une interpolation
+bilinéaire :
+
+  K_N2 =
+    interp2D(RH_anode, j).
+
+Ainsi, la simulation temporelle n'appelle plus le solveur non linéaire à chaque
+pas.
+
+Le domaine en densité de courant est construit à partir des closures V0.6 des
+régimes sélectionnés avec une marge de sécurité.
+
+Le domaine RH couvre :
+
+  0 <= RH_anode <= 1.
+
+*** Granularité du quick
+
+Le quick utilise :
+
+  21 points en RH
+  x
+  21 points en densité de courant
+
+soit :
+
+  441 résolutions Motupally
+
+au lieu de plusieurs dizaines de milliers par simulation.
+
+Ces 441 calculs sont distribués sur :
+
+  6 workers.
+
+Après cette phase, les simulations :
+
+  nominal / wet_low_load
+  x gamma = 0 / 1
+  x constant_D / Motupally
+
+forment 8 tâches indépendantes, également parallélisées.
+
+La campagne complète utilisera par défaut :
+
+  33 x 33 = 1089 points
+
+pour la table Motupally.
+
+*** Validation numérique de la table
+
+Une régression vérifie explicitement :
+
+- l'interpolation bilinéaire ;
+- le comportement de clamp aux frontières du domaine.
+
+La validation scientifique de la résolution 21x21 puis 33x33 devra être faite
+en comparant les résultats quick/full et, si nécessaire, une table plus fine.
+
+Décision :
+
+  abandonner les résolutions Motupally répétées à chaque pas de temps ;
+
+  conserver le solveur exact uniquement pour construire la table ;
+
+  utiliser la table interpolée pendant la dynamique.
+
+Cette modification est à la fois :
+
+- physiquement équivalente à interpolation près ;
+- massivement moins coûteuse ;
+- naturellement parallélisable.
