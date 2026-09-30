@@ -8352,3 +8352,72 @@ gamma = 1 conserve la rétroaction H2.
 Compte tenu du nombre de cas indépendants, la campagne doit rester parallélisée.
 
 Cette sensibilité constitue désormais le prochain verrou physique de V0.7.
+
+
+*** Infrastructure de la sensibilité D_water / k_a
+
+La campagne de sensibilité sur les deux paramètres hydriques V0.6 est ajoutée.
+
+Driver :
+
+  scripts/run_v07_n2_catalano_membrane_transport_sensitivity.py
+
+Grille nominale :
+
+  D_water =
+    1.0e-10
+    2.0e-10
+    4.0e-10 m2/s
+
+  k_a =
+    1.0e-6
+    2.0e-6
+    4.0e-6 m/s.
+
+La campagne complète couvre :
+
+  3 régimes
+  x 2 valeurs de gamma
+  x 3 valeurs de D_water
+  x 3 valeurs de k_a
+
+soit :
+
+  54 cas indépendants.
+
+Le calcul est parallélisé avec :
+
+  --jobs 8
+
+sur la machine m710s.
+
+Le quick screening est volontairement réduit à :
+
+  nominal
+  wet_low_load
+  gamma = 0
+
+sur la grille 3x3 complète, soit 18 cas.
+
+Commandes :
+
+  make quick-n2-catalano-transport-sensitivity-v07
+  make n2-catalano-transport-sensitivity-v07
+
+Sorties :
+
+  results/quick-v07-n2-catalano-membrane-transport-sensitivity.json
+  results/quick-v07-n2-catalano-membrane-transport-sensitivity.csv
+  results/v07-n2-catalano-membrane-transport-sensitivity.json
+  results/v07-n2-catalano-membrane-transport-sensitivity.csv
+
+L'objectif du quick est de vérifier :
+
+- stabilité numérique sur les extrêmes de D_water et k_a ;
+- monotonicité ou non du crossover ;
+- absence de changement de signe inattendu ;
+- conservation des espèces ;
+- robustesse de la forte réduction observée dans wet_low_load.
+
+Si le quick est propre, la campagne complète doit être lancée sans autre
+modification de modèle.
