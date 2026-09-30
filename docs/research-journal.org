@@ -9491,3 +9491,147 @@ Correction :
 Décision :
 
   relancer make test avant toute relance du quick 2D Motupally.
+
+
+*** Quick Motupally 21x21 validé
+
+Après correction du solveur variable-D et passage à la table 2D pré-calculée,
+le gate complet est vert et le quick Motupally 21x21 est terminé.
+
+Configuration :
+
+  régimes :
+    nominal
+    wet_low_load
+
+  gamma :
+    0
+    1
+
+  lookup :
+    21 x 21
+
+  jobs :
+    8
+
+  horizon :
+    200 s
+
+  dt :
+    0.01 s.
+
+Le domaine de lookup en densité de courant est :
+
+  540.6 à 1274.4 A/m2.
+
+Résultats gamma = 0 :
+
+nominal :
+
+  J_N2,moy :
+    D constant = 1.77574e-6 mol/m2/s
+    Motupally  = 1.70621e-6 mol/m2/s
+
+  variation :
+    -3.92 %
+
+  x_N2,max :
+    0.0050785 -> 0.0048799
+    -3.91 %.
+
+wet_low_load :
+
+  J_N2,moy :
+    D constant = 3.49941e-6 mol/m2/s
+    Motupally  = 4.08890e-6 mol/m2/s
+
+  variation :
+    +16.85 %
+
+  x_N2,max :
+    0.012400 -> 0.014490
+    +16.86 %.
+
+Résultats gamma = 1 :
+
+nominal :
+
+  J_N2,moy :
+    variation = -3.91 %
+
+  x_N2,max :
+    variation = -3.92 %.
+
+wet_low_load :
+
+  J_N2,moy :
+    variation = +16.82 %
+
+  x_N2,max :
+    variation = +16.96 %.
+
+Le nombre de purges est inchangé entre les deux formulations :
+
+  nominal :
+    2 purges / 200 s
+
+  wet_low_load :
+    1 purge / 200 s.
+
+Dans nominal, la période moyenne de purge est pratiquement inchangée :
+
+  environ 80.7 s.
+
+Les bilans H2, N2 et H2O restent fermés à la précision numérique.
+
+*** Interprétation du quick Motupally
+
+Le remplacement de D constant par D_Motupally(lambda,T) ne produit pas une
+correction uniforme.
+
+Au nominal :
+
+  le crossover diminue d'environ 4 %.
+
+En wet_low_load :
+
+  le crossover augmente d'environ 17 %.
+
+Cette inversion est cohérente avec la sensibilité D_water précédente :
+
+- au nominal, le profil est proche du point de transition et reste peu sensible ;
+- en wet, la baisse effective de diffusivité renforce l'hydratation côté
+  anodique et augmente la perméance effective through-plane.
+
+La correction gamma = 0 -> gamma = 1 est très faible sur l'effet relatif de
+Motupally. La physique de transport membranaire domine donc la différence
+observée.
+
+Le changement est suffisamment grand en wet pour justifier la formulation
+Motupally comme candidate de référence.
+
+*** Décision numérique avant campagne complète
+
+La dynamique utilise désormais une interpolation bilinéaire d'une table
+K_N2(RH,j).
+
+Le quick 21x21 étant valide, la dernière validation numérique nécessaire avant
+la campagne complète est la convergence de cette table.
+
+Étape suivante :
+
+  répéter exactement le même quick avec une table 33x33 ;
+
+  comparer 21x21 et 33x33 sur :
+    J_N2,moy
+    x_N2,max
+    courant moyen
+    purge count
+    purge period.
+
+Critère pratique :
+
+  si les observables principales changent de moins de 1 % entre 21x21 et
+  33x33, conserver 33x33 pour la campagne complète.
+
+La campagne complète ne doit être lancée qu'après cette vérification.
