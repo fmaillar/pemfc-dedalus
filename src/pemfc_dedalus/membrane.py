@@ -499,18 +499,55 @@ def steady_membrane_water_profile_variable_transfer(
         if np.isfinite(residual_value):
             trials.append((value, residual_value))
 
-    bracket: tuple[float, float] | None = None
-    for (left, left_value), (right, right_value) in zip(
-        trials,
-        trials[1:],
-        strict=False,
-    ):
-        if left_value == 0.0:
-            bracket = (left, left)
-            break
-        if left_value * right_value <= 0.0:
-            bracket = (left, right)
-            break
+    def find_bracket(
+        samples: list[tuple[float, float]],
+    ) -> tuple[float, float] | None:
+        for (left, left_value), (right, right_value) in zip(
+            samples,
+            samples[1:],
+            strict=False,
+        ):
+            if left_value == 0.0:
+                return left, left
+            if left_value * right_value <= 0.0:
+                return left, right
+        return None
+
+    bracket = find_bracket(trials)
+
+    if bracket is None and trials:
+        best_lambda, _ = min(
+            trials,
+            key=lambda item: abs(item[1]),
+        )
+        base_spacing = 16.9989 / max(lambda_scan_points - 1, 1)
+
+        for refinement in range(1, 9):
+            half_width = base_spacing / (2.0 ** (refinement - 1))
+            local_candidates = np.linspace(
+                max(1.0e-4, best_lambda - half_width),
+                min(16.999, best_lambda + half_width),
+                33,
+            )
+            for candidate in local_candidates:
+                value = float(candidate)
+                key = round(value, 12)
+                if key in seen:
+                    continue
+                seen.add(key)
+                residual_value = residual(value)
+                if np.isfinite(residual_value):
+                    trials.append((value, residual_value))
+
+            trials.sort(key=lambda item: item[0])
+            bracket = find_bracket(trials)
+            if bracket is not None:
+                break
+
+            best_lambda, _ = min(
+                trials,
+                key=lambda item: abs(item[1]),
+            )
 
     if bracket is None:
         if not trials:
