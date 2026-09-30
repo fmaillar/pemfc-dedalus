@@ -10364,3 +10364,217 @@ Aucune modification de physique, de parallélisme ou de résultat numérique.
 Décision :
 
   relancer make test avant la campagne complète k_a.
+
+
+*** Résultats complets de la sensibilité k_a avec Motupally
+
+La campagne complète de sensibilité au coefficient de transfert anodique k_a
+est terminée après passage du gate :
+
+  pytest :
+    142 passed
+
+  Ruff :
+    All checks passed
+
+  mypy :
+    Success.
+
+Configuration :
+
+  régimes :
+    dry_high_load
+    nominal
+    wet_low_load
+
+  gamma :
+    0
+    1
+
+  k_a :
+    1e-6
+    2e-6
+    4e-6 m/s
+
+  lookup :
+    33 x 33
+
+  horizon :
+    1000 s
+
+  dt :
+    0.01 s
+
+  jobs :
+    8.
+
+Temps de calcul mesuré :
+
+  real = 21 min 40.78 s
+  user = 9898.80 s
+  sys  = 12.59 s
+  CPU  = 761 %
+  max RSS = 32708 kB.
+
+Le regroupement des 99 tâches de lookup dans un seul pool maintient donc une
+occupation CPU proche des 8 workers sur l'ensemble du pré-calcul.
+
+*** Résultats gamma = 0
+
+dry_high_load :
+
+  k_a = 1e-6 :
+    J_N2,moy = 1.511e-6 mol/m2/s
+    x_N2,max = 0.00335
+
+  k_a = 2e-6 :
+    J_N2,moy = 1.477e-6 mol/m2/s
+    x_N2,max = 0.00327
+
+  k_a = 4e-6 :
+    J_N2,moy = 1.434e-6 mol/m2/s
+    x_N2,max = 0.00318.
+
+Entre 1e-6 et 4e-6 :
+
+  J_N2,moy diminue d'environ 5.1 %
+  x_N2,max diminue d'environ 5.1 %.
+
+nominal :
+
+  k_a = 1e-6 :
+    J_N2,moy = 1.690e-6 mol/m2/s
+    x_N2,max = 0.00591
+
+  k_a = 2e-6 :
+    J_N2,moy = 1.701e-6 mol/m2/s
+    x_N2,max = 0.00595
+
+  k_a = 4e-6 :
+    J_N2,moy = 1.714e-6 mol/m2/s
+    x_N2,max = 0.00599.
+
+Entre 1e-6 et 4e-6 :
+
+  J_N2,moy augmente d'environ 1.4 %
+  x_N2,max augmente d'environ 1.4 %.
+
+wet_low_load :
+
+  k_a = 1e-6 :
+    J_N2,moy = 3.502e-6 mol/m2/s
+    x_N2,max = 0.02146
+
+  k_a = 2e-6 :
+    J_N2,moy = 4.036e-6 mol/m2/s
+    x_N2,max = 0.02471
+
+  k_a = 4e-6 :
+    J_N2,moy = 4.328e-6 mol/m2/s
+    x_N2,max = 0.02649.
+
+Entre 1e-6 et 4e-6 :
+
+  J_N2,moy augmente d'environ 23.6 %
+  x_N2,max augmente d'environ 23.4 %.
+
+*** Résultats gamma = 1
+
+Les tendances sont pratiquement identiques.
+
+dry_high_load :
+
+  J_N2,moy :
+    1.511e-6 -> 1.434e-6 mol/m2/s
+    environ -5.1 %.
+
+nominal :
+
+  J_N2,moy :
+    1.691e-6 -> 1.714e-6 mol/m2/s
+    environ +1.4 %.
+
+wet_low_load :
+
+  J_N2,moy :
+    3.504e-6 -> 4.324e-6 mol/m2/s
+    environ +23.4 %.
+
+Le choix gamma = 0/1 ne modifie donc pas le diagnostic de sensibilité à k_a.
+
+*** Interprétation physique de la sensibilité k_a
+
+Le changement de signe entre dry_high_load et wet_low_load est confirmé avec
+la diffusivité Motupally.
+
+dry_high_load :
+
+  lambda_anode,equilibre < lambda_cathode.
+
+Augmenter k_a couple plus fortement l'interface anodique à son état plus sec.
+La zone anodique perd de l'eau, sa perméabilité N2 diminue et la résistance
+through-plane augmente.
+
+Donc :
+
+  k_a augmente
+  -> J_N2 diminue.
+
+wet_low_load :
+
+  lambda_anode,equilibre > lambda_cathode.
+
+Augmenter k_a couple au contraire plus fortement l'interface anodique à un état
+hydraté.
+
+Donc :
+
+  k_a augmente
+  -> hydratation anodique augmente
+  -> perméance N2 augmente
+  -> J_N2 augmente.
+
+nominal :
+
+  les états hydriques des deux côtés sont proches.
+
+Le profil reste donc peu sensible à k_a.
+
+*** Conséquence méthodologique
+
+Le paramètre :
+
+  k_a = 2e-6 m/s
+
+ne peut plus être considéré comme un simple paramètre numérique secondaire.
+
+Son incertitude produit environ :
+
+  5 % d'effet sur le crossover en dry_high_load
+  1 à 2 % au nominal
+  23 à 24 % en wet_low_load.
+
+Le régime humide est donc encore dominé par l'incertitude sur la fermeture de
+transfert anodique.
+
+*** Décision après sensibilité k_a
+
+Avant d'ajouter une nouvelle physique, il faut contraindre k_a.
+
+Priorité :
+
+  rechercher une base expérimentale ou une fermeture physique pour le transfert
+  eau membrane/gaz anodique.
+
+Deux voies sont envisageables :
+
+1. littérature :
+   coefficient de sorption/désorption ou résistance interfaciale eau-vapeur /
+   Nafion ;
+
+2. reformulation :
+   remplacer k_a phénoménologique par une loi de flux issue d'une résistance
+   interfaciale documentée ou d'une cinétique de sorption/désorption.
+
+La prochaine étape est donc une revue ciblée de littérature sur les échanges
+d'eau à l'interface Nafion/gaz, avant toute nouvelle campagne dynamique.
