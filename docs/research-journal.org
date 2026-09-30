@@ -9737,3 +9737,135 @@ MPI_N reste indépendant de JOBS :
 
   MPI_N contrôle les runs MPI/Dedalus ;
   JOBS contrôle les campagnes Python embarrassingly parallel.
+
+
+*** Convergence du lookup Motupally 21x21 -> 33x33
+
+La campagne quick 33x33 est terminée et comparée directement au quick 21x21.
+
+Écarts 21x21 -> 33x33 :
+
+nominal, gamma = 0 :
+
+  J_N2,moy :
+    -0.0579 %
+
+  x_N2,max :
+    -0.0582 %
+
+  courant moyen :
+    variation négligeable
+
+  purge count :
+    2 -> 2
+
+  période moyenne :
+    80.45 s -> 80.45 s.
+
+wet_low_load, gamma = 0 :
+
+  J_N2,moy :
+    +0.0140 %
+
+  x_N2,max :
+    +0.0141 %
+
+  courant moyen :
+    variation négligeable
+
+  purge count :
+    1 -> 1.
+
+nominal, gamma = 1 :
+
+  J_N2,moy :
+    -0.0579 %
+
+  x_N2,max :
+    -0.0582 %
+
+  courant moyen :
+    variation ~1.5e-4 %
+
+  purge count :
+    2 -> 2
+
+  période moyenne :
+    80.71 s -> 80.71 s.
+
+wet_low_load, gamma = 1 :
+
+  J_N2,moy :
+    +0.0140 %
+
+  x_N2,max :
+    +0.0140 %
+
+  courant moyen :
+    variation ~-1.2e-4 %
+
+  purge count :
+    1 -> 1.
+
+Écart relatif absolu maximal observé :
+
+  0.058 %.
+
+Ce résultat est très inférieur au critère de convergence fixé à :
+
+  1 %.
+
+*** Décision de résolution
+
+La table :
+
+  33 x 33
+
+est validée comme résolution de référence pour la campagne Motupally complète.
+
+Le gain par rapport à 21x21 sur les observables principales est déjà inférieur
+à 0.06 %, ce qui rend inutile une table plus fine à ce stade.
+
+La cible :
+
+  make n2-catalano-motupally-v07
+
+est donc figée explicitement avec :
+
+  --lookup-rh-points 33
+  --lookup-current-points 33
+  --jobs $(JOBS)
+
+afin de rendre la baseline reproductible indépendamment des valeurs par défaut
+du script.
+
+*** Étape suivante
+
+La prochaine étape est la campagne complète :
+
+  3 régimes
+  x 2 valeurs de gamma
+  x 2 modèles
+
+sur :
+
+  1000 s
+  dt = 0.01 s
+  lookup 33x33
+  JOBS = 8.
+
+L'objectif est de mesurer l'effet Motupally sur :
+
+- dry_high_load ;
+- nominal ;
+- wet_low_load ;
+
+et de confirmer :
+
+- le changement de signe entre régimes ;
+- l'effet sur J_N2 ;
+- l'effet sur x_N2,max ;
+- l'impact éventuel sur la fréquence de purge ;
+- la fermeture des bilans.
+
+Aucune nouvelle modification physique n'est introduite avant cette campagne.
