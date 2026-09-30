@@ -100,7 +100,12 @@ unit:
 
 lint:
 	$(PYTHON) -m ruff check --fix --unsafe-fixes src tests scripts
-	git commit -am 'Ruff fixes'
+	@if ! git diff --quiet -- src tests scripts; then \
+		git add src tests scripts; \
+		git commit -m "Ruff fixes"; \
+	else \
+		echo "Ruff: no changes to commit"; \
+	fi
 
 typecheck:
 	$(PYTHON) -m mypy src tests scripts
