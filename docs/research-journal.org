@@ -8133,3 +8133,49 @@ Décision :
   make n2-catalano-transport-v07
 
 avant toute sensibilité sur D_water ou k_a.
+
+
+*** Parallélisation de la campagne Catalano / transport membranaire
+
+La campagne linear_profile vs v06_finite_transfer_profile est constituée de
+cas indépendants pour chaque couple :
+
+  (régime, gamma).
+
+Le calcul est donc parallélisé au niveau des cas avec des processus Python
+séparés.
+
+Nouvelle option :
+
+  --jobs N
+
+Le quick nominal contient deux cas indépendants :
+
+  gamma = 0
+  gamma = 1
+
+et utilise :
+
+  --jobs 2.
+
+La campagne complète contient six cas indépendants :
+
+  3 régimes x 2 valeurs de gamma
+
+et utilise :
+
+  --jobs 6.
+
+Ce choix évite de paralléliser artificiellement la boucle temporelle interne
+et limite le nombre de workers au nombre réel de cas disponibles.
+
+Commandes Makefile :
+
+  make quick-n2-catalano-transport-v07
+  -> 2 workers
+
+  make n2-catalano-transport-v07
+  -> 6 workers.
+
+Les sorties conservent un ordre déterministe identique à la liste des tâches
+et enregistrent le nombre effectif de workers dans le JSON.
