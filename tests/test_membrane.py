@@ -8,6 +8,7 @@ from pemfc_dedalus.membrane import (
     membrane_area_specific_resistance,
     membrane_fixed_charge_concentration,
     membrane_proton_conductivity,
+    membrane_water_diffusivity_motupally,
     membrane_water_content_from_activity,
     steady_membrane_water_profile,
     steady_membrane_water_profile_anode_transfer,
@@ -22,6 +23,52 @@ def test_water_content_increases_with_activity():
     assert values[0] == pytest.approx(0.043)
     assert values[-1] == pytest.approx(14.003)
 
+
+
+def test_motupally_water_diffusivity_matches_published_branches():
+    temperature = 313.15
+    low_lambda = 2.5
+    high_lambda = 5.0
+
+    low_expected = (
+        1.0e-4
+        * 3.10e-3
+        * low_lambda
+        * (np.exp(0.28 * low_lambda) - 1.0)
+        * np.exp(-2436.0 / temperature)
+    )
+    high_expected = (
+        1.0e-4
+        * 4.17e-4
+        * (1.0 + 161.0 * np.exp(-high_lambda))
+        * np.exp(-2436.0 / temperature)
+    )
+
+    values = membrane_water_diffusivity_motupally(
+        np.array([low_lambda, high_lambda]),
+        temperature,
+    )
+
+    assert values[0] == pytest.approx(low_expected)
+    assert values[1] == pytest.approx(high_expected)
+    assert np.all(values > 0.0)
+
+
+def test_motupally_water_diffusivity_retains_lambda_three_discontinuity():
+    temperature = 313.15
+    below = membrane_water_diffusivity_motupally(3.0, temperature).item()
+    above = membrane_water_diffusivity_motupally(3.0001, temperature).item()
+
+    assert below > above
+
+
+def test_motupally_water_diffusivity_rejects_invalid_state():
+    with pytest.raises(ValueError):
+        membrane_water_diffusivity_motupally(0.0, 313.15)
+    with pytest.raises(ValueError):
+        membrane_water_diffusivity_motupally(17.0, 313.15)
+    with pytest.raises(ValueError):
+        membrane_water_diffusivity_motupally(5.0, 0.0)
 
 def test_drag_coefficient_is_lambda_over_22():
     lam = np.array([0.0, 11.0, 22.0])
