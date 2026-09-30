@@ -21,6 +21,7 @@ NUMEXPR_NUM_THREADS ?= 1
         quick-n2-water-volume-v07 n2-water-volume-v07 \
         quick-n2-catalano-v07 n2-catalano-v07 \
         quick-n2-catalano-profile-v07 n2-catalano-profile-v07 \
+        quick-n2-catalano-transport-v07 n2-catalano-transport-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -89,6 +90,8 @@ help:
 	  'make n2-catalano-v07   run Catalano-calibrated N2 study' \
 	  'make quick-n2-catalano-profile-v07 preflight mean-state vs through-plane Catalano comparison' \
 	  'make n2-catalano-profile-v07 run mean-state vs through-plane Catalano comparison' \
+	  'make quick-n2-catalano-transport-v07 preflight linear vs V0.6 membrane-profile comparison' \
+	  'make n2-catalano-transport-v07 run linear vs V0.6 membrane-profile comparison' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -553,3 +556,14 @@ quick-n2-catalano-profile-v07:
 
 n2-catalano-profile-v07:
 	$(PYTHON) -m scripts.run_v07_n2_catalano_profile_comparison
+
+
+quick-n2-catalano-transport-v07:
+	$(PYTHON) -m scripts.run_v07_n2_catalano_membrane_transport \
+	  --regimes nominal --feedback-exponents 0 1 \
+	  --stop-time 200 --dt 0.01 --write-every 100 \
+	  --output-json results/quick-v07-n2-catalano-membrane-transport-comparison.json \
+	  --output-csv results/quick-v07-n2-catalano-membrane-transport-comparison.csv
+
+n2-catalano-transport-v07:
+	$(PYTHON) -m scripts.run_v07_n2_catalano_membrane_transport
