@@ -9010,3 +9010,111 @@ avec 6 workers.
 
 L'objectif est de mesurer l'impact net du remplacement de D constant avant
 toute modification du coefficient k_a.
+
+
+*** Échec du premier solveur Motupally et correction numérique
+
+La première implémentation du profil à diffusivité variable n'a pas passé le
+gate de validation.
+
+Deux symptômes ont été observés :
+
+- un test unitaire en échec, avec 136 tests déjà passants ;
+- le quick Motupally échoue dans le worker parallèle avec :
+
+  RuntimeError:
+    could not bracket variable-diffusivity membrane solution.
+
+L'échec se produit pendant le calcul du profil membranaire variable-D appelé
+depuis la fermeture N2.
+
+Le premier solveur utilisait une méthode de shooting directe en z :
+
+  choix de lambda_anode
+  -> calcul de J_lambda
+  -> intégration RK4 de d(lambda)/dz
+  -> comparaison de lambda(L) à lambda_cathode.
+
+Cette stratégie est fragile pour Motupally car D(lambda,T) peut devenir très
+faible et présente une discontinuité à lambda = 3.
+
+Pendant le scan de lambda_anode, des trajectoires d'essai non physiques peuvent
+donc devenir très raides avant d'atteindre la cathode. Le résidu de shooting
+n'est alors pas une fonction suffisamment régulière pour un bracketing naïf.
+
+*** Reformulation robuste en espace lambda
+
+Le problème stationnaire est autonome :
+
+  J_lambda =
+    -D(lambda,T) d(lambda)/dz
+    + v_drag lambda.
+
+Il peut donc être réécrit sous la forme :
+
+  dz/dlambda =
+    D(lambda,T)
+    /
+    (v_drag lambda - J_lambda).
+
+Avec la condition anodique :
+
+  J_lambda =
+    -k_a
+    (lambda_anode - lambda_anode,equilibre).
+
+La nouvelle méthode ne propage donc plus lambda(z) en avant pendant le
+bracketing.
+
+Pour chaque valeur candidate de lambda_anode, elle calcule directement la
+longueur de membrane impliquée :
+
+  L_calc =
+    integral
+    D(lambda,T)
+    /
+    (v_drag lambda - J_lambda)
+    dlambda.
+
+La racine recherchée devient :
+
+  L_calc - L_membrane = 0.
+
+Les trajectoires singulières ou non monotones sont rejetées explicitement
+pendant le scan.
+
+Une fois lambda_anode déterminé, le profil lambda(z) est reconstruit par
+intégration cumulative puis interpolation.
+
+Cette formulation est beaucoup plus stable dans les zones de faible
+diffusivité et autour de la discontinuité Motupally.
+
+*** Régression ajoutée
+
+Un test reproduit explicitement la condition de démarrage qui a provoqué
+l'échec du quick :
+
+  RH_anode = 0
+
+avec cathode hydratée et transfert anodique fini.
+
+Le test vérifie que :
+
+- le profil reste dans 0 < lambda < 17 ;
+- la condition cathodique est satisfaite ;
+- le solveur ne perd plus le bracket physique.
+
+Le test existant de récupération de la solution analytique à D constant reste
+la limite de régression principale.
+
+Décision :
+
+  ne pas interpréter les résultats Motupally avant que :
+
+  make test
+
+et :
+
+  make quick-n2-catalano-motupally-v07
+
+soient tous deux verts avec cette reformulation.
