@@ -5,6 +5,7 @@ MPI_N ?= 8
 OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 JOBS ?= 8
+TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
         quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh plot-v04-rh \
@@ -26,6 +27,7 @@ JOBS ?= 8
         quick-n2-catalano-transport-sensitivity-v07 n2-catalano-transport-sensitivity-v07 \
         analyze-n2-membrane-profiles-v07 analyze-n2-motupally-v07 \
         quick-n2-catalano-motupally-v07 quick-n2-catalano-motupally-33-v07 analyze-n2-catalano-motupally-lookup-v07 n2-catalano-motupally-v07 \
+        quick-n2-motupally-ka-v07 n2-motupally-ka-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -104,6 +106,8 @@ help:
 	  'make quick-n2-catalano-motupally-33-v07 rerun quick with 33x33 lookup' \
 	  'make analyze-n2-catalano-motupally-lookup-v07 compare 21x21 and 33x33 lookups' \
 	  'make n2-catalano-motupally-v07 run constant-D vs Motupally crossover' \
+	  'make quick-n2-motupally-ka-v07 preflight Motupally k_a sensitivity' \
+	  'make n2-motupally-ka-v07 run full Motupally k_a sensitivity' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -624,4 +628,19 @@ analyze-n2-catalano-motupally-lookup-v07:
 
 n2-catalano-motupally-v07:
 	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally \
+	  --jobs $(JOBS) --lookup-rh-points 33 --lookup-current-points 33
+
+
+quick-n2-motupally-ka-v07:
+	$(TIME) $(PYTHON) -m scripts.run_v07_n2_motupally_ka_sensitivity \
+	  --regimes nominal wet_low_load --feedback-exponents 0 \
+	  --transfer-coefficients-m-s 1e-6 2e-6 4e-6 \
+	  --jobs $(JOBS) --lookup-rh-points 21 --lookup-current-points 21 \
+	  --stop-time 200 --dt 0.01 --write-every 100 \
+	  --output-json results/quick-v07-n2-motupally-ka-sensitivity.json \
+	  --output-csv results/quick-v07-n2-motupally-ka-sensitivity.csv
+
+n2-motupally-ka-v07:
+	$(TIME) $(PYTHON) -m scripts.run_v07_n2_motupally_ka_sensitivity \
+	  --transfer-coefficients-m-s 1e-6 2e-6 4e-6 \
 	  --jobs $(JOBS) --lookup-rh-points 33 --lookup-current-points 33
