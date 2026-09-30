@@ -27,12 +27,72 @@ from scripts.run_v07_n2_catalano_membrane_transport import (
     DEFAULT_WATER_PARTIAL_MOLAR_VOLUME_CM3_MOL,
 )
 from scripts.run_v07_n2_catalano_motupally import (
-    build_motupally_lookup_table,
+    compute_motupally_lookup_row,
     make_tabulated_permeance_model,
 )
 
 DEFAULT_TRANSFER_COEFFICIENTS_M_S = [1.0e-6, 2.0e-6, 4.0e-6]
 DEFAULT_FEEDBACK_EXPONENTS = [0.0, 1.0]
+
+def build_transfer_lookup_tables(
+    *,
+    transfer_coefficients_m_s: list[float],
+    relative_humidity_axis: np.ndarray,
+    current_density_axis: np.ndarray,
+    jobs: int,
+    activation_energy_j_mol: float,
+    water_partial_molar_volume_cm3_mol: float,
+) -> dict[float, np.ndarray]:
+    """Build all k_a lookup tables in one shared process pool."""
+    lookup_tasks: list[dict[str, Any]] = []
+    for transfer_coefficient in transfer_coefficients_m_s:
+        for relative_humidity in relative_humidity_axis:
+            lookup_tasks.append(
+                {
+                    "relative_humidity": float(relative_humidity),
+                    "current_density_axis": [
+                        float(value) for value in current_density_axis
+                    ],
+                    "activation_energy_j_mol": activation_energy_j_mol,
+                    "water_partial_molar_volume_cm3_mol": (
+                        water_partial_molar_volume_cm3_mol
+                    ),
+                    "anode_transfer_coefficient_m_s": transfer_coefficient,
+                    "_transfer_coefficient_m_s": transfer_coefficient,
+                }
+            )
+
+    worker_count = min(jobs, len(lookup_tasks))
+
+    def run_lookup_task(task: dict[str, Any]) -> tuple[float, float, list[float]]:
+        relative_humidity, values = compute_motupally_lookup_row(task)
+        return (
+            float(task["_transfer_coefficient_m_s"]),
+            relative_humidity,
+            values,
+        )
+
+    if worker_count == 1:
+        results = [run_lookup_task(task) for task in lookup_tasks]
+    else:
+        with ProcessPoolExecutor(max_workers=worker_count) as executor:
+            results = list(executor.map(run_lookup_task, lookup_tasks))
+
+    grouped: dict[float, list[tuple[float, list[float]]]] = {
+        float(value): [] for value in transfer_coefficients_m_s
+    }
+    for transfer_coefficient, relative_humidity, values in results:
+        grouped[transfer_coefficient].append((relative_humidity, values))
+
+    tables: dict[float, np.ndarray] = {}
+    for transfer_coefficient, rows in grouped.items():
+        rows.sort(key=lambda item: item[0])
+        tables[transfer_coefficient] = np.asarray(
+            [values for _, values in rows],
+            dtype=float,
+        )
+    return tables
+
 
 
 def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
@@ -206,23 +266,28 @@ def main() -> None:
         "cathode_n2_partial_pressure_pa": cathode_n2_partial_pressure,
     }
 
+    print(
+        "Precomputing Motupally lookups in one pool: "
+        f"{len(args.transfer_coefficients_m_s) * args.lookup_rh_points} "
+        f"RH/k_a tasks on {min(args.jobs, len(args.transfer_coefficients_m_s) * args.lookup_rh_points)} workers",
+        flush=True,
+    )
+    lookup_tables = build_transfer_lookup_tables(
+        transfer_coefficients_m_s=[
+            float(value) for value in args.transfer_coefficients_m_s
+        ],
+        relative_humidity_axis=rh_axis,
+        current_density_axis=current_axis,
+        jobs=args.jobs,
+        activation_energy_j_mol=args.activation_energy_j_mol,
+        water_partial_molar_volume_cm3_mol=(
+            args.water_partial_molar_volume_cm3_mol
+        ),
+    )
+
     tasks: list[dict[str, Any]] = []
     for transfer_coefficient in args.transfer_coefficients_m_s:
-        print(
-            f"Precomputing Motupally lookup for k_a={transfer_coefficient:.2e}",
-            flush=True,
-        )
-        table = build_motupally_lookup_table(
-            relative_humidity_axis=rh_axis,
-            current_density_axis=current_axis,
-            jobs=args.jobs,
-            activation_energy_j_mol=args.activation_energy_j_mol,
-            water_partial_molar_volume_cm3_mol=(
-                args.water_partial_molar_volume_cm3_mol
-            ),
-            anode_transfer_coefficient_m_s=transfer_coefficient,
-        )
-        table_list = table.tolist()
+        table_list = lookup_tables[float(transfer_coefficient)].tolist()
         for feedback_exponent in args.feedback_exponents:
             for regime in args.regimes:
                 tasks.append(
