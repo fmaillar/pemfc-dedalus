@@ -236,6 +236,34 @@ def test_motupally_profile_brackets_nominal_transition_state():
     assert np.all(profile < 17.0)
     assert profile[-1] == pytest.approx(3.4855, abs=1.0e-8)
 
+
+def test_motupally_profile_handles_equal_anode_cathode_equilibrium():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 129)
+    lambda_equilibrium = membrane_water_content_from_activity(0.5).item()
+    fixed_charge = membrane_fixed_charge_concentration(
+        p.membrane_dry_density,
+        p.membrane_equivalent_weight,
+    )
+    drag_velocity = electro_osmotic_lambda_velocity(
+        1400.0,
+        p.faraday,
+        fixed_charge,
+    )
+
+    profile = steady_membrane_water_profile_motupally(
+        z,
+        lambda_cathode=lambda_equilibrium,
+        lambda_anode_equilibrium=lambda_equilibrium,
+        temperature_k=p.stack_temperature,
+        drag_velocity_m_s=drag_velocity,
+        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
+    )
+
+    assert np.all(profile > 0.0)
+    assert np.all(profile < 17.0)
+    assert profile[-1] == pytest.approx(lambda_equilibrium, abs=1.0e-8)
+
 def test_membrane_asr_is_positive_and_decreases_with_hydration():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 65)
