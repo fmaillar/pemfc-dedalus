@@ -11016,3 +11016,88 @@ Décision :
 
   interpréter l'écart avant toute promotion de Grimaldi comme nouvelle
   baseline.
+
+
+*** Échec du quick Grimaldi : bracketing du Robin non linéaire
+
+Le premier quick de comparaison :
+
+  Motupally + k_a constant
+  vs
+  Motupally + k_g(lambda,T) de Grimaldi
+
+échoue pendant le pré-calcul du lookup Grimaldi.
+
+Le parallélisme est correct :
+
+  CPU = 760 %
+
+sur 8 workers.
+
+L'échec est purement numérique :
+
+  RuntimeError:
+    could not bracket variable-transfer membrane solution
+
+avec meilleur essai :
+
+  lambda_anode = 11.6868
+  résidu cathodique = -0.111668.
+
+La fermeture Grimaldi rend la condition Robin non linéaire :
+
+  J_lambda =
+    -k_g(lambda_anode)
+    (lambda_anode - lambda_eq).
+
+Le scan uniforme initial de lambda_anode peut donc manquer une zone de changement
+de signe étroite, surtout dans les états fortement hydratés.
+
+*** Correctif : raffinement local adaptatif
+
+Le solveur conserve le scan global initial.
+
+Si aucun changement de signe n'est trouvé :
+
+1. sélectionner le lambda_anode donnant le plus petit résidu absolu ;
+2. construire une grille locale autour de ce point ;
+3. raffiner récursivement la largeur de recherche ;
+4. fusionner les nouveaux essais avec les précédents ;
+5. rechercher à nouveau un changement de signe.
+
+Le raffinement effectue jusqu'à huit niveaux, avec 33 points locaux par niveau.
+
+Ce correctif ne modifie :
+
+- ni la physique ;
+- ni la condition Robin ;
+- ni la corrélation Grimaldi ;
+- ni les tolérances de solution.
+
+Il améliore uniquement la robustesse du bracketing.
+
+*** Régression wet/high-lambda
+
+Un test est ajouté dans un état fortement hydraté :
+
+  lambda_eq,anode = 10
+
+avec :
+
+  Motupally
+  + Grimaldi
+  + drag non nul.
+
+Le test vérifie :
+
+- profil strictement physique ;
+- lambda < 17 ;
+- condition cathodique satisfaite.
+
+Décision :
+
+  relancer make test ;
+
+  puis relancer le quick Grimaldi ;
+
+  ne pas lancer le full avant validation de ce quick.
