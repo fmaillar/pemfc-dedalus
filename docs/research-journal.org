@@ -9696,3 +9696,44 @@ Le nombre de workers de la campagne complète est également porté à :
   jobs = 8
 
 pour rester cohérent avec la machine de calcul utilisée.
+
+
+*** Convention globale de parallélisme
+
+Pour éviter les valeurs de parallélisme dispersées dans le Makefile, une
+variable globale est désormais utilisée :
+
+  JOBS ?= 8
+
+Tous les appels de campagnes Python utilisant l'option :
+
+  --jobs
+
+passent maintenant :
+
+  --jobs $(JOBS)
+
+au lieu d'une valeur codée en dur.
+
+La valeur par défaut sur m710s est donc :
+
+  8 workers.
+
+Cette convention permet aussi de surcharger ponctuellement le nombre de
+workers sans modifier le Makefile :
+
+  make JOBS=4 <target>
+
+ou :
+
+  make JOBS=12 <target>
+
+si une autre machine le justifie.
+
+Les drivers qui créent moins de tâches que JOBS continuent de limiter
+automatiquement le nombre de workers utiles avec min(JOBS, nombre_de_taches).
+
+MPI_N reste indépendant de JOBS :
+
+  MPI_N contrôle les runs MPI/Dedalus ;
+  JOBS contrôle les campagnes Python embarrassingly parallel.
