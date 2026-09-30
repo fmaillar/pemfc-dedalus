@@ -623,4 +623,5 @@ analyze-n2-catalano-motupally-lookup-v07:
 	$(PYTHON) -m scripts.analyze_v07_motupally_lookup_convergence
 
 n2-catalano-motupally-v07:
-	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally --jobs $(JOBS)
+	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally \
+	  --jobs $(JOBS) --lookup-rh-points 33 --lookup-current-points 33
