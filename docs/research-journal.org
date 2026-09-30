@@ -11101,3 +11101,145 @@ Décision :
   puis relancer le quick Grimaldi ;
 
   ne pas lancer le full avant validation de ce quick.
+
+
+*** Résultats du quick constant-k_a vs Grimaldi
+
+Après correction du bracketing adaptatif, le quick Grimaldi passe le gate :
+
+  pytest :
+    149 passed
+
+  Ruff :
+    All checks passed
+
+  mypy :
+    Success.
+
+Configuration :
+
+  régimes :
+    nominal
+    wet_low_load
+
+  gamma :
+    0
+
+  lookup :
+    21 x 21
+
+  horizon :
+    200 s
+
+  dt :
+    0.01 s
+
+  jobs :
+    8.
+
+Temps de calcul :
+
+  real = 5 min 18.52 s
+  user = 2379.75 s
+  sys  = 3.78 s
+  CPU  = 748 %
+  max RSS = 32288 kB.
+
+Le parallélisme est donc effectif pendant le pré-calcul des deux lookups.
+
+*** Résultats nominal
+
+Baseline Motupally + k_a constant :
+
+  J_N2,moy = 1.706e-6 mol/m2/s
+  x_N2,max = 0.00488.
+
+Motupally + Grimaldi :
+
+  J_N2,moy = 1.722e-6 mol/m2/s
+  x_N2,max = 0.00492.
+
+Variation :
+
+  J_N2,moy :
+    +0.9 %
+
+  x_N2,max :
+    +0.9 %.
+
+L'effet reste faible au nominal.
+
+*** Résultats wet_low_load
+
+Baseline Motupally + k_a constant :
+
+  J_N2,moy = 4.089e-6 mol/m2/s
+  x_N2,max = 0.01449.
+
+Motupally + Grimaldi :
+
+  J_N2,moy = 4.663e-6 mol/m2/s
+  x_N2,max = 0.01653.
+
+Variation :
+
+  J_N2,moy :
+    +14.1 %
+
+  x_N2,max :
+    +14.1 %.
+
+L'effet de la fermeture Grimaldi est donc de premier ordre en régime humide.
+
+*** Interprétation du quick Grimaldi
+
+La fermeture :
+
+  k_g(lambda,T)
+
+renforce le transfert interfacial lorsque la membrane s'hydrate.
+
+Au nominal, lambda reste dans une plage où la différence avec la baseline
+constante modifie peu la résistance N2 globale.
+
+En wet_low_load, la dépendance :
+
+  k_g ~ lambda^1.6
+
+augmente fortement le couplage membrane/gaz côté anode.
+
+Cela pousse le profil hydrique vers l'état anodique humide, augmente la
+perméance N2 through-plane et accroît le crossover.
+
+Le quick confirme donc la tendance anticipée par :
+
+- le diagnostic Grimaldi ;
+- la sensibilité précédente à k_a ;
+- l'analyse des profils de résistance membranaire.
+
+*** Décision après quick Grimaldi
+
+Le quick est suffisamment stable et discriminant pour justifier la campagne
+complète.
+
+La campagne complète doit couvrir :
+
+  dry_high_load
+  nominal
+  wet_low_load
+
+avec :
+
+  gamma = 0 et 1
+  lookup = 33 x 33
+  horizon = 1000 s
+  dt = 0.01 s
+  jobs = 8.
+
+Objectifs :
+
+- quantifier l'effet Grimaldi en dry_high_load ;
+- vérifier si le signe diffère du wet_low_load ;
+- confirmer la faible sensibilité du nominal ;
+- vérifier l'effet sur les purges et les bilans ;
+- décider si Grimaldi remplace k_a constant comme nouvelle baseline.
