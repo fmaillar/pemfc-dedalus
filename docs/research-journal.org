@@ -8421,3 +8421,144 @@ L'objectif du quick est de vérifier :
 
 Si le quick est propre, la campagne complète doit être lancée sans autre
 modification de modèle.
+
+
+*** Résultats complets : sensibilité D_water / k_a
+
+La campagne complète 3 x 2 x 3 x 3 est terminée :
+
+  3 régimes
+  x 2 valeurs de gamma
+  x 3 diffusivités
+  x 3 coefficients de transfert
+
+soit 54 cas.
+
+Tous les cas restent stables et les bilans H2/H2O/N2 restent fermés à la
+précision numérique.
+
+La sensibilité n'est pas séparable en un effet simple de D_water et un effet
+simple de k_a.
+
+Pour gamma = 1, les plages observées sont les suivantes.
+
+dry_high_load :
+
+  J_N2,moy,min =
+    1.406e-6 mol/m2/s
+    pour D = 1e-10 m2/s, k_a = 4e-6 m/s
+
+  J_N2,moy,max =
+    1.767e-6 mol/m2/s
+    pour D = 4e-10 m2/s, k_a = 1e-6 m/s
+
+  rapport max/min ≈ 1.26.
+
+Le flux augmente globalement avec D_water et diminue avec k_a.
+
+nominal :
+
+  J_N2,moy,min =
+    1.671e-6 mol/m2/s
+
+  J_N2,moy,max =
+    1.849e-6 mol/m2/s
+
+  rapport max/min ≈ 1.11.
+
+Le régime nominal reste relativement robuste.
+
+wet_low_load :
+
+  J_N2,moy,min =
+    2.372e-6 mol/m2/s
+    pour D = 4e-10 m2/s, k_a = 1e-6 m/s
+
+  J_N2,moy,max =
+    5.271e-6 mol/m2/s
+    pour D = 1e-10 m2/s, k_a = 4e-6 m/s
+
+  rapport max/min ≈ 2.22.
+
+Pour x_N2,max :
+
+  minimum =
+    0.01466
+
+  maximum =
+    0.03292
+
+  rapport max/min ≈ 2.25.
+
+Le régime wet_low_load reste donc le régime dominant pour l'incertitude du
+sous-modèle de crossover.
+
+*** Interaction entre diffusion et transfert anodique
+
+Dans wet_low_load :
+
+  D_water augmente
+  -> J_N2 diminue
+
+à k_a fixé.
+
+À l'inverse :
+
+  k_a augmente
+  -> J_N2 augmente
+
+à D_water fixé.
+
+Dans dry_high_load, le signe par rapport à D_water est opposé :
+
+  D_water augmente
+  -> J_N2 augmente.
+
+Cette inversion de signe confirme que la sensibilité ne peut pas être comprise
+par la seule teneur en eau moyenne.
+
+La forme de lambda(z) et la position des zones de forte résistance dominent la
+perméance harmonique.
+
+Le comportement nominal reste proche d'un point de transition entre ces deux
+régimes.
+
+*** Lecture en groupes sans dimension
+
+Le profil stationnaire V0.6 est contrôlé par des rapports de transport plus
+fondamentaux que D_water et k_a pris séparément.
+
+Le nombre de Peclet hydrique est :
+
+  Pe_w =
+    v_drag L / D_water
+
+où v_drag dépend du courant.
+
+Le transfert anodique introduit également le rapport :
+
+  Bi_a =
+    k_a L / D_water.
+
+Ces deux groupes déterminent directement la compétition entre :
+
+- diffusion ;
+- drag électro-osmotique ;
+- transfert membrane -> gaz anodique.
+
+La grille D_water / k_a actuelle mélange donc simultanément des variations de
+Pe_w et de Bi_a.
+
+Décision :
+
+  avant toute nouvelle extension physique, analyser explicitement les profils
+  lambda(z), Pe_w, Bi_a et la distribution locale de résistance N2.
+
+L'objectif est d'expliquer mécaniquement :
+
+- pourquoi D_water augmente le crossover en dry_high_load ;
+- pourquoi il le diminue en wet_low_load ;
+- pourquoi le nominal est presque insensible ;
+- quelles portions de membrane dominent l'intégrale de 1/P_N2.
+
+Cette analyse doit précéder toute nouvelle calibration de D_water ou k_a.
