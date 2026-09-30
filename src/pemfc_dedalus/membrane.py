@@ -347,13 +347,14 @@ def steady_membrane_water_profile_variable_diffusivity(
     bracket = find_bracket(finite_trials)
 
     if bracket is None:
-        global_candidates = list(
-            np.linspace(
+        global_candidates = [
+            float(value)
+            for value in np.linspace(
                 lambda_lower_bound,
                 lambda_upper_bound,
                 scan_points,
             )
-        )
+        ]
         finite_trials = evaluate_candidates(
             local_candidates + global_candidates
         )
