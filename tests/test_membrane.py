@@ -187,6 +187,28 @@ def test_motupally_profile_hits_cathode_boundary_and_stays_physical():
     assert profile[-1] == pytest.approx(3.4855, abs=1.0e-6)
     assert profile[0] > profile[-1]
 
+
+def test_motupally_profile_handles_dry_anode_startup():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 129)
+    lambda_cathode = membrane_water_content_from_activity(
+        p.relative_humidity
+    ).item()
+    lambda_anode_equilibrium = membrane_water_content_from_activity(0.0).item()
+
+    profile = steady_membrane_water_profile_motupally(
+        z,
+        lambda_cathode=lambda_cathode,
+        lambda_anode_equilibrium=lambda_anode_equilibrium,
+        temperature_k=p.stack_temperature,
+        drag_velocity_m_s=1.0e-7,
+        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
+    )
+
+    assert np.all(profile > 0.0)
+    assert np.all(profile < 17.0)
+    assert profile[-1] == pytest.approx(lambda_cathode, abs=1.0e-8)
+
 def test_membrane_asr_is_positive_and_decreases_with_hydration():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 65)
