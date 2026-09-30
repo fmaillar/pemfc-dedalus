@@ -9251,3 +9251,69 @@ Le correctif est isolé dans :
 Décision :
 
   relancer make test avant tout nouveau quick Motupally.
+
+
+*** Parallélisation réelle du quick Motupally
+
+Le quick Motupally était lancé avec :
+
+  --jobs 6
+
+mais ne créait que deux tâches de haut niveau :
+
+  nominal, gamma = 0
+  wet_low_load, gamma = 0.
+
+Chaque worker exécutait ensuite séquentiellement :
+
+  constant_D
+  puis
+  Motupally.
+
+Ainsi, même avec --jobs 6, le nombre maximal de workers utiles était limité
+par le nombre de couples (régime, gamma), soit deux.
+
+Cette structure ne correspond pas au parallélisme recherché.
+
+Le driver est donc refactoré pour paralléliser chaque simulation indépendante :
+
+  (régime, gamma, modèle).
+
+Les modèles :
+
+  constant_D
+  Motupally
+
+sont désormais des tâches distinctes.
+
+Le quick est également élargi à :
+
+  nominal
+  wet_low_load
+
+avec :
+
+  gamma = 0
+  gamma = 1.
+
+Cela donne :
+
+  2 régimes
+  x 2 valeurs de gamma
+  x 2 modèles
+  = 8 simulations indépendantes.
+
+Avec :
+
+  --jobs 6
+
+six workers peuvent donc être utilisés simultanément.
+
+Les résultats sont ensuite regroupés par couple (régime, gamma) pour produire
+le même format de comparaison CSV/JSON qu'avant.
+
+Décision :
+
+  conserver cette granularité de parallélisation pour la campagne Motupally,
+  car elle correspond mieux à la structure réellement embarrassingly parallel
+  du problème.
