@@ -34,6 +34,18 @@ from scripts.run_v07_n2_catalano_motupally import (
 DEFAULT_TRANSFER_COEFFICIENTS_M_S = [1.0e-6, 2.0e-6, 4.0e-6]
 DEFAULT_FEEDBACK_EXPONENTS = [0.0, 1.0]
 
+def run_transfer_lookup_task(
+    task: dict[str, Any],
+) -> tuple[float, float, list[float]]:
+    """Compute one (k_a, RH) lookup row."""
+    relative_humidity, values = compute_motupally_lookup_row(task)
+    return (
+        float(task["_transfer_coefficient_m_s"]),
+        relative_humidity,
+        values,
+    )
+
+
 def build_transfer_lookup_tables(
     *,
     transfer_coefficients_m_s: list[float],
@@ -64,19 +76,11 @@ def build_transfer_lookup_tables(
 
     worker_count = min(jobs, len(lookup_tasks))
 
-    def run_lookup_task(task: dict[str, Any]) -> tuple[float, float, list[float]]:
-        relative_humidity, values = compute_motupally_lookup_row(task)
-        return (
-            float(task["_transfer_coefficient_m_s"]),
-            relative_humidity,
-            values,
-        )
-
     if worker_count == 1:
-        results = [run_lookup_task(task) for task in lookup_tasks]
+        results = [run_transfer_lookup_task(task) for task in lookup_tasks]
     else:
         with ProcessPoolExecutor(max_workers=worker_count) as executor:
-            results = list(executor.map(run_lookup_task, lookup_tasks))
+            results = list(executor.map(run_transfer_lookup_task, lookup_tasks))
 
     grouped: dict[float, list[tuple[float, list[float]]]] = {
         float(value): [] for value in transfer_coefficients_m_s
