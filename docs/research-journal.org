@@ -9635,3 +9635,64 @@ Critère pratique :
   33x33, conserver 33x33 pour la campagne complète.
 
 La campagne complète ne doit être lancée qu'après cette vérification.
+
+
+*** Infrastructure de convergence de la table Motupally
+
+Le quick 21x21 étant valide, une vérification de convergence de la table 2D est
+ajoutée avant toute campagne complète.
+
+Nouvelle cible :
+
+  make quick-n2-catalano-motupally-33-v07
+
+Elle reprend exactement le même quick :
+
+  nominal
+  wet_low_load
+  gamma = 0 et 1
+  horizon = 200 s
+  dt = 0.01 s
+
+mais avec :
+
+  lookup = 33 x 33
+  jobs = 8.
+
+Sorties :
+
+  results/quick-v07-n2-catalano-motupally-comparison-33x33.json
+  results/quick-v07-n2-catalano-motupally-comparison-33x33.csv
+
+Un analyseur dédié est ajouté :
+
+  scripts/analyze_v07_motupally_lookup_convergence.py
+
+Commande :
+
+  make analyze-n2-catalano-motupally-lookup-v07
+
+Il compare 21x21 et 33x33 pour :
+
+- J_N2,moy ;
+- x_N2,max ;
+- courant moyen ;
+- nombre de purges ;
+- période moyenne de purge.
+
+Sortie :
+
+  results/quick-v07-n2-catalano-motupally-lookup-convergence.csv
+
+Le critère de décision reste :
+
+  variation < 1 % sur les observables principales.
+
+Si ce critère est satisfait, la table 33x33 devient la résolution de référence
+pour la campagne complète.
+
+Le nombre de workers de la campagne complète est également porté à :
+
+  jobs = 8
+
+pour rester cohérent avec la machine de calcul utilisée.
