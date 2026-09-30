@@ -8846,3 +8846,167 @@ Sortie :
 
 Cette étape est volontairement diagnostique : le solveur V0.6 reste encore à
 D constant jusqu'à ce que l'impact de la corrélation variable soit quantifié.
+
+
+*** Résultats du diagnostic Motupally
+
+Le diagnostic sur les profils V0.7 existants montre que la diffusivité de
+Motupally diffère fortement de la valeur constante :
+
+  D_water = 2.0e-10 m2/s.
+
+Régime nominal :
+
+la plupart des profils restent au-dessus de lambda = 3.
+
+Pour gamma = 1, le cas nominal D_source = 2e-10 m2/s, k_a = 2e-6 m/s donne :
+
+  lambda_min = 3.236
+  lambda_mean = 3.359
+  lambda_max = 3.485
+
+et :
+
+  D_Motupally,min = 1.03e-10 m2/s
+  D_Motupally,moy = 1.15e-10 m2/s
+  D_Motupally,max = 1.27e-10 m2/s.
+
+La diffusivité moyenne Motupally vaut donc environ :
+
+  0.57 x D_constant.
+
+wet_low_load :
+
+les profils sont tous au-dessus de lambda = 3 et la diffusivité diminue
+fortement avec l'hydratation.
+
+Pour le cas nominal V0.6 :
+
+  lambda_min = 3.485
+  lambda_mean = 4.435
+  lambda_max = 5.372
+
+on obtient :
+
+  D_Motupally,min = 3.04e-11 m2/s
+  D_Motupally,moy = 5.58e-11 m2/s
+  D_Motupally,max = 1.03e-10 m2/s.
+
+La diffusivité moyenne vaut donc seulement :
+
+  0.28 x D_constant.
+
+Sur la grille wet complète, le rapport moyen D_Motupally / D_constant varie
+environ de :
+
+  0.19 à 0.41.
+
+Le coefficient constant 2e-10 m2/s surestime donc systématiquement la
+diffusion dans le régime humide.
+
+dry_high_load :
+
+plusieurs profils traversent lambda = 3.
+
+La discontinuité de la corrélation de Motupally devient alors explicitement
+active et produit des variations locales de D allant typiquement de :
+
+  environ 1.0e-10
+  jusqu'à environ 5.1e-10 m2/s
+
+suivant la position et le profil.
+
+Cette zone doit être surveillée lors de la résolution non linéaire.
+
+*** Décision après diagnostic Motupally
+
+L'écart entre D constant et D_Motupally est suffisamment grand pour justifier
+une résolution stationnaire avec diffusivité locale variable.
+
+La prochaine formulation conserve :
+
+- le même bilan stationnaire de flux d'eau ;
+- le même drag électro-osmotique ;
+- la même condition de transfert anodique V0.6 ;
+- la même fermeture Catalano pour N2.
+
+Seule la relation constitutive :
+
+  D_water = constante
+
+est remplacée par :
+
+  D_water = D_Motupally(lambda, T).
+
+Le problème devient :
+
+  J_lambda =
+    -D(lambda,T) d(lambda)/dz
+    + v_drag lambda
+
+avec J_lambda constant à travers la membrane et :
+
+  -J_lambda =
+    k_a (lambda_anode - lambda_anode,equilibre)
+
+à l'interface anodique.
+
+Une méthode de shooting avec intégration RK4 et recherche scalaire de
+lambda_anode est utilisée pour conserver une résolution indépendante de
+SciPy.
+
+La limite à diffusivité constante doit retrouver la solution analytique V0.6.
+
+*** Infrastructure de la comparaison D constant / Motupally
+
+Nouvelles fonctions :
+
+  steady_membrane_water_profile_variable_diffusivity(...)
+  steady_membrane_water_profile_motupally(...).
+
+Tests ajoutés :
+
+- récupération de la solution analytique à D constant ;
+- respect de la condition cathodique ;
+- profil Motupally physique dans un cas wet.
+
+Nouveau driver :
+
+  scripts/run_v07_n2_catalano_motupally.py
+
+Il compare directement :
+
+  constant_D_profile
+
+à :
+
+  Motupally_D(lambda,T)_profile
+
+avec les mêmes :
+
+- conditions anodiques ;
+- fermeture Catalano ;
+- rétroaction H2 ;
+- purge ;
+- paramètres de transfert k_a.
+
+Commandes :
+
+  make quick-n2-catalano-motupally-v07
+  make n2-catalano-motupally-v07
+
+Le quick couvre :
+
+  nominal
+  wet_low_load
+  gamma = 0
+  horizon = 200 s.
+
+La campagne complète couvre :
+
+  3 régimes x 2 valeurs de gamma
+
+avec 6 workers.
+
+L'objectif est de mesurer l'impact net du remplacement de D constant avant
+toute modification du coefficient k_a.
