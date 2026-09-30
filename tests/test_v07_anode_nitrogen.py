@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from scripts.run_v07_anode_nitrogen import simulate_nitrogen_regime
 
@@ -75,3 +76,79 @@ def test_zero_crossover_keeps_nitrogen_inventory_zero():
     assert summary["cumulative_n2_crossover_mol"] == 0.0
     assert summary["cumulative_n2_purged_mol"] == 0.0
     assert summary["n2_balance_error_mol"] == 0.0
+
+
+def test_state_permeance_model_receives_rh_and_current_density():
+    closure = (
+        np.asarray([0.0, 1.0]),
+        np.asarray([0.0, 0.0]),
+        np.asarray([0.0020, 0.0020]),
+    )
+    calls: list[tuple[float, float]] = []
+
+    def state_model(relative_humidity: float, current_density_a_m2: float) -> float:
+        calls.append((relative_humidity, current_density_a_m2))
+        return 1.0e-12
+
+    _, summary = simulate_nitrogen_regime(
+        "nominal",
+        closure,
+        initial_rh=0.0,
+        stop_time_s=0.02,
+        dt_s=0.01,
+        write_every=1,
+        volume_m3=20.0e-6,
+        temperature_k=313.15,
+        gas_constant_j_mol_k=8.31446261815324,
+        faraday_c_mol=96485.33212,
+        active_area_m2=0.02,
+        fixed_charge_mol_m3=1800.0,
+        target_total_pressure_pa=137325.0,
+        ambient_pressure_pa=101325.0,
+        purge_interval_as=10.0,
+        purge_duration_s=0.5,
+        purge_reference_flow_slpm=2.4,
+        current_scale_factor=1000.0,
+        n2_crossover_flux_mol_m2_s=0.0,
+        cathode_n2_partial_pressure_pa=77_000.0,
+        n2_state_permeance_model=state_model,
+    )
+
+    assert calls
+    assert all(0.0 <= rh <= 1.0 for rh, _ in calls)
+    assert all(current_density > 0.0 for _, current_density in calls)
+    assert summary["cumulative_n2_crossover_mol"] > 0.0
+
+
+def test_dynamic_permeance_models_are_mutually_exclusive():
+    closure = (
+        np.asarray([0.0, 1.0]),
+        np.asarray([0.0, 0.0]),
+        np.asarray([0.0020, 0.0020]),
+    )
+
+    with pytest.raises(ValueError, match="only one dynamic N2 permeance"):
+        simulate_nitrogen_regime(
+            "nominal",
+            closure,
+            initial_rh=0.0,
+            stop_time_s=0.02,
+            dt_s=0.01,
+            write_every=1,
+            volume_m3=20.0e-6,
+            temperature_k=313.15,
+            gas_constant_j_mol_k=8.31446261815324,
+            faraday_c_mol=96485.33212,
+            active_area_m2=0.02,
+            fixed_charge_mol_m3=1800.0,
+            target_total_pressure_pa=137325.0,
+            ambient_pressure_pa=101325.0,
+            purge_interval_as=10.0,
+            purge_duration_s=0.5,
+            purge_reference_flow_slpm=2.4,
+            current_scale_factor=1000.0,
+            n2_crossover_flux_mol_m2_s=0.0,
+            cathode_n2_partial_pressure_pa=77_000.0,
+            n2_permeance_model=lambda _: 1.0e-12,
+            n2_state_permeance_model=lambda _rh, _j: 1.0e-12,
+        )
