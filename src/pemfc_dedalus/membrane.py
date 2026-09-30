@@ -88,6 +88,98 @@ def nafion_water_interfacial_transfer_coefficient_ge(
     return prefactor * fraction
 
 
+def membrane_water_content_grimaldi_da(
+    relative_humidity: np.ndarray | float,
+    temperature_k: float,
+    *,
+    lambda0_eq: float = 15.01,
+    adsorption_energy_j_mol: float = 1_047.0,
+    exponent_eta: float = 0.4712,
+    gas_constant_j_mol_k: float = 8.31446261815324,
+) -> np.ndarray:
+    """Return Grimaldi Dubinin-Astakhov equilibrium water content."""
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+    if lambda0_eq <= 0.0:
+        raise ValueError("lambda0_eq must be positive")
+    if adsorption_energy_j_mol <= 0.0:
+        raise ValueError("adsorption_energy_j_mol must be positive")
+    if exponent_eta <= 0.0:
+        raise ValueError("exponent_eta must be positive")
+    if gas_constant_j_mol_k <= 0.0:
+        raise ValueError("gas_constant_j_mol_k must be positive")
+
+    rh = np.asarray(relative_humidity, dtype=float)
+    if np.any(rh < 0.0) or np.any(rh > 1.0):
+        raise ValueError("relative_humidity must be in [0, 1]")
+
+    result = np.zeros_like(rh, dtype=float)
+    positive = rh > 0.0
+    adsorption_potential = np.zeros_like(rh, dtype=float)
+    adsorption_potential[positive] = (
+        -gas_constant_j_mol_k
+        * temperature_k
+        * np.log(rh[positive])
+    )
+    result[positive] = lambda0_eq * np.exp(
+        -(
+            adsorption_potential[positive] / adsorption_energy_j_mol
+        )
+        ** exponent_eta
+    )
+    return result
+
+
+def membrane_water_diffusivity_grimaldi(
+    water_content: np.ndarray | float,
+    temperature_k: float,
+    *,
+    equivalent_weight_kg_mol: float,
+    dry_density_kg_m3: float,
+    prefactor_m2_s: float = 6.47e-6,
+    turning_point_lambda: float = 2.15,
+    turning_width: float = 0.8758,
+    swelling_exponent: float = -2.0,
+    activation_energy_j_mol: float = 27_800.0,
+    water_molar_volume_m3_mol: float = 1.8e-5,
+    gas_constant_j_mol_k: float = 8.31446261815324,
+) -> np.ndarray:
+    """Return Grimaldi/Olesen effective Fickian water diffusivity [m^2/s]."""
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+    if equivalent_weight_kg_mol <= 0.0 or dry_density_kg_m3 <= 0.0:
+        raise ValueError("membrane material properties must be positive")
+    if prefactor_m2_s <= 0.0 or turning_width <= 0.0:
+        raise ValueError("diffusivity parameters must be positive")
+    if activation_energy_j_mol < 0.0:
+        raise ValueError("activation_energy_j_mol must be non-negative")
+    if water_molar_volume_m3_mol <= 0.0:
+        raise ValueError("water_molar_volume_m3_mol must be positive")
+    if gas_constant_j_mol_k <= 0.0:
+        raise ValueError("gas_constant_j_mol_k must be positive")
+
+    lam = np.asarray(water_content, dtype=float)
+    if np.any(lam < 0.0):
+        raise ValueError("water_content must be non-negative")
+
+    dry_membrane_molar_volume = (
+        equivalent_weight_kg_mol / dry_density_kg_m3
+    )
+    swelling = (
+        1.0
+        + water_molar_volume_m3_mol / dry_membrane_molar_volume * lam
+    ) ** swelling_exponent
+    hydration = 1.0 + 2.7e-3 * lam**2
+    transition = 1.0 + np.tanh(
+        (lam - turning_point_lambda) / turning_width
+    )
+    thermal = np.exp(
+        -activation_energy_j_mol
+        / (gas_constant_j_mol_k * temperature_k)
+    )
+    return prefactor_m2_s * swelling * hydration * transition * thermal
+
+
 def nafion_water_interfacial_transfer_coefficient_grimaldi(
     water_content: np.ndarray | float,
     temperature_k: float,
