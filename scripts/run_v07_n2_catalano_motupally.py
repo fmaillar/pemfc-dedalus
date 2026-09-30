@@ -146,6 +146,130 @@ def make_motupally_transport_permeance_model(
     return permeance_model
 
 
+
+def compute_motupally_lookup_row(task: dict[str, Any]) -> tuple[float, list[float]]:
+    """Compute one RH row of the Motupally permeance lookup table."""
+    p = CathodeParameters()
+    fixed_charge = membrane_fixed_charge_concentration(
+        p.membrane_dry_density,
+        p.membrane_equivalent_weight,
+    )
+    model = make_motupally_transport_permeance_model(
+        dry_reference_si=barrer_to_si_permeability(
+            DRY_REFERENCE_PERMEABILITY_BARRER
+        ),
+        stack_temperature_k=p.stack_temperature,
+        gas_constant_j_mol_k=p.gas_constant,
+        faraday_c_mol=p.faraday,
+        fixed_charge_mol_m3=fixed_charge,
+        activation_energy_j_mol=float(task["activation_energy_j_mol"]),
+        cathode_relative_humidity=p.relative_humidity,
+        membrane_thickness_m=p.membrane_thickness,
+        membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
+        membrane_dry_density_kg_m3=p.membrane_dry_density,
+        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
+        water_partial_molar_volume_m3_mol=(
+            float(task["water_partial_molar_volume_cm3_mol"]) * 1.0e-6
+        ),
+    )
+    relative_humidity = float(task["relative_humidity"])
+    values = [
+        model(relative_humidity, float(current_density))
+        for current_density in task["current_density_axis"]
+    ]
+    return relative_humidity, values
+
+
+def build_motupally_lookup_table(
+    *,
+    relative_humidity_axis: np.ndarray,
+    current_density_axis: np.ndarray,
+    jobs: int,
+    activation_energy_j_mol: float,
+    water_partial_molar_volume_cm3_mol: float,
+) -> np.ndarray:
+    """Precompute Motupally permeance on a 2D state grid in parallel."""
+    tasks = [
+        {
+            "relative_humidity": float(relative_humidity),
+            "current_density_axis": [
+                float(value) for value in current_density_axis
+            ],
+            "activation_energy_j_mol": activation_energy_j_mol,
+            "water_partial_molar_volume_cm3_mol": (
+                water_partial_molar_volume_cm3_mol
+            ),
+        }
+        for relative_humidity in relative_humidity_axis
+    ]
+    worker_count = min(jobs, len(tasks))
+    if worker_count == 1:
+        rows = [compute_motupally_lookup_row(task) for task in tasks]
+    else:
+        with ProcessPoolExecutor(max_workers=worker_count) as executor:
+            rows = list(executor.map(compute_motupally_lookup_row, tasks))
+    rows.sort(key=lambda item: item[0])
+    return np.asarray([row[1] for row in rows], dtype=float)
+
+
+def make_tabulated_permeance_model(
+    relative_humidity_axis: np.ndarray,
+    current_density_axis: np.ndarray,
+    table: np.ndarray,
+) -> Callable[[float, float], float]:
+    """Return bilinear interpolation over a precomputed permeance table."""
+    rh_axis = np.asarray(relative_humidity_axis, dtype=float)
+    current_axis = np.asarray(current_density_axis, dtype=float)
+    values = np.asarray(table, dtype=float)
+    if values.shape != (rh_axis.size, current_axis.size):
+        raise ValueError("lookup table shape does not match axes")
+    if rh_axis.size < 2 or current_axis.size < 2:
+        raise ValueError("lookup axes must each contain at least two points")
+
+    def interpolate(relative_humidity: float, current_density_a_m2: float) -> float:
+        rh = float(np.clip(relative_humidity, rh_axis[0], rh_axis[-1]))
+        current = float(
+            np.clip(current_density_a_m2, current_axis[0], current_axis[-1])
+        )
+
+        rh_upper = int(np.searchsorted(rh_axis, rh, side="right"))
+        current_upper = int(
+            np.searchsorted(current_axis, current, side="right")
+        )
+        rh_upper = min(max(rh_upper, 1), rh_axis.size - 1)
+        current_upper = min(
+            max(current_upper, 1),
+            current_axis.size - 1,
+        )
+        rh_lower = rh_upper - 1
+        current_lower = current_upper - 1
+
+        rh0 = float(rh_axis[rh_lower])
+        rh1 = float(rh_axis[rh_upper])
+        current0 = float(current_axis[current_lower])
+        current1 = float(current_axis[current_upper])
+        rh_weight = 0.0 if rh1 == rh0 else (rh - rh0) / (rh1 - rh0)
+        current_weight = (
+            0.0
+            if current1 == current0
+            else (current - current0) / (current1 - current0)
+        )
+
+        lower_value = (
+            (1.0 - current_weight) * values[rh_lower, current_lower]
+            + current_weight * values[rh_lower, current_upper]
+        )
+        upper_value = (
+            (1.0 - current_weight) * values[rh_upper, current_lower]
+            + current_weight * values[rh_upper, current_upper]
+        )
+        return float(
+            (1.0 - rh_weight) * lower_value
+            + rh_weight * upper_value
+        )
+
+    return interpolate
+
 def relative_change(new: float, reference: float) -> float:
     if reference == 0.0:
         raise ValueError("reference value must be non-zero")
@@ -195,19 +319,10 @@ def run_simulation_task(task: dict[str, Any]) -> dict[str, Any]:
             water_partial_molar_volume_m3_mol=water_volume_m3_mol,
         )
     elif model_kind == "motupally":
-        permeance_model = make_motupally_transport_permeance_model(
-            dry_reference_si=dry_reference_si,
-            stack_temperature_k=p.stack_temperature,
-            gas_constant_j_mol_k=p.gas_constant,
-            faraday_c_mol=p.faraday,
-            fixed_charge_mol_m3=fixed_charge,
-            activation_energy_j_mol=activation_energy,
-            cathode_relative_humidity=p.relative_humidity,
-            membrane_thickness_m=p.membrane_thickness,
-            membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
-            membrane_dry_density_kg_m3=p.membrane_dry_density,
-            anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
-            water_partial_molar_volume_m3_mol=water_volume_m3_mol,
+        permeance_model = make_tabulated_permeance_model(
+            np.asarray(task["lookup_rh_axis"], dtype=float),
+            np.asarray(task["lookup_current_axis"], dtype=float),
+            np.asarray(task["lookup_table"], dtype=float),
         )
     else:
         raise ValueError(f"unknown model_kind: {model_kind}")
@@ -343,6 +458,8 @@ def main() -> None:
     parser.add_argument("--dt", type=float, default=0.01)
     parser.add_argument("--write-every", type=int, default=100)
     parser.add_argument("--jobs", type=int, default=6)
+    parser.add_argument("--lookup-rh-points", type=int, default=33)
+    parser.add_argument("--lookup-current-points", type=int, default=33)
     parser.add_argument(
         "--output-json",
         type=Path,
@@ -357,6 +474,8 @@ def main() -> None:
 
     if args.jobs < 1:
         parser.error("--jobs must be >= 1")
+    if args.lookup_rh_points < 3 or args.lookup_current_points < 3:
+        parser.error("lookup axes must contain at least three points")
     if args.stop_time <= 0.0 or args.dt <= 0.0:
         parser.error("--stop-time and --dt must be positive")
 
@@ -383,6 +502,42 @@ def main() -> None:
         relative_humidity=p.relative_humidity,
         saturation_water_pressure_pa=saturation_pressure,
     )
+    selected_current_density_values: list[float] = []
+    for regime in args.regimes:
+        current_values = closure[regime][2]
+        for patch_current_a in current_values:
+            cell_current_a = float(patch_current_a) * scaling.area_scale_factor
+            selected_current_density_values.append(
+                cell_current_a / scaling.inferred_active_area_m2
+            )
+    min_current_density = min(selected_current_density_values)
+    max_current_density = max(selected_current_density_values)
+    current_margin = max(
+        0.1 * (max_current_density - min_current_density),
+        50.0,
+    )
+    lookup_rh_axis = np.linspace(0.0, 1.0, args.lookup_rh_points)
+    lookup_current_axis = np.linspace(
+        max(0.0, min_current_density - current_margin),
+        max_current_density + current_margin,
+        args.lookup_current_points,
+    )
+    print(
+        "Precomputing Motupally lookup: "
+        f"{args.lookup_rh_points}x{args.lookup_current_points} "
+        f"with {min(args.jobs, args.lookup_rh_points)} workers",
+        flush=True,
+    )
+    lookup_table = build_motupally_lookup_table(
+        relative_humidity_axis=lookup_rh_axis,
+        current_density_axis=lookup_current_axis,
+        jobs=args.jobs,
+        activation_energy_j_mol=args.activation_energy_j_mol,
+        water_partial_molar_volume_cm3_mol=(
+            args.water_partial_molar_volume_cm3_mol
+        ),
+    )
+
     common_kwargs: dict[str, Any] = {
         "initial_rh": args.initial_rh,
         "stop_time_s": args.stop_time,
@@ -419,6 +574,13 @@ def main() -> None:
                             args.water_partial_molar_volume_cm3_mol
                         ),
                         "activation_energy_j_mol": args.activation_energy_j_mol,
+                        "lookup_rh_axis": [
+                            float(value) for value in lookup_rh_axis
+                        ],
+                        "lookup_current_axis": [
+                            float(value) for value in lookup_current_axis
+                        ],
+                        "lookup_table": lookup_table.tolist(),
                     }
                 )
 
@@ -452,6 +614,10 @@ def main() -> None:
         "feedback_exponents": args.feedback_exponents,
         "regimes": args.regimes,
         "jobs": worker_count,
+        "lookup_rh_points": args.lookup_rh_points,
+        "lookup_current_points": args.lookup_current_points,
+        "lookup_current_density_min_a_m2": float(lookup_current_axis[0]),
+        "lookup_current_density_max_a_m2": float(lookup_current_axis[-1]),
         "stop_time_s": args.stop_time,
         "dt_s": args.dt,
         "summaries": rows,
