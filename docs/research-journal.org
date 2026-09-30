@@ -7803,3 +7803,217 @@ L'objectif est maintenant de réduire les degrés de liberté empiriques au lieu
 d'ajouter de nouvelles physiques tant que la loi de crossover N2 n'est pas
 suffisamment contrainte.
 
+
+
+*** Résultats de la fermeture Catalano calibrée
+
+La campagne calibrée est terminée avec intégration through-plane de la
+perméance.
+
+La formulation nominale utilise :
+
+  P_N2,dry(35 C) = 0.18 Barrer
+  Vbar_water = 17.0 cm3/mol
+  E_a = 49.6 kJ/mol
+  P_N2/P_N2,dry = 95 à a_w = 0.75
+  plafond hydrique = 100
+  65 points à travers la membrane.
+
+La perméance n'est plus calculée à partir d'un état hydrique moyen unique.
+Les résistances locales sont intégrées en série :
+
+  K_N2 =
+    [ integral_0^L dz / P_N2(z) ]^-1.
+
+Le profil utilisé à ce stade est une interpolation linéaire de lambda entre
+les interfaces anodique et cathodique.
+
+Pour Vbar_water = 17.0 cm3/mol et E_a = 49.6 kJ/mol, gamma = 1 :
+
+dry_high_load :
+
+  J_N2,moy = 1.380e-6 mol/m2/s
+  x_N2,max = 0.003064
+  x_H2,min = 0.98334
+  I_moy = 45.055 A
+  période purge = 51.05 s
+  19 purges / 1000 s.
+
+nominal :
+
+  J_N2,moy = 1.754e-6 mol/m2/s
+  x_N2,max = 0.006161
+  x_H2,min = 0.97076
+  I_moy = 28.474 A
+  période purge = 80.79 s
+  12 purges / 1000 s.
+
+wet_low_load :
+
+  J_N2,moy = 6.470e-6 mol/m2/s
+  x_N2,max = 0.04058
+  x_H2,min = 0.91241
+  I_moy = 15.787 A
+  période purge = 146.01 s
+  6 purges / 1000 s.
+
+Les bilans H2/H2O/N2 restent fermés à la précision numérique.
+
+L'effet du volume molaire partiel est faible dans cette calibration :
+le passage de 17.0 à 18.01528 cm3/mol modifie le flux moyen de moins de
+quelques pourcents dans les trois régimes.
+
+L'énergie d'activation reste plus influente :
+E_a = 19.83 kJ/mol réduit le crossover par rapport à 49.6 kJ/mol à la
+température de pile utilisée.
+
+*** Comparaison état moyen / intégration through-plane
+
+Une campagne dédiée isole désormais uniquement le traitement spatial de
+l'hydratation, toutes les autres hypothèses Catalano étant identiques :
+
+  Vbar_water = 17.0 cm3/mol
+  E_a = 49.6 kJ/mol.
+
+Deux modèles sont comparés :
+
+  mean_state :
+    P_N2 évaluée à
+    lambda_eff = (lambda_anode + lambda_cathode)/2
+
+  through_plane :
+    intégration de 1/P_N2(z) à travers un profil lambda(z) linéaire.
+
+Résultats pour gamma = 0 :
+
+dry_high_load :
+
+  J_N2 :
+    1.407e-6 -> 1.380e-6 mol/m2/s
+    variation = -1.94 %
+
+  x_N2,max :
+    0.003118 -> 0.003057
+    variation = -1.94 %.
+
+nominal :
+
+  J_N2 :
+    1.757e-6 -> 1.754e-6 mol/m2/s
+    variation = -0.19 %
+
+  x_N2,max :
+    0.006145 -> 0.006133
+    variation = -0.19 %.
+
+wet_low_load :
+
+  J_N2 :
+    1.155e-5 -> 6.475e-6 mol/m2/s
+    variation = -43.95 %
+
+  x_N2,max :
+    0.07018 -> 0.03954
+    variation = -43.66 %.
+
+Pour gamma = 1, la conclusion est identique :
+
+  wet_low_load :
+    J_N2 = -43.87 %
+    x_N2,max = -44.92 %.
+
+Les nombres de purges et les RH finales sont inchangés entre les deux
+formulations dans cette comparaison contrôlée.
+
+*** Interprétation
+
+La moyenne d'état est acceptable autour du régime nominal mais devient
+physiquement inadéquate dans le régime fortement hydraté.
+
+La cause est la non-linéarité exponentielle de P_N2(phi_water).
+
+Dans une membrane fortement dissymétrique, une portion plus sèche apporte une
+résistance de transport importante. Evaluer P_N2 à la moyenne de lambda
+surestime donc la perméance globale.
+
+La réduction d'environ 44 % observée dans wet_low_load n'est pas un petit
+effet numérique : elle modifie directement le niveau de contamination N2 et
+la rétroaction H2.
+
+Décision :
+
+  la formulation Catalano avec intégration through-plane devient la
+  formulation de référence V0.7.
+
+La formulation mean_state est conservée uniquement comme approximation de
+contrôle et comme démonstration de l'importance du traitement spatial.
+
+*** Limite restante : profil lambda linéaire
+
+L'intégration de résistance est maintenant correcte, mais lambda(z) reste
+imposé linéairement entre les deux interfaces.
+
+Cette hypothèse n'est pas cohérente avec la physique déjà développée dans
+V0.5/V0.6.
+
+Le projet possède déjà :
+
+  steady_membrane_water_profile(...)
+  steady_membrane_water_profile_anode_transfer(...)
+
+avec :
+
+- diffusion de l'eau ;
+- électro-osmose ;
+- diffusivité membranaire ;
+- transfert fini membrane -> gaz anodique.
+
+La prochaine étape doit donc réutiliser cette physique existante plutôt que
+créer une nouvelle fermeture empirique.
+
+*** Étape suivante : perméance N2 sur le profil hydrique V0.6
+
+Objectif :
+
+remplacer le profil lambda linéaire de la fermeture Catalano par le profil
+quasi-stationnaire V0.6 calculé à chaque état anodique.
+
+La chaîne physique devient :
+
+  RH_anode(t)
+  -> lambda_anode,equilibre(t)
+
+  I(t)
+  -> vitesse de drag électro-osmotique
+
+  {lambda_cathode,
+   lambda_anode,equilibre,
+   D_water,
+   k_a,
+   I(t)}
+  -> lambda(z,t)
+
+  lambda(z,t)
+  -> phi_water(z,t)
+  -> P_N2(z,t)
+  -> K_N2(t)
+  -> J_N2(t).
+
+La première campagne doit comparer strictement :
+
+  linear_profile
+  vs
+  v06_finite_transfer_profile
+
+avec les mêmes paramètres Catalano nominaux.
+
+Le but est de quantifier séparément l'effet du transport hydrique membranaire
+avant d'ajouter une nouvelle physique.
+
+Si cet effet est significatif, la sensibilité suivante devra porter sur les
+deux paramètres encore explicitement hypothétiques :
+
+  D_water = 2e-10 m2/s
+  k_a = 2e-6 m/s.
+
+Cette étape constitue la continuation logique de V0.7.
