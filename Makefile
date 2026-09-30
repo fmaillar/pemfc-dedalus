@@ -513,7 +513,7 @@ n2-state-v07:
 
 quick-n2-water-v07:
 	$(PYTHON) -m scripts.run_v07_n2_water_content_permeability \
-	  --regimes nominal --feedback-exponents 0 1 \
+	  --regimes nominal --feedback-exponents 0 1 --jobs 2 \
 	  --stop-time 200 --dt 0.01 --write-every 100 \
 	  --output-json results/quick-v07-n2-water-content-permeability.json \
 	  --output-csv results/quick-v07-n2-water-content-permeability.csv
@@ -566,4 +566,4 @@ quick-n2-catalano-transport-v07:
 	  --output-csv results/quick-v07-n2-catalano-membrane-transport-comparison.csv
 
 n2-catalano-transport-v07:
-	$(PYTHON) -m scripts.run_v07_n2_catalano_membrane_transport
+	$(PYTHON) -m scripts.run_v07_n2_catalano_membrane_transport --jobs 6
