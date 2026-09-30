@@ -10854,3 +10854,165 @@ Décision :
 
   utiliser le résultat pour décider si la prochaine baseline doit abandonner
   k_a constant au profit de k_g(lambda,T).
+
+
+*** Résultats du diagnostic Grimaldi à la température de pile
+
+Le diagnostic Grimaldi est terminé à :
+
+  T = 312.9612 K.
+
+Valeurs calculées :
+
+dry_high_load :
+
+  lambda = 2.95 :
+    k_g = 4.020e-6 m/s
+    ratio à k_a baseline = 2.01
+
+  lambda = 3.49 :
+    k_g = 5.260e-6 m/s
+    ratio = 2.63.
+
+nominal :
+
+  lambda = 3.24 :
+    k_g = 4.670e-6 m/s
+    ratio = 2.34
+
+  lambda = 3.49 :
+    k_g = 5.260e-6 m/s
+    ratio = 2.63.
+
+wet_low_load :
+
+  lambda = 3.49 :
+    k_g = 5.260e-6 m/s
+    ratio = 2.63
+
+  lambda = 5.37 :
+    k_g = 1.048e-5 m/s
+    ratio = 5.24.
+
+*** Interprétation du diagnostic Grimaldi
+
+La fermeture Grimaldi donne systématiquement un transfert interfacial plus
+rapide que la baseline constante :
+
+  k_a = 2e-6 m/s.
+
+L'écart est modéré en dry et nominal :
+
+  environ x2 à x2.6
+
+mais devient très important en wet_low_load :
+
+  jusqu'à x5.2.
+
+Ce résultat est cohérent avec la sensibilité k_a précédente, qui montrait déjà
+que le régime humide est dominé par l'incertitude interfaciale.
+
+La dépendance :
+
+  k_g ~ lambda^1.6
+
+introduit en plus une rétroaction hydrique absente de la baseline constante.
+
+*** Décision après diagnostic Grimaldi
+
+L'ordre de grandeur est cohérent et suffisamment différent de la baseline pour
+justifier une comparaison dynamique directe.
+
+La baseline constante n'est pas remplacée immédiatement.
+
+La prochaine étape compare :
+
+  Motupally + k_a constant = 2e-6 m/s
+
+à :
+
+  Motupally + k_g(lambda,T) de Grimaldi.
+
+Le reste de la physique est identique :
+
+- même diffusion Motupally ;
+- même fermeture Catalano N2 ;
+- même dynamique anodique ;
+- même purge ;
+- même rétroaction H2.
+
+*** Infrastructure du solveur à transfert dépendant de lambda
+
+Un nouveau solveur stationnaire est ajouté :
+
+  steady_membrane_water_profile_variable_transfer(...)
+
+avec la condition interfaciale :
+
+  J_lambda =
+    -k(lambda_anode)
+    (lambda_anode - lambda_eq).
+
+Le solveur utilise lambda_anode comme inconnue scalaire, calcule le flux
+correspondant via la condition Robin, puis intègre le profil en z.
+
+Cette formulation n'impose aucune monotonie de lambda(z).
+
+Un wrapper spécifique est ajouté :
+
+  steady_membrane_water_profile_motupally_grimaldi(...).
+
+Des tests vérifient :
+
+- qu'un k(lambda) constant retrouve la solution du solveur constant-k_a ;
+- qu'un profil Motupally + Grimaldi reste physique ;
+- que la condition cathodique est satisfaite.
+
+*** Campagne de comparaison constant-k_a / Grimaldi
+
+Un nouveau driver est ajouté :
+
+  scripts/run_v07_n2_grimaldi_transfer_comparison.py
+
+Les deux lookups sont construits dans un seul pool :
+
+  constant-k_a
+  Grimaldi
+
+x
+
+  RH rows.
+
+Quick :
+
+  make quick-n2-grimaldi-transfer-v07
+
+avec :
+
+  nominal
+  wet_low_load
+  gamma = 0
+  lookup = 21 x 21
+  horizon = 200 s.
+
+Full :
+
+  make n2-grimaldi-transfer-v07
+
+avec :
+
+  3 régimes
+  gamma = 0 et 1
+  lookup = 33 x 33
+  horizon = 1000 s.
+
+Les deux cibles utilisent la mesure de temps standard du Makefile.
+
+Décision :
+
+  relancer make test ;
+
+  exécuter le quick Grimaldi ;
+
+  interpréter l'écart avant toute promotion de Grimaldi comme nouvelle
+  baseline.
