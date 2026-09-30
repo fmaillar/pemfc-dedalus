@@ -36,7 +36,7 @@ from pemfc_dedalus.gas_permeability import (
     arrhenius_permeability,
     barrer_to_si_permeability,
     calibrated_exponential_permeability_multiplier,
-    membrane_permeance_from_permeability,
+    membrane_permeance_from_permeability_profile,
     membrane_water_volume_fraction_from_partial_molar_volume,
 )
 from pemfc_dedalus.membrane import (
@@ -65,6 +65,7 @@ DEFAULT_ACTIVATION_ENERGIES_J_MOL = [
     HYDRATED_N2_ACTIVATION_ENERGY_J_MOL,
 ]
 DEFAULT_FEEDBACK_EXPONENTS = [0.0, 1.0]
+MEMBRANE_PROFILE_POINTS = 65
 
 
 def scalar_water_content(activity: float) -> float:
@@ -104,20 +105,6 @@ def make_calibrated_permeance_model(
 
     def permeance_model(anode_rh: float) -> float:
         lambda_anode = scalar_water_content(anode_rh)
-        lambda_effective = 0.5 * (lambda_anode + lambda_cathode)
-        phi_water = membrane_water_volume_fraction_from_partial_molar_volume(
-            lambda_effective,
-            membrane_equivalent_weight_kg_mol=membrane_equivalent_weight_kg_mol,
-            membrane_dry_density_kg_m3=membrane_dry_density_kg_m3,
-            water_partial_molar_volume_m3_mol=water_partial_molar_volume_m3_mol,
-        )
-        humidity_factor = calibrated_exponential_permeability_multiplier(
-            phi_water,
-            baseline_fraction=phi_dry,
-            anchor_fraction=phi_anchor,
-            anchor_factor=ANCHOR_PERMEABILITY_FACTOR,
-            maximum_factor=MAXIMUM_PERMEABILITY_FACTOR,
-        )
         dry_at_temperature = arrhenius_permeability(
             dry_reference_si,
             stack_temperature_k,
@@ -125,9 +112,36 @@ def make_calibrated_permeance_model(
             activation_energy_j_mol,
             gas_constant_j_mol_k,
         )
-        permeability = dry_at_temperature * humidity_factor
-        return membrane_permeance_from_permeability(
-            permeability,
+
+        permeability_profile: list[float] = []
+        for index in range(MEMBRANE_PROFILE_POINTS):
+            fraction = index / (MEMBRANE_PROFILE_POINTS - 1)
+            lambda_local = lambda_anode + fraction * (
+                lambda_cathode - lambda_anode
+            )
+            phi_water = membrane_water_volume_fraction_from_partial_molar_volume(
+                lambda_local,
+                membrane_equivalent_weight_kg_mol=(
+                    membrane_equivalent_weight_kg_mol
+                ),
+                membrane_dry_density_kg_m3=membrane_dry_density_kg_m3,
+                water_partial_molar_volume_m3_mol=(
+                    water_partial_molar_volume_m3_mol
+                ),
+            )
+            humidity_factor = calibrated_exponential_permeability_multiplier(
+                phi_water,
+                baseline_fraction=phi_dry,
+                anchor_fraction=phi_anchor,
+                anchor_factor=ANCHOR_PERMEABILITY_FACTOR,
+                maximum_factor=MAXIMUM_PERMEABILITY_FACTOR,
+            )
+            permeability_profile.append(
+                dry_at_temperature * humidity_factor
+            )
+
+        return membrane_permeance_from_permeability_profile(
+            permeability_profile,
             membrane_thickness_m,
         )
 
@@ -379,6 +393,9 @@ def main() -> None:
         ),
         "activation_energies_j_mol": args.activation_energies_j_mol,
         "feedback_exponents": args.feedback_exponents,
+        "membrane_permeance_model": "through-plane resistance integration",
+        "membrane_water_profile": "linear lambda between anode and cathode",
+        "membrane_profile_points": MEMBRANE_PROFILE_POINTS,
         "membrane_thickness_m": p.membrane_thickness,
         "stack_temperature_k": p.stack_temperature,
         "cathode_n2_partial_pressure_pa": cathode_n2_partial_pressure,
