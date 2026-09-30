@@ -8074,3 +8074,62 @@ et vérifier en priorité :
 
 Aucune sensibilité sur D_water ou k_a ne sera lancée avant d'avoir quantifié
 l'effet brut du remplacement du profil linéaire.
+
+
+*** Préflight du profil hydrique V0.6 dans la fermeture Catalano
+
+Le préflight nominal est terminé après validation complète du dépôt.
+
+Cas :
+
+  régime = nominal
+  Vbar_water = 17.0 cm3/mol
+  E_a = 49.6 kJ/mol
+  horizon = 200 s
+  dt = 0.01 s.
+
+Comparaison :
+
+  linear_profile
+  vs
+  v06_finite_transfer_profile.
+
+Pour gamma = 0 :
+
+  J_N2,moy :
+    1.758e-6 -> 1.776e-6 mol/m2/s
+    variation ≈ +1.0 %
+
+  x_N2,max :
+    0.00503 -> 0.00508
+    variation ≈ +1.0 %.
+
+Pour gamma = 1 :
+
+  J_N2,moy :
+    1.758e-6 -> 1.776e-6 mol/m2/s
+    variation ≈ +1.0 %
+
+  x_N2,max :
+    0.00504 -> 0.00509
+    variation ≈ +1.0 %.
+
+Le signe est opposé à la correction mean_state -> through_plane étudiée
+précédemment : ici les deux modèles intègrent déjà la résistance
+through-plane, et seule la forme de lambda(z) change.
+
+Au régime nominal, le profil V0.6 diffusion + drag + transfert fini augmente
+donc légèrement la perméance effective par rapport au profil lambda linéaire.
+
+Cet écart d'environ 1 % est faible et ne remet pas en cause la baseline.
+
+La campagne complète est toutefois nécessaire avant conclusion car le régime
+wet_low_load est celui où les non-linéarités hydriques ont déjà produit les
+plus grands écarts.
+
+Décision :
+
+  poursuivre immédiatement avec la campagne complète
+  make n2-catalano-transport-v07
+
+avant toute sensibilité sur D_water ou k_a.
