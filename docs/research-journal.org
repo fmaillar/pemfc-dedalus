@@ -11523,3 +11523,130 @@ Le terme d'électro-osmose reste conservé comme extension PEMFC explicite du
 modèle de transport d'eau.
 
 La nouvelle fermeture reste séparée de la baseline Motupally jusqu'à validation.
+
+
+*** Infrastructure de fermeture Grimaldi stationnaire cohérente
+
+Une implémentation séparée est ajoutée afin d'éviter le mélange précédent :
+
+  Motupally
+  + Springer
+  + k_g Grimaldi.
+
+Nouvelles relations constitutives :
+
+  membrane_water_content_grimaldi_da(...)
+
+implémente l'isotherme Dubinin-Astakhov publiée par Grimaldi :
+
+  A = -R T ln(RH)
+
+  lambda_eq =
+    lambda0_eq exp[-(A/E_DA)^eta].
+
+Paramètres par défaut issus de la Table 3 :
+
+  lambda0_eq = 15.01
+  E_DA = 1047 J/mol
+  eta = 0.4712.
+
+La fonction :
+
+  membrane_water_diffusivity_grimaldi(...)
+
+implémente l'Eq. (6) de Grimaldi/Olesen avec :
+
+  xi_mb = 6.47e-6 m2/s
+  lambda_tp = 2.15
+  delta_tp = 0.8758
+  n_m = -2
+  E_m_act = 27.8 kJ/mol
+  V_H2O = 1.8e-5 m3/mol.
+
+Un solveur stationnaire à deux interfaces est ajouté :
+
+  steady_membrane_water_profile_two_interface_transfer(...)
+
+avec :
+
+  J =
+    k_a(lambda_a)
+    (lambda_eq,a - lambda_a)
+
+à l'anode, et :
+
+  J =
+    k_c(lambda_c)
+    (lambda_c - lambda_eq,c)
+
+à la cathode.
+
+Le profil interne conserve :
+
+  J =
+    -D(lambda) d(lambda)/dz
+    + v lambda
+
+où v représente le terme d'électro-osmose PEMFC.
+
+Le wrapper :
+
+  steady_membrane_water_profile_grimaldi_consistent(...)
+
+combine donc :
+
+- isotherme DA Grimaldi aux deux interfaces ;
+- diffusivité Grimaldi/Olesen ;
+- coefficient interfacial Grimaldi aux deux interfaces ;
+- électro-osmose conservée explicitement comme extension PEMFC.
+
+Cette fermeture reste séparée de la baseline tant qu'elle n'est pas validée.
+
+*** Tests de la fermeture cohérente
+
+Des tests sont ajoutés pour vérifier :
+
+- la reproduction de l'isotherme DA ;
+- la reproduction de la diffusivité publiée ;
+- la solution symétrique à RH identiques et drag nul ;
+- le caractère physique d'un profil Grimaldi stationnaire avec drag non nul.
+
+*** Diagnostic de domaine de validité cohérent
+
+Avant toute comparaison N2, un nouveau diagnostic balaie :
+
+  RH_anode
+  x
+  densité de courant
+
+sur :
+
+  21 x 21 = 441 états
+
+avec :
+
+  JOBS = 8.
+
+Commande :
+
+  make analyze-grimaldi-consistent-validity-v07
+
+Sortie :
+
+  results/v07-grimaldi-consistent-validity-domain.csv
+
+Le diagnostic enregistre notamment :
+
+- validité ;
+- lambda_anode ;
+- lambda_cathode ;
+- lambda_mean ;
+- message d'erreur éventuel.
+
+Décision :
+
+  exécuter make test ;
+
+  puis la cartographie de validité cohérente ;
+
+  ne construire le nouveau lookup N2 qu'après validation de ces 441 états.
