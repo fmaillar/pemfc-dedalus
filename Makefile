@@ -23,6 +23,7 @@ NUMEXPR_NUM_THREADS ?= 1
         quick-n2-catalano-profile-v07 n2-catalano-profile-v07 \
         quick-n2-catalano-transport-v07 n2-catalano-transport-v07 \
         quick-n2-catalano-transport-sensitivity-v07 n2-catalano-transport-sensitivity-v07 \
+        analyze-n2-membrane-profiles-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -95,6 +96,7 @@ help:
 	  'make n2-catalano-transport-v07 run linear vs V0.6 membrane-profile comparison' \
 	  'make quick-n2-catalano-transport-sensitivity-v07 preflight D_water/k_a sensitivity' \
 	  'make n2-catalano-transport-sensitivity-v07 run full D_water/k_a sensitivity' \
+	  'make analyze-n2-membrane-profiles-v07 diagnose Pe/Bi and N2 resistance profiles' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -584,3 +586,7 @@ quick-n2-catalano-transport-sensitivity-v07:
 n2-catalano-transport-sensitivity-v07:
 	$(PYTHON) -m scripts.run_v07_n2_catalano_membrane_transport_sensitivity \
 	  --jobs 8
+
+
+analyze-n2-membrane-profiles-v07:
+	$(PYTHON) -m scripts.analyze_v07_n2_membrane_profiles
