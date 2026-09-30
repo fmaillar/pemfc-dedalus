@@ -28,6 +28,7 @@ TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
         analyze-n2-membrane-profiles-v07 analyze-n2-motupally-v07 \
         quick-n2-catalano-motupally-v07 quick-n2-catalano-motupally-33-v07 analyze-n2-catalano-motupally-lookup-v07 n2-catalano-motupally-v07 \
         quick-n2-motupally-ka-v07 n2-motupally-ka-v07 analyze-ge-transfer-v07 \
+        analyze-grimaldi-transfer-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -109,6 +110,7 @@ help:
 	  'make quick-n2-motupally-ka-v07 preflight Motupally k_a sensitivity' \
 	  'make n2-motupally-ka-v07 run full Motupally k_a sensitivity' \
 	  'make analyze-ge-transfer-v07 compare k_a with Ge et al. 2005' \
+	  'make analyze-grimaldi-transfer-v07 compare k_a with Grimaldi 2023' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -649,3 +651,7 @@ n2-motupally-ka-v07:
 
 analyze-ge-transfer-v07:
 	$(PYTHON) -m scripts.analyze_v07_ge_interfacial_transfer
+
+
+analyze-grimaldi-transfer-v07:
+	$(PYTHON) -m scripts.analyze_v07_grimaldi_interfacial_transfer
