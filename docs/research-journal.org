@@ -9118,3 +9118,102 @@ et :
   make quick-n2-catalano-motupally-v07
 
 soient tous deux verts avec cette reformulation.
+
+
+*** Second échec du quick Motupally : bracket trop contraint
+
+Le quick Motupally échoue encore après la reformulation en espace lambda.
+
+Erreur observée :
+
+  RuntimeError:
+    could not bracket variable-diffusivity membrane solution;
+    best lambda_anode=3.10883,
+    length residual=-3.84458e-07 m.
+
+Ce résidu ne représente qu'environ :
+
+  0.38 micromètre
+
+sur une membrane de :
+
+  50 micromètres.
+
+Le problème n'est donc plus une divergence du solveur.
+
+L'analyse du résidu montre qu'une racine physique existe, mais que le wrapper
+Motupally limitait encore artificiellement la recherche de lambda_anode entre :
+
+  lambda_anode,equilibre
+  et
+  lambda_cathode.
+
+Cette contrainte n'est pas physiquement générale.
+
+En présence de drag électro-osmotique, la valeur stationnaire de
+lambda_anode peut sortir de l'intervalle formé par les deux valeurs
+d'équilibre imposées.
+
+La recherche de racine était donc susceptible d'exclure la solution avant même
+d'évaluer son résidu.
+
+*** Correction du bracketing Motupally
+
+Le solveur conserve la formulation robuste :
+
+  dz/dlambda =
+    D(lambda,T)
+    /
+    (v_drag lambda - J_lambda).
+
+Le changement porte uniquement sur la recherche de lambda_anode.
+
+Le bracket est désormais construit à partir de points physiquement
+structurants :
+
+- lambda_anode,equilibre ;
+- lambda_cathode ;
+- lambda = 3 - epsilon ;
+- lambda = 3 ;
+- lambda = 3 + epsilon ;
+- centre local ;
+- voisinages croissants autour du centre.
+
+La discontinuité Motupally à lambda = 3 est donc sondée explicitement.
+
+Si aucun changement de signe n'est trouvé localement, un scan global du
+domaine valide :
+
+  1e-4 < lambda < 16.99
+
+est utilisé en dernier recours.
+
+Les trajectoires non physiques, singulières ou non monotones restent rejetées.
+
+Cette stratégie évite :
+
+- d'exclure une racine située hors de l'intervalle d'équilibre ;
+- de forcer artificiellement un résultat sans racine ;
+- de lancer systématiquement un scan global coûteux à chaque pas de temps.
+
+*** Régression nominale ajoutée
+
+Un test reproduit maintenant un état nominal représentatif :
+
+  lambda_anode,equilibre ≈ 3.208
+  lambda_cathode ≈ 3.486
+  densité de courant ≈ 1400 A/m2.
+
+Ce cas est choisi pour être proche de l'état où le quick a échoué autour de :
+
+  lambda_anode ≈ 3.11.
+
+La condition cathodique et les bornes physiques du profil sont vérifiées.
+
+Décision :
+
+  relancer d'abord le gate complet ;
+
+  puis relancer uniquement le quick Motupally ;
+
+  ne pas lancer la campagne complète avant validation de ce second correctif.
