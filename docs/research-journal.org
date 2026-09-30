@@ -10059,3 +10059,88 @@ Objectifs :
   physique.
 
 La mesure de temps mur et CPU doit être ajoutée aux nouvelles cibles de calcul.
+
+
+*** Infrastructure de sensibilité k_a avec Motupally
+
+Après validation du full Motupally, la prochaine incertitude étudiée est le
+coefficient phénoménologique de transfert anodique :
+
+  k_a.
+
+La corrélation de diffusivité est désormais fixée à :
+
+  D_water = D_Motupally(lambda,T).
+
+La grille D_water x k_a n'est donc plus utilisée comme campagne principale.
+
+Un nouveau driver est ajouté :
+
+  scripts/run_v07_n2_motupally_ka_sensitivity.py
+
+Valeurs étudiées :
+
+  k_a =
+    1e-6
+    2e-6
+    4e-6 m/s.
+
+Pour chaque k_a, une table Motupally distincte K_N2(RH,j) est construite, car
+le profil lambda(z) dépend directement de la condition de transfert anodique.
+
+Le pré-calcul de chaque table est parallélisé avec :
+
+  JOBS = 8.
+
+La dynamique utilise ensuite l'interpolation bilinéaire déjà validée.
+
+Quick :
+
+  make quick-n2-motupally-ka-v07
+
+avec :
+
+  nominal
+  wet_low_load
+  gamma = 0
+  lookup = 21 x 21
+  horizon = 200 s.
+
+Campagne complète :
+
+  make n2-motupally-ka-v07
+
+avec :
+
+  3 régimes
+  gamma = 0 et 1
+  lookup = 33 x 33
+  horizon = 1000 s.
+
+*** Mesure systématique du temps de calcul
+
+À partir de cette étape, les nouvelles cibles de campagne utilisent :
+
+  /usr/bin/time
+
+avec le format :
+
+  real
+  user
+  sys
+  cpu
+  maxrss.
+
+Le Makefile définit :
+
+  TIME ?= /usr/bin/time -f ...
+
+Cela permet de mesurer le temps mur et le coût CPU sans modifier les drivers.
+
+Décision :
+
+  exécuter d'abord make test ;
+
+  puis le quick k_a ;
+
+  interpréter la sensibilité avant de lancer la campagne complète.
