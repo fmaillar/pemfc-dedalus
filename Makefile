@@ -24,7 +24,7 @@ NUMEXPR_NUM_THREADS ?= 1
         quick-n2-catalano-transport-v07 n2-catalano-transport-v07 \
         quick-n2-catalano-transport-sensitivity-v07 n2-catalano-transport-sensitivity-v07 \
         analyze-n2-membrane-profiles-v07 analyze-n2-motupally-v07 \
-        quick-n2-catalano-motupally-v07 n2-catalano-motupally-v07 \
+        quick-n2-catalano-motupally-v07 quick-n2-catalano-motupally-33-v07 analyze-n2-catalano-motupally-lookup-v07 n2-catalano-motupally-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -100,6 +100,8 @@ help:
 	  'make analyze-n2-membrane-profiles-v07 diagnose Pe/Bi and N2 resistance profiles' \
 	  'make analyze-n2-motupally-v07 compare constant and Motupally water diffusivity' \
 	  'make quick-n2-catalano-motupally-v07 preflight constant-D vs Motupally crossover' \
+	  'make quick-n2-catalano-motupally-33-v07 rerun quick with 33x33 lookup' \
+	  'make analyze-n2-catalano-motupally-lookup-v07 compare 21x21 and 33x33 lookups' \
 	  'make n2-catalano-motupally-v07 run constant-D vs Motupally crossover' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
@@ -608,5 +610,16 @@ quick-n2-catalano-motupally-v07:
 	  --output-json results/quick-v07-n2-catalano-motupally-comparison.json \
 	  --output-csv results/quick-v07-n2-catalano-motupally-comparison.csv
 
+quick-n2-catalano-motupally-33-v07:
+	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally \
+	  --regimes nominal wet_low_load --feedback-exponents 0 1 \
+	  --jobs 8 --lookup-rh-points 33 --lookup-current-points 33 \
+	  --stop-time 200 --dt 0.01 --write-every 100 \
+	  --output-json results/quick-v07-n2-catalano-motupally-comparison-33x33.json \
+	  --output-csv results/quick-v07-n2-catalano-motupally-comparison-33x33.csv
+
+analyze-n2-catalano-motupally-lookup-v07:
+	$(PYTHON) -m scripts.analyze_v07_motupally_lookup_convergence
+
 n2-catalano-motupally-v07:
-	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally --jobs 6
+	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally --jobs 8
