@@ -10144,3 +10144,137 @@ Décision :
   puis le quick k_a ;
 
   interpréter la sensibilité avant de lancer la campagne complète.
+
+
+*** Résultats du quick k_a avec Motupally
+
+Le quick de sensibilité au coefficient de transfert anodique k_a est terminé
+avec succès après passage du gate complet :
+
+  pytest :
+    142 passed
+
+  Ruff :
+    All checks passed
+
+  mypy :
+    Success.
+
+Configuration du quick :
+
+  régimes :
+    nominal
+    wet_low_load
+
+  gamma :
+    0
+
+  k_a :
+    1e-6
+    2e-6
+    4e-6 m/s
+
+  lookup :
+    21 x 21
+
+  horizon :
+    200 s
+
+  dt :
+    0.01 s
+
+  jobs :
+    8.
+
+Temps de calcul mesuré :
+
+  real = 8 min 55.09 s
+  user = 3696.58 s
+  sys  = 4.58 s
+  CPU  = 691 %
+  max RSS = 32332 kB.
+
+Cette mesure confirme que la campagne utilise effectivement plusieurs workers
+de façon soutenue.
+
+Résultats nominal :
+
+  k_a = 1e-6 :
+    J_N2,moy = 1.695e-6 mol/m2/s
+    x_N2,max = 0.00485
+
+  k_a = 2e-6 :
+    J_N2,moy = 1.706e-6 mol/m2/s
+    x_N2,max = 0.00488
+
+  k_a = 4e-6 :
+    J_N2,moy = 1.719e-6 mol/m2/s
+    x_N2,max = 0.00492.
+
+Sur l'intervalle 1e-6 -> 4e-6 :
+
+  variation de J_N2,moy ≈ +1.4 %
+  variation de x_N2,max ≈ +1.4 %.
+
+Le nominal est donc peu sensible à k_a.
+
+Résultats wet_low_load :
+
+  k_a = 1e-6 :
+    J_N2,moy = 3.548e-6 mol/m2/s
+    x_N2,max = 0.01257
+
+  k_a = 2e-6 :
+    J_N2,moy = 4.089e-6 mol/m2/s
+    x_N2,max = 0.01449
+
+  k_a = 4e-6 :
+    J_N2,moy = 4.390e-6 mol/m2/s
+    x_N2,max = 0.01556.
+
+Sur l'intervalle 1e-6 -> 4e-6 :
+
+  variation de J_N2,moy ≈ +23.7 %
+  variation de x_N2,max ≈ +23.8 %.
+
+*** Interprétation du quick k_a
+
+La sensibilité à k_a est fortement dépendante du régime.
+
+Au nominal, la membrane reste proche d'un état hydrique relativement symétrique.
+Le transfert anodique ne modifie que faiblement le profil hydrique et donc la
+résistance N2 through-plane.
+
+En wet_low_load, l'interface anodique est beaucoup plus hydratée. Augmenter k_a
+couple plus fortement la membrane à cet état d'équilibre humide, augmente
+l'hydratation du côté anodique et diminue la résistance effective au crossover
+N2.
+
+Le résultat confirme donc le mécanisme déjà observé avec D_water constant, mais
+avec une amplitude importante même après remplacement de D constant par la
+corrélation Motupally.
+
+*** Décision après quick k_a
+
+Le quick est suffisamment discriminant pour justifier la campagne complète.
+
+La campagne complète doit couvrir :
+
+  dry_high_load
+  nominal
+  wet_low_load
+
+avec :
+
+  gamma = 0 et 1
+  k_a = 1e-6, 2e-6, 4e-6 m/s
+  lookup 33 x 33
+  horizon 1000 s
+  dt = 0.01 s
+  jobs = 8.
+
+L'objectif est de quantifier l'incertitude résiduelle sur les trois régimes et
+de vérifier si dry_high_load présente une sensibilité opposée à wet_low_load.
+
+Le temps de calcul attendu est de l'ordre de quelques dizaines de minutes, le
+coût principal restant la construction de trois tables Motupally 33 x 33.
