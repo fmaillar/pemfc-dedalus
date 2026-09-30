@@ -16,6 +16,45 @@ def membrane_water_content_from_activity(
     return 0.043 + 17.81 * a - 39.85 * a**2 + 36.0 * a**3
 
 
+
+def membrane_water_diffusivity_motupally(
+    water_content: np.ndarray | float,
+    temperature_k: float,
+) -> np.ndarray:
+    """Return Fickian Nafion water diffusivity from Motupally et al. [m^2/s].
+
+    The correlation is reported in cm^2/s for Nafion 115 and is converted
+    here to SI units. The two branches retain the published discontinuity
+    at lambda = 3 that arises from the Darken-factor construction.
+
+    Valid range: 0 < lambda < 17.
+    """
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+
+    lam = np.asarray(water_content, dtype=float)
+    if np.any(lam <= 0.0) or np.any(lam >= 17.0):
+        raise ValueError("water_content must satisfy 0 < lambda < 17")
+
+    activation = np.exp(-2436.0 / temperature_k)
+    low_branch_cm2_s = (
+        3.10e-3
+        * lam
+        * (np.exp(0.28 * lam) - 1.0)
+        * activation
+    )
+    high_branch_cm2_s = (
+        4.17e-4
+        * (1.0 + 161.0 * np.exp(-lam))
+        * activation
+    )
+    diffusivity_cm2_s = np.where(
+        lam <= 3.0,
+        low_branch_cm2_s,
+        high_branch_cm2_s,
+    )
+    return 1.0e-4 * diffusivity_cm2_s
+
 def electro_osmotic_drag_coefficient(
     water_content: np.ndarray | float,
 ) -> np.ndarray:
