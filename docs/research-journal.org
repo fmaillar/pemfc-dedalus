@@ -10798,3 +10798,59 @@ Avant de modifier le solveur stationnaire :
   comparer sa valeur à la baseline actuelle sur les trois régimes ;
 
   ne remplacer k_a dans la condition Robin qu'après validation de ce diagnostic.
+
+
+*** Infrastructure du diagnostic Grimaldi
+
+La corrélation interfaciale de Grimaldi est ajoutée dans :
+
+  src/pemfc_dedalus/membrane.py
+
+sous la forme :
+
+  nafion_water_interfacial_transfer_coefficient_grimaldi(...).
+
+La fonction implémente :
+
+  k_g(lambda,T) =
+    xi_ad lambda^1.6
+    exp[
+      E_act/R
+      (1/T_ref - 1/T)
+    ]
+
+avec les valeurs par défaut :
+
+  xi_ad = 0.66e-6 m/s
+  E_act = 6000 J/mol
+  T_ref = 303 K.
+
+Des tests unitaires vérifient :
+
+- la reproduction directe de l'expression ;
+- l'augmentation avec lambda ;
+- l'augmentation avec la température.
+
+Un diagnostic dédié est ajouté :
+
+  scripts/analyze_v07_grimaldi_interfacial_transfer.py
+
+Commande :
+
+  make analyze-grimaldi-transfer-v07
+
+Sortie :
+
+  results/v07-grimaldi-interfacial-transfer-diagnostic.csv
+
+Le diagnostic évalue k_g à la température réelle de la pile pour les plages de
+lambda représentatives des trois régimes, puis calcule le rapport :
+
+  k_g / k_a,baseline.
+
+Décision :
+
+  exécuter le diagnostic Grimaldi après make test ;
+
+  utiliser le résultat pour décider si la prochaine baseline doit abandonner
+  k_a constant au profit de k_g(lambda,T).
