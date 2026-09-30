@@ -270,10 +270,14 @@ def main() -> None:
         "cathode_n2_partial_pressure_pa": cathode_n2_partial_pressure,
     }
 
+    lookup_task_count = (
+        len(args.transfer_coefficients_m_s) * args.lookup_rh_points
+    )
+    lookup_worker_count = min(args.jobs, lookup_task_count)
     print(
         "Precomputing Motupally lookups in one pool: "
-        f"{len(args.transfer_coefficients_m_s) * args.lookup_rh_points} "
-        f"RH/k_a tasks on {min(args.jobs, len(args.transfer_coefficients_m_s) * args.lookup_rh_points)} workers",
+        f"{lookup_task_count} RH/k_a tasks on "
+        f"{lookup_worker_count} workers",
         flush=True,
     )
     lookup_tables = build_transfer_lookup_tables(
