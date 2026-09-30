@@ -11243,3 +11243,74 @@ Objectifs :
 - confirmer la faible sensibilité du nominal ;
 - vérifier l'effet sur les purges et les bilans ;
 - décider si Grimaldi remplace k_a constant comme nouvelle baseline.
+
+
+*** Échec du full Grimaldi : absence de solution stationnaire sur certains états
+
+Le full constant-k_a vs Grimaldi échoue pendant le pré-calcul 33x33.
+
+Le parallélisme est correct :
+
+  real = 13 min 04.12 s
+  CPU = 771 %
+
+mais un état du lookup Grimaldi ne possède pas de bracket physique :
+
+  best lambda_anode = 1e-4
+  residual cathodique = -0.429908.
+
+Le meilleur essai est situé sur la borne physique basse de lambda_anode.
+
+Contrairement au précédent échec, ce diagnostic ne suggère pas seulement une
+zone de racine étroite manquée par le scan. Il suggère qu'aucune solution
+stationnaire satisfaisant simultanément :
+
+  0 < lambda_anode < 17
+  Motupally D(lambda,T)
+  Robin Grimaldi
+  lambda_cathode imposé
+
+n'existe pour certains états secs / forte densité de courant du full.
+
+*** Retour à la source Grimaldi
+
+La fermeture Grimaldi n'est pas calibrée comme un coefficient Robin autonome.
+
+Dans le modèle publié, le flux interfacial utilise :
+
+  k_g(lambda,T) (lambda* - lambda)
+
+avec :
+
+  lambda*
+
+une valeur quasi-équilibre qui inclut la sorption et la relaxation du polymère.
+
+Le modèle Grimaldi utilise également sa propre fermeture de diffusivité
+membranaire, calibrée conjointement avec le transfert interfacial.
+
+Notre hybride actuel mélange donc :
+
+  diffusivité Motupally
+  + isotherme Springer
+  + k_g Grimaldi.
+
+Ce mélange est utile comme diagnostic local mais ne doit pas être promu comme
+nouvelle baseline sans vérifier son domaine de compatibilité.
+
+*** Décision
+
+Ne pas assouplir les bornes physiques et ne pas masquer l'absence de racine.
+
+Avant toute nouvelle tentative de full :
+
+1. cartographier le domaine de validité du solveur hybride sur (RH_anode, j) ;
+2. identifier précisément les états sans solution ;
+3. comparer ces états au domaine réellement parcouru par les trajectoires ;
+4. décider ensuite entre :
+   - conserver k_a constant comme fermeture phénoménologique ;
+   - ou implémenter une fermeture Grimaldi cohérente incluant son isotherme,
+     sa variable lambda* et sa diffusivité associée.
+
+Cette étape est désormais une validation de cohérence physique, pas une simple
+correction numérique.
