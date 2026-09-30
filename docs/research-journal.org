@@ -8017,3 +8017,60 @@ deux paramètres encore explicitement hypothétiques :
   k_a = 2e-6 m/s.
 
 Cette étape constitue la continuation logique de V0.7.
+
+
+*** Infrastructure de la campagne profil hydrique V0.6
+
+L'infrastructure de comparaison est maintenant ajoutée.
+
+Le driver N2 accepte un modèle de perméance dépendant simultanément de :
+
+  RH_anode
+  densité de courant.
+
+Cela permet de recalculer le profil hydrique membranaire à chaque pas sans
+modifier les closures N2 précédentes.
+
+Nouveau driver :
+
+  scripts/run_v07_n2_catalano_membrane_transport.py
+
+Le profil alternatif réutilise directement :
+
+  electro_osmotic_lambda_velocity(...)
+  steady_membrane_water_profile_anode_transfer(...)
+
+avec les paramètres V0.6 actuels :
+
+  D_water = 2.0e-10 m2/s
+  k_a = 2.0e-6 m/s.
+
+La comparaison garde comme référence le profil Catalano linéaire through-plane
+déjà validé.
+
+Commandes :
+
+  make quick-n2-catalano-transport-v07
+  make n2-catalano-transport-v07
+
+Sorties :
+
+  results/quick-v07-n2-catalano-membrane-transport-comparison.json
+  results/quick-v07-n2-catalano-membrane-transport-comparison.csv
+  results/v07-n2-catalano-membrane-transport-comparison.json
+  results/v07-n2-catalano-membrane-transport-comparison.csv
+
+La campagne doit être exécutée après le gate :
+
+  make test
+
+et vérifier en priorité :
+
+- signe et amplitude de l'écart sur J_N2 ;
+- impact dans wet_low_load ;
+- modification éventuelle de la fréquence de purge ;
+- conservation H2/H2O/N2 ;
+- stabilité de la rétroaction H2.
+
+Aucune sensibilité sur D_water ou k_a ne sera lancée avant d'avoir quantifié
+l'effet brut du remplacement du profil linéaire.
