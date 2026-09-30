@@ -8792,3 +8792,57 @@ Décision :
   comparer D_Motupally(lambda(z)) à D_water constant sur les profils V0.7 ;
 
   ne remplacer le solveur constant-D qu'après cette validation diagnostique.
+
+
+*** Infrastructure de diagnostic Motupally
+
+La corrélation Fickienne de Motupally et al. est ajoutée dans :
+
+  src/pemfc_dedalus/membrane.py
+
+sous la forme :
+
+  membrane_water_diffusivity_motupally(...).
+
+La fonction retourne D_w,F en m2/s et conserve explicitement les deux branches
+publiées avec leur discontinuité à lambda = 3.
+
+Des tests unitaires vérifient :
+
+- les deux expressions publiées ;
+- la positivité ;
+- la discontinuité à lambda = 3 ;
+- les bornes de validité 0 < lambda < 17 ;
+- la validation de la température.
+
+Un post-traitement dédié est également ajouté :
+
+  scripts/analyze_v07_motupally_diffusivity.py
+
+Il reconstruit chaque profil lambda(z) issu du diagnostic précédent et compare :
+
+  D_Motupally(lambda(z), T)
+
+au coefficient constant de référence :
+
+  D_water = 2.0e-10 m2/s.
+
+Le tableau de sortie enregistre notamment :
+
+- D_Motupally,min ;
+- D_Motupally,moy ;
+- D_Motupally,max ;
+- leurs rapports au D constant ;
+- la traversée éventuelle de lambda = 3 ;
+- la fraction du profil située sous lambda <= 3.
+
+Commande :
+
+  make analyze-n2-motupally-v07
+
+Sortie :
+
+  results/v07-n2-motupally-diffusivity-diagnostics.csv
+
+Cette étape est volontairement diagnostique : le solveur V0.6 reste encore à
+D constant jusqu'à ce que l'impact de la corrélation variable soit quantifié.
