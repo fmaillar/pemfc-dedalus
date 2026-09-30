@@ -57,6 +57,37 @@ def membrane_water_diffusivity_motupally(
     )
     return 1.0e-4 * diffusivity_cm2_s
 
+def nafion_water_interfacial_transfer_coefficient_ge(
+    water_volume_fraction: np.ndarray | float,
+    *,
+    mode: str,
+) -> np.ndarray:
+    """Return Ge et al. (2005) Nafion/gas water transfer coefficient at 353 K.
+
+    The reported correlations are:
+
+        absorption:  k = 3.53e-5 * f_v  [m/s]
+        desorption:  k = 1.42e-4 * f_v  [m/s]
+
+    where f_v is the membrane water volume fraction. These correlations are
+    retained as a literature diagnostic and should not be extrapolated in
+    temperature without an additional model.
+    """
+    fraction = np.asarray(water_volume_fraction, dtype=float)
+    if np.any(fraction < 0.0) or np.any(fraction > 1.0):
+        raise ValueError("water_volume_fraction must be in [0, 1]")
+
+    coefficients = {
+        "absorption": 3.53e-5,
+        "desorption": 1.42e-4,
+    }
+    try:
+        prefactor = coefficients[mode]
+    except KeyError as exc:
+        raise ValueError("mode must be 'absorption' or 'desorption'") from exc
+    return prefactor * fraction
+
+
 def electro_osmotic_drag_coefficient(
     water_content: np.ndarray | float,
 ) -> np.ndarray:
