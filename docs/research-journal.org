@@ -11650,3 +11650,106 @@ Décision :
   puis la cartographie de validité cohérente ;
 
   ne construire le nouveau lookup N2 qu'après validation de ces 441 états.
+
+
+*** Décision de fermeture simple pour V0.7
+
+La recherche sur la fermeture interfaciale eau/Nafion est arrêtée pour V0.7.
+
+Le but de V0.7 n'est pas de construire un modèle microscopique complet de
+sorption/désorption interfaciale. Le rôle de cette condition est uniquement de
+fermer correctement le sous-modèle membrane/anode dans le modèle PEMFC global.
+
+La baseline V0.7 est donc figée comme suit :
+
+  diffusion membranaire :
+    D_water = D_Motupally(lambda,T)
+
+  condition anodique :
+    Robin à coefficient constant
+
+  coefficient effectif :
+    k_a = 2e-6 m/s.
+
+Ce coefficient est explicitement interprété comme :
+
+  paramètre effectif de fermeture
+
+et non comme :
+
+  constante matérielle fondamentale.
+
+*** Justification
+
+La sensibilité complète a déjà quantifié l'incertitude associée à k_a sur :
+
+  1e-6
+  2e-6
+  4e-6 m/s.
+
+Effet sur J_N2 entre 1e-6 et 4e-6 :
+
+  dry_high_load :
+    environ -5 %
+
+  nominal :
+    environ +1.4 %
+
+  wet_low_load :
+    environ +23 à +24 %.
+
+La conséquence méthodologique est simple :
+
+  conserver k_a = 2e-6 m/s comme valeur centrale ;
+
+  utiliser 1e-6 ... 4e-6 m/s comme enveloppe d'incertitude
+  lorsque la sensibilité au transfert interfacial doit être reportée.
+
+Cette approche est suffisante pour V0.7 car elle :
+
+- conserve une fermeture stable ;
+- conserve une limite physique claire ;
+- évite un couplage incohérent de modèles de littérature calibrés séparément ;
+- rend l'incertitude explicite ;
+- permet de poursuivre le modèle global.
+
+*** Statut de Grimaldi
+
+Les travaux Grimaldi restent conservés dans le dépôt comme :
+
+  diagnostic de littérature
+  et piste de raffinement future.
+
+Ils ne sont pas utilisés dans la baseline V0.7.
+
+L'hybride :
+
+  Motupally + Springer + k_g Grimaldi
+
+est abandonné comme baseline.
+
+L'implémentation cohérente Grimaldi complète est reportée à une version future
+uniquement si les observables du modèle global montrent qu'une fermeture
+interfaciale plus détaillée est réellement nécessaire.
+
+*** Critère de sortie V0.7
+
+La V0.7 peut maintenant être fermée après une validation finale de la baseline :
+
+  Motupally
+  + k_a = 2e-6 m/s
+  + dynamique H2/N2
+  + purge
+  + gamma = 0/1
+  + trois régimes.
+
+La validation finale doit vérifier :
+
+- passage pytest / Ruff / mypy ;
+- bilans H2, N2, H2O ;
+- stabilité des purges ;
+- reproductibilité des résultats principaux ;
+- cohérence des trois régimes.
+
+Aucune nouvelle fermeture physique membrane ne doit être ajoutée avant le gel
+de V0.7.
