@@ -10680,3 +10680,121 @@ Décision :
 
   ne modifier la baseline qu'après traitement de la dépendance en température
   et de la variable motrice du flux interfacial.
+
+
+*** Résultats du diagnostic Ge 353 K
+
+Le diagnostic Ge est terminé.
+
+Pour les états représentatifs, les coefficients d'absorption à 353 K valent :
+
+  dry_high_load :
+    2.95e-6 à 3.44e-6 m/s
+
+  nominal :
+    3.21e-6 à 3.44e-6 m/s
+
+  wet_low_load :
+    3.44e-6 à 5.03e-6 m/s.
+
+Rapport à la baseline actuelle :
+
+  k_a = 2e-6 m/s
+
+  absorption Ge / baseline :
+    environ 1.47 à 2.51.
+
+Les coefficients de désorption sont beaucoup plus élevés :
+
+  dry_high_load :
+    1.19e-5 à 1.38e-5 m/s
+
+  nominal :
+    1.29e-5 à 1.38e-5 m/s
+
+  wet_low_load :
+    1.38e-5 à 2.02e-5 m/s.
+
+Rapport à la baseline :
+
+  désorption Ge / baseline :
+    environ 5.93 à 10.11.
+
+*** Interprétation du diagnostic Ge
+
+La valeur constante actuelle :
+
+  2e-6 m/s
+
+est inférieure même au coefficient d'absorption Ge à 353 K sur toute la plage
+d'hydratation représentative.
+
+Elle est très inférieure au coefficient de désorption.
+
+Le diagnostic confirme donc deux limites de la fermeture actuelle :
+
+1. absence de dépendance à l'hydratation ;
+2. absence d'asymétrie absorption / désorption.
+
+La comparaison reste toutefois à 353 K et ne suffit pas à remplacer directement
+la baseline à environ 313 K.
+
+*** Fermeture Grimaldi compatible avec la variable lambda
+
+Grimaldi et al. (Journal of Power Sources 558, 2023, 232556) utilisent une
+fermeture interfaciale directement écrite avec la différence de teneur en eau :
+
+  flux interfacial
+  proportionnel à
+  k_g (lambda* - lambda).
+
+Le coefficient est donné sous la forme :
+
+  k_g(lambda,T) =
+    xi_ad lambda^1.6
+    exp[
+      E_act/R
+      (1/303 - 1/T)
+    ].
+
+Paramètres rapportés/calibrés :
+
+  xi_ad = 0.66e-6 m/s
+  E_act = 6 kJ/mol.
+
+Cette formulation est structurellement beaucoup plus proche de la condition
+Robin utilisée dans V0.6/V0.7 que la comparaison brute avec Ge.
+
+À la température actuelle de pile, environ 313 K, la correction Arrhenius est
+faible mais non négligeable, environ +8 % par rapport à 303 K.
+
+Pour les lambda représentatifs actuels, l'ordre de grandeur attendu est
+approximativement :
+
+  lambda = 2.95 :
+    k_g ≈ 4.0e-6 m/s
+
+  lambda = 3.24 :
+    k_g ≈ 4.7e-6 m/s
+
+  lambda = 3.49 :
+    k_g ≈ 5.3e-6 m/s
+
+  lambda = 5.37 :
+    k_g ≈ 1.05e-5 m/s.
+
+Ces valeurs sont donc environ :
+
+  2 à 5 fois
+
+supérieures à la baseline constante 2e-6 m/s.
+
+*** Décision
+
+Avant de modifier le solveur stationnaire :
+
+  implémenter la corrélation k_g(lambda,T) de Grimaldi comme diagnostic testé ;
+
+  comparer sa valeur à la baseline actuelle sur les trois régimes ;
+
+  ne remplacer k_a dans la condition Robin qu'après validation de ce diagnostic.
