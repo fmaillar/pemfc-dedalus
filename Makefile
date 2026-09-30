@@ -4,6 +4,7 @@ MPI_FLAGS ?= --use-hwthread-cpus
 MPI_N ?= 8
 OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
+JOBS ?= 8
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
         quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh plot-v04-rh \
@@ -524,7 +525,7 @@ n2-state-v07:
 
 quick-n2-water-v07:
 	$(PYTHON) -m scripts.run_v07_n2_water_content_permeability \
-	  --regimes nominal --feedback-exponents 0 1 --jobs 2 \
+	  --regimes nominal --feedback-exponents 0 1 --jobs $(JOBS) \
 	  --stop-time 200 --dt 0.01 --write-every 100 \
 	  --output-json results/quick-v07-n2-water-content-permeability.json \
 	  --output-csv results/quick-v07-n2-water-content-permeability.csv
@@ -571,13 +572,13 @@ n2-catalano-profile-v07:
 
 quick-n2-catalano-transport-v07:
 	$(PYTHON) -m scripts.run_v07_n2_catalano_membrane_transport \
-	  --regimes nominal --feedback-exponents 0 1 --jobs 2 \
+	  --regimes nominal --feedback-exponents 0 1 --jobs $(JOBS) \
 	  --stop-time 200 --dt 0.01 --write-every 100 \
 	  --output-json results/quick-v07-n2-catalano-membrane-transport-comparison.json \
 	  --output-csv results/quick-v07-n2-catalano-membrane-transport-comparison.csv
 
 n2-catalano-transport-v07:
-	$(PYTHON) -m scripts.run_v07_n2_catalano_membrane_transport --jobs 6
+	$(PYTHON) -m scripts.run_v07_n2_catalano_membrane_transport --jobs $(JOBS)
 
 
 quick-n2-catalano-transport-sensitivity-v07:
@@ -585,13 +586,13 @@ quick-n2-catalano-transport-sensitivity-v07:
 	  --regimes nominal wet_low_load --feedback-exponents 0 \
 	  --diffusivities-m2-s 1e-10 2e-10 4e-10 \
 	  --transfer-coefficients-m-s 1e-6 2e-6 4e-6 \
-	  --jobs 8 --stop-time 200 --dt 0.01 --write-every 100 \
+	  --jobs $(JOBS) --stop-time 200 --dt 0.01 --write-every 100 \
 	  --output-json results/quick-v07-n2-catalano-membrane-transport-sensitivity.json \
 	  --output-csv results/quick-v07-n2-catalano-membrane-transport-sensitivity.csv
 
 n2-catalano-transport-sensitivity-v07:
 	$(PYTHON) -m scripts.run_v07_n2_catalano_membrane_transport_sensitivity \
-	  --jobs 8
+	  --jobs $(JOBS)
 
 
 analyze-n2-membrane-profiles-v07:
@@ -605,7 +606,7 @@ analyze-n2-motupally-v07:
 quick-n2-catalano-motupally-v07:
 	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally \
 	  --regimes nominal wet_low_load --feedback-exponents 0 1 \
-	  --jobs 8 --lookup-rh-points 21 --lookup-current-points 21 \
+	  --jobs $(JOBS) --lookup-rh-points 21 --lookup-current-points 21 \
 	  --stop-time 200 --dt 0.01 --write-every 100 \
 	  --output-json results/quick-v07-n2-catalano-motupally-comparison.json \
 	  --output-csv results/quick-v07-n2-catalano-motupally-comparison.csv
@@ -613,7 +614,7 @@ quick-n2-catalano-motupally-v07:
 quick-n2-catalano-motupally-33-v07:
 	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally \
 	  --regimes nominal wet_low_load --feedback-exponents 0 1 \
-	  --jobs 8 --lookup-rh-points 33 --lookup-current-points 33 \
+	  --jobs $(JOBS) --lookup-rh-points 33 --lookup-current-points 33 \
 	  --stop-time 200 --dt 0.01 --write-every 100 \
 	  --output-json results/quick-v07-n2-catalano-motupally-comparison-33x33.json \
 	  --output-csv results/quick-v07-n2-catalano-motupally-comparison-33x33.csv
@@ -622,4 +623,4 @@ analyze-n2-catalano-motupally-lookup-v07:
 	$(PYTHON) -m scripts.analyze_v07_motupally_lookup_convergence
 
 n2-catalano-motupally-v07:
-	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally --jobs 8
+	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally --jobs $(JOBS)
