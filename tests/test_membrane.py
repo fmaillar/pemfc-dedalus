@@ -16,8 +16,8 @@ from pemfc_dedalus.membrane import (
     steady_membrane_water_profile_anode_transfer,
     steady_membrane_water_profile_motupally,
     steady_membrane_water_profile_motupally_grimaldi,
-    steady_membrane_water_profile_variable_transfer,
     steady_membrane_water_profile_variable_diffusivity,
+    steady_membrane_water_profile_variable_transfer,
     steady_membrane_water_profile_zero_anode_flux,
 )
 from pemfc_dedalus.parameters import CathodeParameters
