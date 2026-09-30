@@ -10278,3 +10278,60 @@ de vérifier si dry_high_load présente une sensibilité opposée à wet_low_loa
 
 Le temps de calcul attendu est de l'ordre de quelques dizaines de minutes, le
 coût principal restant la construction de trois tables Motupally 33 x 33.
+
+
+*** Optimisation du parallélisme de la sensibilité k_a
+
+Pendant la campagne complète k_a, l'observation de la charge CPU montre une
+fin de phase lookup avec un seul worker actif.
+
+La cause est la structure précédente :
+
+  3 valeurs de k_a
+
+traitées successivement, chacune avec :
+
+  33 lignes RH
+
+dans un pool séparé.
+
+Même avec 8 workers, la fin de chaque lookup peut donc être dominée par une
+ligne lente restante pendant que les autres workers sont inactifs.
+
+La campagne en cours est arrêtée car ses résultats seraient produits avec une
+stratégie désormais remplacée.
+
+Nouvelle organisation :
+
+  3 valeurs de k_a
+  x 33 lignes RH
+  = 99 tâches indépendantes
+
+envoyées dans un seul ProcessPoolExecutor de :
+
+  JOBS = 8.
+
+Chaque tâche calcule une ligne complète du lookup pour un couple :
+
+  (k_a, RH).
+
+Les résultats sont ensuite regroupés par k_a pour reconstruire les trois
+tables 33x33.
+
+La phase dynamique reste ensuite parallélisée sur les 18 cas :
+
+  3 k_a
+  x 3 régimes
+  x 2 gamma.
+
+Cette organisation réduit les effets de straggler entre lookups et maintient
+une occupation CPU plus homogène.
+
+Un correctif supplémentaire place le worker de lookup au niveau module afin
+qu'il soit sérialisable proprement par ProcessPoolExecutor.
+
+Décision :
+
+  relancer make test puis la campagne complète k_a ;
+
+  conserver la mesure /usr/bin/time déjà intégrée à la cible.
