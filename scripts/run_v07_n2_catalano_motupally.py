@@ -249,33 +249,47 @@ def compute_motupally_lookup_row(task: dict[str, Any]) -> tuple[float, list[floa
         p.membrane_equivalent_weight,
     )
     transfer_model = str(task.get("transfer_model", "constant"))
-    common_model_kwargs = {
-        "dry_reference_si": barrer_to_si_permeability(
-            DRY_REFERENCE_PERMEABILITY_BARRER
-        ),
-        "stack_temperature_k": p.stack_temperature,
-        "gas_constant_j_mol_k": p.gas_constant,
-        "faraday_c_mol": p.faraday,
-        "fixed_charge_mol_m3": fixed_charge,
-        "activation_energy_j_mol": float(task["activation_energy_j_mol"]),
-        "cathode_relative_humidity": p.relative_humidity,
-        "membrane_thickness_m": p.membrane_thickness,
-        "membrane_equivalent_weight_kg_mol": p.membrane_equivalent_weight,
-        "membrane_dry_density_kg_m3": p.membrane_dry_density,
-        "water_partial_molar_volume_m3_mol": (
-            float(task["water_partial_molar_volume_cm3_mol"]) * 1.0e-6
-        ),
-    }
+    dry_reference_si = barrer_to_si_permeability(
+        DRY_REFERENCE_PERMEABILITY_BARRER
+    )
+    activation_energy_j_mol = float(task["activation_energy_j_mol"])
+    water_partial_molar_volume_m3_mol = (
+        float(task["water_partial_molar_volume_cm3_mol"]) * 1.0e-6
+    )
     if transfer_model == "constant":
         model = make_motupally_transport_permeance_model(
-            **common_model_kwargs,
+            dry_reference_si=dry_reference_si,
+            stack_temperature_k=p.stack_temperature,
+            gas_constant_j_mol_k=p.gas_constant,
+            faraday_c_mol=p.faraday,
+            fixed_charge_mol_m3=fixed_charge,
+            activation_energy_j_mol=activation_energy_j_mol,
+            cathode_relative_humidity=p.relative_humidity,
+            membrane_thickness_m=p.membrane_thickness,
+            membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
+            membrane_dry_density_kg_m3=p.membrane_dry_density,
             anode_transfer_coefficient_m_s=float(
                 task["anode_transfer_coefficient_m_s"]
+            ),
+            water_partial_molar_volume_m3_mol=(
+                water_partial_molar_volume_m3_mol
             ),
         )
     elif transfer_model == "grimaldi":
         model = make_motupally_grimaldi_transport_permeance_model(
-            **common_model_kwargs,
+            dry_reference_si=dry_reference_si,
+            stack_temperature_k=p.stack_temperature,
+            gas_constant_j_mol_k=p.gas_constant,
+            faraday_c_mol=p.faraday,
+            fixed_charge_mol_m3=fixed_charge,
+            activation_energy_j_mol=activation_energy_j_mol,
+            cathode_relative_humidity=p.relative_humidity,
+            membrane_thickness_m=p.membrane_thickness,
+            membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
+            membrane_dry_density_kg_m3=p.membrane_dry_density,
+            water_partial_molar_volume_m3_mol=(
+                water_partial_molar_volume_m3_mol
+            ),
         )
     else:
         raise ValueError(f"unknown transfer_model: {transfer_model}")
