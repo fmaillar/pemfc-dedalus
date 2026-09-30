@@ -11753,3 +11753,151 @@ La validation finale doit vérifier :
 
 Aucune nouvelle fermeture physique membrane ne doit être ajoutée avant le gel
 de V0.7.
+
+
+*** Validation finale et gel de V0.7
+
+La cible finale :
+
+  make validate-v07-final
+
+est exécutée avec succès.
+
+Gate logiciel :
+
+  pytest :
+    153 passed
+
+  Ruff :
+    All checks passed
+
+  mypy :
+    Success: no issues found in 90 source files.
+
+La campagne de référence utilise :
+
+  D_water = D_Motupally(lambda,T)
+  k_a = 2e-6 m/s
+  lookup = 33 x 33
+  jobs = 8
+  trois régimes
+  gamma = 0 et 1.
+
+Les résultats reproduisent la baseline précédemment validée.
+
+Gamma = 0 :
+
+dry_high_load :
+
+  J_N2 :
+    1.588e-6 -> 1.477e-6 mol/m2/s
+    -7.0 %
+
+  x_N2,max :
+    0.00352 -> 0.00327
+    -7.0 %.
+
+nominal :
+
+  J_N2 :
+    1.772e-6 -> 1.701e-6 mol/m2/s
+    -4.0 %
+
+  x_N2,max :
+    0.00619 -> 0.00595
+    -4.0 %.
+
+wet_low_load :
+
+  J_N2 :
+    3.460e-6 -> 4.036e-6 mol/m2/s
+    +16.6 %
+
+  x_N2,max :
+    0.02120 -> 0.02471
+    +16.6 %.
+
+Gamma = 1 :
+
+dry_high_load :
+
+  J_N2 :
+    1.589e-6 -> 1.477e-6 mol/m2/s
+    -7.0 %
+
+  x_N2,max :
+    0.00353 -> 0.00328
+    -7.0 %.
+
+nominal :
+
+  J_N2 :
+    1.772e-6 -> 1.702e-6 mol/m2/s
+    -4.0 %
+
+  x_N2,max :
+    0.00622 -> 0.00598
+    -4.0 %.
+
+wet_low_load :
+
+  J_N2 :
+    3.461e-6 -> 4.035e-6 mol/m2/s
+    +16.6 %
+
+  x_N2,max :
+    0.02147 -> 0.02508
+    +16.8 %.
+
+La reproductibilité des résultats principaux est donc confirmée.
+
+*** Baseline V0.7 gelée
+
+La baseline finale de V0.7 est :
+
+- anode dead-end dynamique ;
+- dynamique H2 ;
+- accumulation et crossover N2 ;
+- purge périodique ;
+- rétroaction H2 gamma = 0/1 ;
+- transport d'eau membranaire Motupally ;
+- condition Robin anodique avec :
+    k_a = 2e-6 m/s ;
+- fermeture Catalano pour la perméabilité N2 ;
+- lookup 33 x 33 ;
+- JOBS = 8 pour les campagnes parallèles.
+
+Le coefficient :
+
+  k_a = 2e-6 m/s
+
+est conservé comme paramètre effectif de fermeture.
+
+Son enveloppe d'incertitude documentée est :
+
+  1e-6 ... 4e-6 m/s.
+
+La sensibilité associée est connue :
+
+  dry_high_load :
+    environ 5 %
+
+  nominal :
+    environ 1 à 2 %
+
+  wet_low_load :
+    environ 23 à 24 %.
+
+*** Statut final de V0.7
+
+V0.7 est considérée comme terminée.
+
+Aucune nouvelle physique de membrane ou fermeture interfaciale ne doit être
+ajoutée à cette version.
+
+Les développements Grimaldi sont conservés comme travaux exploratoires et
+diagnostics de littérature, mais ne font pas partie de la baseline finale.
+
+La prochaine version doit revenir au modèle système et ajouter une nouvelle
+physique globale, plutôt que poursuivre le raffinement de l'interface
+membrane/gaz.
