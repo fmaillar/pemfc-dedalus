@@ -162,7 +162,8 @@ def write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
         writer.writerows(rows)
 
 
-def run_case(task: dict[str, Any]) -> dict[str, Any]:
+def run_simulation_task(task: dict[str, Any]) -> dict[str, Any]:
+    """Run one independent regime/gamma/model simulation."""
     p = CathodeParameters()
     fixed_charge = membrane_fixed_charge_concentration(
         p.membrane_dry_density,
@@ -175,105 +176,137 @@ def run_case(task: dict[str, Any]) -> dict[str, Any]:
         DRY_REFERENCE_PERMEABILITY_BARRER
     )
     activation_energy = float(task["activation_energy_j_mol"])
+    model_kind = str(task["model_kind"])
 
-    constant_model = make_v06_transport_permeance_model(
-        dry_reference_si=dry_reference_si,
-        stack_temperature_k=p.stack_temperature,
-        gas_constant_j_mol_k=p.gas_constant,
-        faraday_c_mol=p.faraday,
-        fixed_charge_mol_m3=fixed_charge,
-        activation_energy_j_mol=activation_energy,
-        cathode_relative_humidity=p.relative_humidity,
-        membrane_thickness_m=p.membrane_thickness,
-        membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
-        membrane_dry_density_kg_m3=p.membrane_dry_density,
-        membrane_water_diffusivity_m2_s=p.membrane_water_diffusivity,
-        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
-        water_partial_molar_volume_m3_mol=water_volume_m3_mol,
-    )
-    motupally_model = make_motupally_transport_permeance_model(
-        dry_reference_si=dry_reference_si,
-        stack_temperature_k=p.stack_temperature,
-        gas_constant_j_mol_k=p.gas_constant,
-        faraday_c_mol=p.faraday,
-        fixed_charge_mol_m3=fixed_charge,
-        activation_energy_j_mol=activation_energy,
-        cathode_relative_humidity=p.relative_humidity,
-        membrane_thickness_m=p.membrane_thickness,
-        membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
-        membrane_dry_density_kg_m3=p.membrane_dry_density,
-        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
-        water_partial_molar_volume_m3_mol=water_volume_m3_mol,
-    )
+    if model_kind == "constant_d":
+        permeance_model = make_v06_transport_permeance_model(
+            dry_reference_si=dry_reference_si,
+            stack_temperature_k=p.stack_temperature,
+            gas_constant_j_mol_k=p.gas_constant,
+            faraday_c_mol=p.faraday,
+            fixed_charge_mol_m3=fixed_charge,
+            activation_energy_j_mol=activation_energy,
+            cathode_relative_humidity=p.relative_humidity,
+            membrane_thickness_m=p.membrane_thickness,
+            membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
+            membrane_dry_density_kg_m3=p.membrane_dry_density,
+            membrane_water_diffusivity_m2_s=p.membrane_water_diffusivity,
+            anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
+            water_partial_molar_volume_m3_mol=water_volume_m3_mol,
+        )
+    elif model_kind == "motupally":
+        permeance_model = make_motupally_transport_permeance_model(
+            dry_reference_si=dry_reference_si,
+            stack_temperature_k=p.stack_temperature,
+            gas_constant_j_mol_k=p.gas_constant,
+            faraday_c_mol=p.faraday,
+            fixed_charge_mol_m3=fixed_charge,
+            activation_energy_j_mol=activation_energy,
+            cathode_relative_humidity=p.relative_humidity,
+            membrane_thickness_m=p.membrane_thickness,
+            membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
+            membrane_dry_density_kg_m3=p.membrane_dry_density,
+            anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
+            water_partial_molar_volume_m3_mol=water_volume_m3_mol,
+        )
+    else:
+        raise ValueError(f"unknown model_kind: {model_kind}")
 
     regime = str(task["regime"])
     gamma = float(task["feedback_exponent"])
-    _, constant_summary = simulate_nitrogen_regime(
+    _, summary = simulate_nitrogen_regime(
         regime,
         task["closure"],
         hydrogen_feedback_exponent=gamma,
-        n2_state_permeance_model=constant_model,
+        n2_state_permeance_model=permeance_model,
         **task["common_kwargs"],
     )
-    _, motupally_summary = simulate_nitrogen_regime(
-        regime,
-        task["closure"],
-        hydrogen_feedback_exponent=gamma,
-        n2_state_permeance_model=motupally_model,
-        **task["common_kwargs"],
-    )
-
-    constant_flux = float(
-        constant_summary["mean_n2_crossover_flux_mol_m2_s"]
-    )
-    motupally_flux = float(
-        motupally_summary["mean_n2_crossover_flux_mol_m2_s"]
-    )
-    constant_xn2 = float(constant_summary["max_nitrogen_mole_fraction"])
-    motupally_xn2 = float(motupally_summary["max_nitrogen_mole_fraction"])
-
     return {
         "regime": regime,
         "hydrogen_feedback_exponent": gamma,
-        "constant_d_jmean_mol_m2_s": constant_flux,
-        "motupally_jmean_mol_m2_s": motupally_flux,
-        "jmean_change_fraction": relative_change(
-            motupally_flux,
-            constant_flux,
-        ),
-        "constant_d_xn2_max": constant_xn2,
-        "motupally_xn2_max": motupally_xn2,
-        "xn2_change_fraction": relative_change(
-            motupally_xn2,
-            constant_xn2,
-        ),
-        "constant_d_mean_cell_current_a": constant_summary["mean_cell_current_a"],
-        "motupally_mean_cell_current_a": motupally_summary["mean_cell_current_a"],
-        "constant_d_purge_count": constant_summary["purge_count"],
-        "motupally_purge_count": motupally_summary["purge_count"],
-        "constant_d_mean_purge_period_s": (
-            constant_summary["mean_purge_period_s"]
-        ),
-        "motupally_mean_purge_period_s": motupally_summary["mean_purge_period_s"],
-        "constant_d_h2_balance_error_mol": (
-            constant_summary["h2_balance_error_mol"]
-        ),
-        "motupally_h2_balance_error_mol": (
-            motupally_summary["h2_balance_error_mol"]
-        ),
-        "constant_d_n2_balance_error_mol": (
-            constant_summary["n2_balance_error_mol"]
-        ),
-        "motupally_n2_balance_error_mol": (
-            motupally_summary["n2_balance_error_mol"]
-        ),
-        "constant_d_water_balance_error_mol": (
-            constant_summary["water_balance_error_mol"]
-        ),
-        "motupally_water_balance_error_mol": (
-            motupally_summary["water_balance_error_mol"]
-        ),
+        "model_kind": model_kind,
+        "summary": summary,
     }
+
+
+def combine_model_results(
+    simulation_results: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Pair constant-D and Motupally results for each regime/gamma case."""
+    grouped: dict[tuple[str, float], dict[str, dict[str, Any]]] = {}
+    for result in simulation_results:
+        key = (
+            str(result["regime"]),
+            float(result["hydrogen_feedback_exponent"]),
+        )
+        grouped.setdefault(key, {})[str(result["model_kind"])] = result["summary"]
+
+    rows: list[dict[str, Any]] = []
+    for regime, gamma in sorted(grouped, key=lambda item: (item[1], item[0])):
+        pair = grouped[(regime, gamma)]
+        constant_summary = pair["constant_d"]
+        motupally_summary = pair["motupally"]
+
+        constant_flux = float(
+            constant_summary["mean_n2_crossover_flux_mol_m2_s"]
+        )
+        motupally_flux = float(
+            motupally_summary["mean_n2_crossover_flux_mol_m2_s"]
+        )
+        constant_xn2 = float(constant_summary["max_nitrogen_mole_fraction"])
+        motupally_xn2 = float(motupally_summary["max_nitrogen_mole_fraction"])
+
+        rows.append(
+            {
+                "regime": regime,
+                "hydrogen_feedback_exponent": gamma,
+                "constant_d_jmean_mol_m2_s": constant_flux,
+                "motupally_jmean_mol_m2_s": motupally_flux,
+                "jmean_change_fraction": relative_change(
+                    motupally_flux,
+                    constant_flux,
+                ),
+                "constant_d_xn2_max": constant_xn2,
+                "motupally_xn2_max": motupally_xn2,
+                "xn2_change_fraction": relative_change(
+                    motupally_xn2,
+                    constant_xn2,
+                ),
+                "constant_d_mean_cell_current_a": (
+                    constant_summary["mean_cell_current_a"]
+                ),
+                "motupally_mean_cell_current_a": (
+                    motupally_summary["mean_cell_current_a"]
+                ),
+                "constant_d_purge_count": constant_summary["purge_count"],
+                "motupally_purge_count": motupally_summary["purge_count"],
+                "constant_d_mean_purge_period_s": (
+                    constant_summary["mean_purge_period_s"]
+                ),
+                "motupally_mean_purge_period_s": (
+                    motupally_summary["mean_purge_period_s"]
+                ),
+                "constant_d_h2_balance_error_mol": (
+                    constant_summary["h2_balance_error_mol"]
+                ),
+                "motupally_h2_balance_error_mol": (
+                    motupally_summary["h2_balance_error_mol"]
+                ),
+                "constant_d_n2_balance_error_mol": (
+                    constant_summary["n2_balance_error_mol"]
+                ),
+                "motupally_n2_balance_error_mol": (
+                    motupally_summary["n2_balance_error_mol"]
+                ),
+                "constant_d_water_balance_error_mol": (
+                    constant_summary["water_balance_error_mol"]
+                ),
+                "motupally_water_balance_error_mol": (
+                    motupally_summary["water_balance_error_mol"]
+                ),
+            }
+        )
+    return rows
 
 
 def main() -> None:
@@ -374,25 +407,30 @@ def main() -> None:
     tasks: list[dict[str, Any]] = []
     for gamma in args.feedback_exponents:
         for regime in args.regimes:
-            tasks.append(
-                {
-                    "regime": regime,
-                    "feedback_exponent": gamma,
-                    "closure": closure[regime],
-                    "common_kwargs": common_kwargs,
-                    "water_partial_molar_volume_cm3_mol": (
-                        args.water_partial_molar_volume_cm3_mol
-                    ),
-                    "activation_energy_j_mol": args.activation_energy_j_mol,
-                }
-            )
+            for model_kind in ("constant_d", "motupally"):
+                tasks.append(
+                    {
+                        "regime": regime,
+                        "feedback_exponent": gamma,
+                        "model_kind": model_kind,
+                        "closure": closure[regime],
+                        "common_kwargs": common_kwargs,
+                        "water_partial_molar_volume_cm3_mol": (
+                            args.water_partial_molar_volume_cm3_mol
+                        ),
+                        "activation_energy_j_mol": args.activation_energy_j_mol,
+                    }
+                )
 
     worker_count = min(args.jobs, len(tasks))
     if worker_count == 1:
-        rows = [run_case(task) for task in tasks]
+        simulation_results = [run_simulation_task(task) for task in tasks]
     else:
         with ProcessPoolExecutor(max_workers=worker_count) as executor:
-            rows = list(executor.map(run_case, tasks))
+            simulation_results = list(
+                executor.map(run_simulation_task, tasks)
+            )
+    rows = combine_model_results(simulation_results)
 
     for row in rows:
         print(
