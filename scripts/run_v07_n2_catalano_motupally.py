@@ -26,6 +26,7 @@ from pemfc_dedalus.membrane import (
     membrane_fixed_charge_concentration,
     membrane_water_content_from_activity,
     steady_membrane_water_profile_motupally,
+    steady_membrane_water_profile_motupally_grimaldi,
 )
 from pemfc_dedalus.parameters import CathodeParameters
 from pemfc_dedalus.scaling import infer_active_area_scaling
@@ -147,6 +148,99 @@ def make_motupally_transport_permeance_model(
 
 
 
+
+def make_motupally_grimaldi_transport_permeance_model(
+    *,
+    dry_reference_si: float,
+    stack_temperature_k: float,
+    gas_constant_j_mol_k: float,
+    faraday_c_mol: float,
+    fixed_charge_mol_m3: float,
+    activation_energy_j_mol: float,
+    cathode_relative_humidity: float,
+    membrane_thickness_m: float,
+    membrane_equivalent_weight_kg_mol: float,
+    membrane_dry_density_kg_m3: float,
+    water_partial_molar_volume_m3_mol: float,
+    profile_points: int = MEMBRANE_PROFILE_POINTS,
+) -> Callable[[float, float], float]:
+    """Build Catalano permeance with Motupally D and Grimaldi transfer."""
+    if profile_points < 2:
+        raise ValueError("profile_points must be >= 2")
+
+    lambda_dry = scalar_water_content(0.0)
+    lambda_anchor = scalar_water_content(ANCHOR_WATER_ACTIVITY)
+    lambda_cathode = scalar_water_content(cathode_relative_humidity)
+    phi_dry = membrane_water_volume_fraction_from_partial_molar_volume(
+        lambda_dry,
+        membrane_equivalent_weight_kg_mol=membrane_equivalent_weight_kg_mol,
+        membrane_dry_density_kg_m3=membrane_dry_density_kg_m3,
+        water_partial_molar_volume_m3_mol=water_partial_molar_volume_m3_mol,
+    )
+    phi_anchor = membrane_water_volume_fraction_from_partial_molar_volume(
+        lambda_anchor,
+        membrane_equivalent_weight_kg_mol=membrane_equivalent_weight_kg_mol,
+        membrane_dry_density_kg_m3=membrane_dry_density_kg_m3,
+        water_partial_molar_volume_m3_mol=water_partial_molar_volume_m3_mol,
+    )
+    dry_at_temperature = arrhenius_permeability(
+        dry_reference_si,
+        stack_temperature_k,
+        REFERENCE_TEMPERATURE_K,
+        activation_energy_j_mol,
+        gas_constant_j_mol_k,
+    )
+    z_membrane = np.linspace(0.0, membrane_thickness_m, profile_points)
+
+    def permeance_model(
+        anode_relative_humidity: float,
+        current_density_a_m2: float,
+    ) -> float:
+        lambda_anode_equilibrium = scalar_water_content(anode_relative_humidity)
+        drag_velocity = electro_osmotic_lambda_velocity(
+            current_density_a_m2,
+            faraday_c_mol,
+            fixed_charge_mol_m3,
+        )
+        lambda_profile = steady_membrane_water_profile_motupally_grimaldi(
+            z_membrane,
+            lambda_cathode=lambda_cathode,
+            lambda_anode_equilibrium=lambda_anode_equilibrium,
+            temperature_k=stack_temperature_k,
+            drag_velocity_m_s=drag_velocity,
+            gas_constant_j_mol_k=gas_constant_j_mol_k,
+        )
+
+        permeability_profile: list[float] = []
+        for lambda_local in lambda_profile:
+            phi_water = membrane_water_volume_fraction_from_partial_molar_volume(
+                float(lambda_local),
+                membrane_equivalent_weight_kg_mol=(
+                    membrane_equivalent_weight_kg_mol
+                ),
+                membrane_dry_density_kg_m3=membrane_dry_density_kg_m3,
+                water_partial_molar_volume_m3_mol=(
+                    water_partial_molar_volume_m3_mol
+                ),
+            )
+            humidity_factor = calibrated_exponential_permeability_multiplier(
+                phi_water,
+                baseline_fraction=phi_dry,
+                anchor_fraction=phi_anchor,
+                anchor_factor=ANCHOR_PERMEABILITY_FACTOR,
+                maximum_factor=MAXIMUM_PERMEABILITY_FACTOR,
+            )
+            permeability_profile.append(
+                dry_at_temperature * humidity_factor
+            )
+
+        return membrane_permeance_from_permeability_profile(
+            permeability_profile,
+            membrane_thickness_m,
+        )
+
+    return permeance_model
+
 def compute_motupally_lookup_row(task: dict[str, Any]) -> tuple[float, list[float]]:
     """Compute one RH row of the Motupally permeance lookup table."""
     p = CathodeParameters()
@@ -154,26 +248,37 @@ def compute_motupally_lookup_row(task: dict[str, Any]) -> tuple[float, list[floa
         p.membrane_dry_density,
         p.membrane_equivalent_weight,
     )
-    model = make_motupally_transport_permeance_model(
-        dry_reference_si=barrer_to_si_permeability(
+    transfer_model = str(task.get("transfer_model", "constant"))
+    common_model_kwargs = {
+        "dry_reference_si": barrer_to_si_permeability(
             DRY_REFERENCE_PERMEABILITY_BARRER
         ),
-        stack_temperature_k=p.stack_temperature,
-        gas_constant_j_mol_k=p.gas_constant,
-        faraday_c_mol=p.faraday,
-        fixed_charge_mol_m3=fixed_charge,
-        activation_energy_j_mol=float(task["activation_energy_j_mol"]),
-        cathode_relative_humidity=p.relative_humidity,
-        membrane_thickness_m=p.membrane_thickness,
-        membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
-        membrane_dry_density_kg_m3=p.membrane_dry_density,
-        anode_transfer_coefficient_m_s=float(
-            task["anode_transfer_coefficient_m_s"]
-        ),
-        water_partial_molar_volume_m3_mol=(
+        "stack_temperature_k": p.stack_temperature,
+        "gas_constant_j_mol_k": p.gas_constant,
+        "faraday_c_mol": p.faraday,
+        "fixed_charge_mol_m3": fixed_charge,
+        "activation_energy_j_mol": float(task["activation_energy_j_mol"]),
+        "cathode_relative_humidity": p.relative_humidity,
+        "membrane_thickness_m": p.membrane_thickness,
+        "membrane_equivalent_weight_kg_mol": p.membrane_equivalent_weight,
+        "membrane_dry_density_kg_m3": p.membrane_dry_density,
+        "water_partial_molar_volume_m3_mol": (
             float(task["water_partial_molar_volume_cm3_mol"]) * 1.0e-6
         ),
-    )
+    }
+    if transfer_model == "constant":
+        model = make_motupally_transport_permeance_model(
+            **common_model_kwargs,
+            anode_transfer_coefficient_m_s=float(
+                task["anode_transfer_coefficient_m_s"]
+            ),
+        )
+    elif transfer_model == "grimaldi":
+        model = make_motupally_grimaldi_transport_permeance_model(
+            **common_model_kwargs,
+        )
+    else:
+        raise ValueError(f"unknown transfer_model: {transfer_model}")
     relative_humidity = float(task["relative_humidity"])
     values = [
         model(relative_humidity, float(current_density))
