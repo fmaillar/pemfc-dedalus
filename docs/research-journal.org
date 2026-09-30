@@ -8562,3 +8562,55 @@ L'objectif est d'expliquer mécaniquement :
 - quelles portions de membrane dominent l'intégrale de 1/P_N2.
 
 Cette analyse doit précéder toute nouvelle calibration de D_water ou k_a.
+
+
+*** Infrastructure de diagnostic des profils membranaires
+
+Une étape de post-traitement dédiée est ajoutée pour interpréter la
+sensibilité D_water / k_a sans relancer la dynamique complète.
+
+Driver :
+
+  scripts/analyze_v07_n2_membrane_profiles.py
+
+Entrée :
+
+  results/v07-n2-catalano-membrane-transport-sensitivity.csv
+
+Pour chaque cas, le script reconstruit le profil V0.6 représentatif à partir
+de :
+
+- RH anodique finale ;
+- courant moyen ;
+- D_water ;
+- k_a.
+
+Il calcule ensuite :
+
+  Pe_w = v_drag L / D_water
+
+  Bi_a = k_a L / D_water
+
+ainsi que :
+
+- lambda_anode_profile ;
+- lambda_mean ;
+- lambda_min / lambda_max ;
+- phi_water moyenne et extrema ;
+- perméabilité locale min / max ;
+- perméance effective ;
+- fraction de résistance N2 portée par la moitié anodique ;
+- fraction de résistance N2 portée par la moitié cathodique ;
+- fractions de résistance dans les quarts anodique et cathodique.
+
+Commande :
+
+  make analyze-n2-membrane-profiles-v07
+
+Sortie :
+
+  results/v07-n2-catalano-membrane-profile-diagnostics.csv
+
+L'objectif est de relier directement la variation de J_N2 à la structure
+spatiale de résistance et aux groupes sans dimension avant de choisir une
+nouvelle calibration ou une nouvelle physique.
