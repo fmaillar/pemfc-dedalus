@@ -11377,3 +11377,149 @@ Décision :
   si les états invalides correspondent à des zones réellement parcourues par
   dry_high_load, abandonner l'hybride partiel et implémenter une fermeture
   Grimaldi cohérente plutôt que forcer le solveur.
+
+
+*** Résultats de la cartographie du domaine hybride Motupally + Grimaldi
+
+La cartographie 21x21 du domaine :
+
+  RH_anode
+  x
+  densité de courant
+
+est terminée après passage du gate :
+
+  pytest :
+    149 passed
+
+  Ruff :
+    All checks passed
+
+  mypy :
+    Success.
+
+Calcul :
+
+  441 états
+  JOBS = 8
+
+Temps :
+
+  real = 2 min 28.60 s
+  user = 1172.60 s
+  sys = 2.34 s
+  CPU = 790 %
+  max RSS = 33112 kB.
+
+Résultat :
+
+  valides = 440
+  invalides = 1
+  fraction valide = 0.9977.
+
+L'unique état invalide est :
+
+  RH_anode = 1.000
+  j = 1378.0 A/m2
+
+avec :
+
+  best lambda_anode = 1e-4
+  residual cathodique = -0.429908.
+
+*** Interprétation de la cartographie
+
+L'hybride partiel fonctionne numériquement sur presque tout le domaine, mais
+l'échec unique à saturation montre que sa cohérence n'est pas garantie partout.
+
+Il ne serait pas méthodologiquement correct de supprimer ce point, d'étendre
+artificiellement les bornes ou de forcer une extrapolation numérique uniquement
+pour terminer le full.
+
+Le retour au modèle source de Grimaldi montre que les éléments suivants sont
+calibrés conjointement :
+
+- diffusivité membranaire D_v,m(lambda,T) ;
+- transfert interfacial k_g(lambda,T) ;
+- isotherme d'équilibre lambda_eq(RH,T) ;
+- relaxation/gonflement via lambda*.
+
+Le modèle partiel précédent mélangeait :
+
+  D Motupally
+  + isotherme Springer
+  + k_g Grimaldi.
+
+Décision :
+
+  ne pas promouvoir cet hybride comme baseline.
+
+*** Fermeture Grimaldi stationnaire cohérente
+
+Le modèle publié permet une simplification propre au régime stationnaire.
+
+La relaxation vérifie :
+
+  ds_relax/dt =
+    -(s_relax - phi lambda_eq)/tau_relax.
+
+À l'état stationnaire :
+
+  s_relax = phi lambda_eq.
+
+Avec :
+
+  lambda* = (1 - phi) lambda_eq + s_relax
+
+on obtient donc exactement :
+
+  lambda* = lambda_eq.
+
+Il est ainsi possible de construire une fermeture stationnaire cohérente sans
+ajouter immédiatement la dynamique de gonflement.
+
+La fermeture séparée à implémenter utilise :
+
+1. isotherme Dubinin-Astakhov :
+
+   A = -R T ln(RH)
+
+   lambda_eq =
+     lambda0_eq exp[-(A/E_DA)^eta]
+
+   avec :
+     lambda0_eq = 15.01
+     E_DA = 1.047 kJ/mol
+     eta = 0.4712 ;
+
+2. diffusivité Grimaldi/Olesen :
+
+   D_v,m =
+     xi_mb
+     (1 + V_H2O/V_m lambda)^n_m
+     (1 + 2.7e-3 lambda^2)
+     [1 + tanh((lambda-lambda_tp)/delta_tp)]
+     exp(-E_m_act/(R T))
+
+   avec :
+     xi_mb = 6.47e-6 m2/s
+     lambda_tp = 2.15
+     delta_tp = 0.8758
+     n_m = -2
+     E_m_act = 27.8 kJ/mol ;
+
+3. transfert interfacial :
+
+   k_g =
+     0.66e-6 lambda^1.6
+     exp[
+       6000/R (1/303 - 1/T)
+     ].
+
+Contrairement au prototype précédent, le transfert Grimaldi sera appliqué aux
+deux interfaces membrane/gaz.
+
+Le terme d'électro-osmose reste conservé comme extension PEMFC explicite du
+modèle de transport d'eau.
+
+La nouvelle fermeture reste séparée de la baseline Motupally jusqu'à validation.
