@@ -167,7 +167,9 @@ def compute_motupally_lookup_row(task: dict[str, Any]) -> tuple[float, list[floa
         membrane_thickness_m=p.membrane_thickness,
         membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
         membrane_dry_density_kg_m3=p.membrane_dry_density,
-        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
+        anode_transfer_coefficient_m_s=float(
+            task["anode_transfer_coefficient_m_s"]
+        ),
         water_partial_molar_volume_m3_mol=(
             float(task["water_partial_molar_volume_cm3_mol"]) * 1.0e-6
         ),
@@ -187,6 +189,7 @@ def build_motupally_lookup_table(
     jobs: int,
     activation_energy_j_mol: float,
     water_partial_molar_volume_cm3_mol: float,
+    anode_transfer_coefficient_m_s: float,
 ) -> np.ndarray:
     """Precompute Motupally permeance on a 2D state grid in parallel."""
     tasks = [
@@ -198,6 +201,9 @@ def build_motupally_lookup_table(
             "activation_energy_j_mol": activation_energy_j_mol,
             "water_partial_molar_volume_cm3_mol": (
                 water_partial_molar_volume_cm3_mol
+            ),
+            "anode_transfer_coefficient_m_s": (
+                anode_transfer_coefficient_m_s
             ),
         }
         for relative_humidity in relative_humidity_axis
@@ -536,6 +542,7 @@ def main() -> None:
         water_partial_molar_volume_cm3_mol=(
             args.water_partial_molar_volume_cm3_mol
         ),
+        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
     )
 
     common_kwargs: dict[str, Any] = {
