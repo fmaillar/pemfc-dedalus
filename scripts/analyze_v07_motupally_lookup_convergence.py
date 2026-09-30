@@ -7,7 +7,6 @@ import csv
 from pathlib import Path
 from typing import Any
 
-
 KEYS = ("regime", "hydrogen_feedback_exponent")
 METRICS = (
     "motupally_jmean_mol_m2_s",
