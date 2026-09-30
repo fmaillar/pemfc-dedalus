@@ -9217,3 +9217,37 @@ Décision :
   puis relancer uniquement le quick Motupally ;
 
   ne pas lancer la campagne complète avant validation de ce second correctif.
+
+
+*** Gate après second correctif Motupally : échec mypy mineur
+
+Après le correctif de bracketing Motupally :
+
+  pytest :
+    139 passed
+
+  Ruff :
+    All checks passed
+
+mais mypy détecte une incompatibilité de types dans la construction du scan
+global :
+
+  list[float]
+  +
+  list[numpy.float64].
+
+Le problème est purement statique et ne concerne pas la physique ni
+l'exécution numérique.
+
+Correction :
+
+  conversion explicite des valeurs produites par np.linspace en float Python
+  avant concaténation.
+
+Le correctif est isolé dans :
+
+  src/pemfc_dedalus/membrane.py
+
+Décision :
+
+  relancer make test avant tout nouveau quick Motupally.
