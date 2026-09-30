@@ -7,6 +7,7 @@ from pemfc_dedalus.membrane import (
     electro_osmotic_lambda_velocity,
     membrane_area_specific_resistance,
     membrane_fixed_charge_concentration,
+    nafion_water_interfacial_transfer_coefficient_ge,
     membrane_proton_conductivity,
     membrane_water_content_from_activity,
     membrane_water_diffusivity_motupally,
@@ -26,6 +27,36 @@ def test_water_content_increases_with_activity():
     assert values[-1] == pytest.approx(14.003)
 
 
+
+
+def test_ge_interfacial_transfer_correlation_matches_published_values():
+    fractions = np.array([0.1, 0.2])
+
+    absorption = nafion_water_interfacial_transfer_coefficient_ge(
+        fractions,
+        mode="absorption",
+    )
+    desorption = nafion_water_interfacial_transfer_coefficient_ge(
+        fractions,
+        mode="desorption",
+    )
+
+    assert np.allclose(absorption, 3.53e-5 * fractions)
+    assert np.allclose(desorption, 1.42e-4 * fractions)
+    assert np.all(desorption > absorption)
+
+
+def test_ge_interfacial_transfer_correlation_rejects_invalid_inputs():
+    with pytest.raises(ValueError):
+        nafion_water_interfacial_transfer_coefficient_ge(
+            -0.1,
+            mode="absorption",
+        )
+    with pytest.raises(ValueError):
+        nafion_water_interfacial_transfer_coefficient_ge(
+            0.1,
+            mode="invalid",
+        )
 
 def test_motupally_water_diffusivity_matches_published_branches():
     temperature = 313.15
