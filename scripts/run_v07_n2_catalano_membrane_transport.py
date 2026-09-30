@@ -18,6 +18,7 @@ import argparse
 import csv
 import json
 from collections.abc import Callable
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -185,6 +186,124 @@ def relative_change(new: float, reference: float) -> float:
     return new / reference - 1.0
 
 
+def run_comparison_case(task: dict[str, Any]) -> dict[str, Any]:
+    """Run one independent regime/feedback comparison case."""
+    p = CathodeParameters()
+    fixed_charge = membrane_fixed_charge_concentration(
+        p.membrane_dry_density,
+        p.membrane_equivalent_weight,
+    )
+    water_volume_m3_mol = (
+        float(task["water_partial_molar_volume_cm3_mol"]) * 1.0e-6
+    )
+    dry_reference_si = barrer_to_si_permeability(
+        DRY_REFERENCE_PERMEABILITY_BARRER
+    )
+    activation_energy_j_mol = float(task["activation_energy_j_mol"])
+    linear_model, _ = make_calibrated_permeance_model(
+        dry_reference_si=dry_reference_si,
+        stack_temperature_k=p.stack_temperature,
+        gas_constant_j_mol_k=p.gas_constant,
+        activation_energy_j_mol=activation_energy_j_mol,
+        cathode_relative_humidity=p.relative_humidity,
+        membrane_thickness_m=p.membrane_thickness,
+        membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
+        membrane_dry_density_kg_m3=p.membrane_dry_density,
+        water_partial_molar_volume_m3_mol=water_volume_m3_mol,
+    )
+    transport_model = make_v06_transport_permeance_model(
+        dry_reference_si=dry_reference_si,
+        stack_temperature_k=p.stack_temperature,
+        gas_constant_j_mol_k=p.gas_constant,
+        faraday_c_mol=p.faraday,
+        fixed_charge_mol_m3=fixed_charge,
+        activation_energy_j_mol=activation_energy_j_mol,
+        cathode_relative_humidity=p.relative_humidity,
+        membrane_thickness_m=p.membrane_thickness,
+        membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
+        membrane_dry_density_kg_m3=p.membrane_dry_density,
+        membrane_water_diffusivity_m2_s=p.membrane_water_diffusivity,
+        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
+        water_partial_molar_volume_m3_mol=water_volume_m3_mol,
+    )
+
+    regime = str(task["regime"])
+    feedback_exponent = float(task["feedback_exponent"])
+    closure = task["closure"]
+    common_kwargs = task["common_kwargs"]
+
+    _, linear_summary = simulate_nitrogen_regime(
+        regime,
+        closure,
+        hydrogen_feedback_exponent=feedback_exponent,
+        n2_permeance_model=linear_model,
+        **common_kwargs,
+    )
+    _, transport_summary = simulate_nitrogen_regime(
+        regime,
+        closure,
+        hydrogen_feedback_exponent=feedback_exponent,
+        n2_state_permeance_model=transport_model,
+        **common_kwargs,
+    )
+
+    linear_flux = float(
+        linear_summary["mean_n2_crossover_flux_mol_m2_s"]
+    )
+    transport_flux = float(
+        transport_summary["mean_n2_crossover_flux_mol_m2_s"]
+    )
+    linear_xn2 = float(linear_summary["max_nitrogen_mole_fraction"])
+    transport_xn2 = float(
+        transport_summary["max_nitrogen_mole_fraction"]
+    )
+
+    return {
+        "regime": regime,
+        "hydrogen_feedback_exponent": feedback_exponent,
+        "water_partial_molar_volume_cm3_mol": (
+            task["water_partial_molar_volume_cm3_mol"]
+        ),
+        "activation_energy_j_mol": activation_energy_j_mol,
+        "linear_jmean_mol_m2_s": linear_flux,
+        "v06_transport_jmean_mol_m2_s": transport_flux,
+        "jmean_ratio_transport_to_linear": transport_flux / linear_flux,
+        "jmean_change_fraction": relative_change(
+            transport_flux,
+            linear_flux,
+        ),
+        "linear_xn2_max": linear_xn2,
+        "v06_transport_xn2_max": transport_xn2,
+        "xn2_ratio_transport_to_linear": transport_xn2 / linear_xn2,
+        "xn2_change_fraction": relative_change(
+            transport_xn2,
+            linear_xn2,
+        ),
+        "linear_purge_count": linear_summary["purge_count"],
+        "v06_transport_purge_count": transport_summary["purge_count"],
+        "linear_mean_purge_period_s": linear_summary["mean_purge_period_s"],
+        "v06_transport_mean_purge_period_s": (
+            transport_summary["mean_purge_period_s"]
+        ),
+        "linear_final_rh": linear_summary["final_relative_humidity"],
+        "v06_transport_final_rh": transport_summary["final_relative_humidity"],
+        "linear_h2_balance_error_mol": linear_summary["h2_balance_error_mol"],
+        "v06_transport_h2_balance_error_mol": (
+            transport_summary["h2_balance_error_mol"]
+        ),
+        "linear_n2_balance_error_mol": linear_summary["n2_balance_error_mol"],
+        "v06_transport_n2_balance_error_mol": (
+            transport_summary["n2_balance_error_mol"]
+        ),
+        "linear_water_balance_error_mol": (
+            linear_summary["water_balance_error_mol"]
+        ),
+        "v06_transport_water_balance_error_mol": (
+            transport_summary["water_balance_error_mol"]
+        ),
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -218,6 +337,7 @@ def main() -> None:
     parser.add_argument("--stop-time", type=float, default=1000.0)
     parser.add_argument("--dt", type=float, default=0.01)
     parser.add_argument("--write-every", type=int, default=100)
+    parser.add_argument("--jobs", type=int, default=1)
     parser.add_argument(
         "--output-json",
         type=Path,
@@ -246,6 +366,8 @@ def main() -> None:
         parser.error("--stop-time and --dt must be positive")
     if args.write_every < 1:
         parser.error("--write-every must be >= 1")
+    if args.jobs < 1:
+        parser.error("--jobs must be >= 1")
     if not 0.0 <= args.initial_rh <= 1.0:
         parser.error("--initial-rh must be in [0, 1]")
 
@@ -277,37 +399,6 @@ def main() -> None:
         saturation_water_pressure_pa=saturation_pressure,
     )
 
-    water_volume_m3_mol = args.water_partial_molar_volume_cm3_mol * 1.0e-6
-    dry_reference_si = barrer_to_si_permeability(
-        DRY_REFERENCE_PERMEABILITY_BARRER
-    )
-    linear_model, _ = make_calibrated_permeance_model(
-        dry_reference_si=dry_reference_si,
-        stack_temperature_k=p.stack_temperature,
-        gas_constant_j_mol_k=p.gas_constant,
-        activation_energy_j_mol=args.activation_energy_j_mol,
-        cathode_relative_humidity=p.relative_humidity,
-        membrane_thickness_m=p.membrane_thickness,
-        membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
-        membrane_dry_density_kg_m3=p.membrane_dry_density,
-        water_partial_molar_volume_m3_mol=water_volume_m3_mol,
-    )
-    transport_model = make_v06_transport_permeance_model(
-        dry_reference_si=dry_reference_si,
-        stack_temperature_k=p.stack_temperature,
-        gas_constant_j_mol_k=p.gas_constant,
-        faraday_c_mol=p.faraday,
-        fixed_charge_mol_m3=fixed_charge,
-        activation_energy_j_mol=args.activation_energy_j_mol,
-        cathode_relative_humidity=p.relative_humidity,
-        membrane_thickness_m=p.membrane_thickness,
-        membrane_equivalent_weight_kg_mol=p.membrane_equivalent_weight,
-        membrane_dry_density_kg_m3=p.membrane_dry_density,
-        membrane_water_diffusivity_m2_s=p.membrane_water_diffusivity,
-        anode_transfer_coefficient_m_s=p.anode_water_transfer_coefficient,
-        water_partial_molar_volume_m3_mol=water_volume_m3_mol,
-    )
-
     common_kwargs: dict[str, Any] = {
         "initial_rh": args.initial_rh,
         "stop_time_s": args.stop_time,
@@ -329,100 +420,41 @@ def main() -> None:
         "cathode_n2_partial_pressure_pa": cathode_n2_partial_pressure,
     }
 
-    rows: list[dict[str, Any]] = []
+    tasks: list[dict[str, Any]] = []
     for feedback_exponent in args.feedback_exponents:
         for regime in args.regimes:
-            _, linear_summary = simulate_nitrogen_regime(
-                regime,
-                closure[regime],
-                hydrogen_feedback_exponent=feedback_exponent,
-                n2_permeance_model=linear_model,
-                **common_kwargs,
-            )
-            _, transport_summary = simulate_nitrogen_regime(
-                regime,
-                closure[regime],
-                hydrogen_feedback_exponent=feedback_exponent,
-                n2_state_permeance_model=transport_model,
-                **common_kwargs,
+            tasks.append(
+                {
+                    "regime": regime,
+                    "feedback_exponent": feedback_exponent,
+                    "closure": closure[regime],
+                    "common_kwargs": common_kwargs,
+                    "water_partial_molar_volume_cm3_mol": (
+                        args.water_partial_molar_volume_cm3_mol
+                    ),
+                    "activation_energy_j_mol": args.activation_energy_j_mol,
+                }
             )
 
-            linear_flux = float(
-                linear_summary["mean_n2_crossover_flux_mol_m2_s"]
-            )
-            transport_flux = float(
-                transport_summary["mean_n2_crossover_flux_mol_m2_s"]
-            )
-            linear_xn2 = float(linear_summary["max_nitrogen_mole_fraction"])
-            transport_xn2 = float(
-                transport_summary["max_nitrogen_mole_fraction"]
-            )
+    worker_count = min(args.jobs, len(tasks))
+    if worker_count == 1:
+        rows = [run_comparison_case(task) for task in tasks]
+    else:
+        with ProcessPoolExecutor(max_workers=worker_count) as executor:
+            rows = list(executor.map(run_comparison_case, tasks))
 
-            row = {
-                "regime": regime,
-                "hydrogen_feedback_exponent": feedback_exponent,
-                "water_partial_molar_volume_cm3_mol": (
-                    args.water_partial_molar_volume_cm3_mol
-                ),
-                "activation_energy_j_mol": args.activation_energy_j_mol,
-                "linear_jmean_mol_m2_s": linear_flux,
-                "v06_transport_jmean_mol_m2_s": transport_flux,
-                "jmean_ratio_transport_to_linear": (
-                    transport_flux / linear_flux
-                ),
-                "jmean_change_fraction": relative_change(
-                    transport_flux,
-                    linear_flux,
-                ),
-                "linear_xn2_max": linear_xn2,
-                "v06_transport_xn2_max": transport_xn2,
-                "xn2_ratio_transport_to_linear": (
-                    transport_xn2 / linear_xn2
-                ),
-                "xn2_change_fraction": relative_change(
-                    transport_xn2,
-                    linear_xn2,
-                ),
-                "linear_purge_count": linear_summary["purge_count"],
-                "v06_transport_purge_count": transport_summary["purge_count"],
-                "linear_mean_purge_period_s": (
-                    linear_summary["mean_purge_period_s"]
-                ),
-                "v06_transport_mean_purge_period_s": (
-                    transport_summary["mean_purge_period_s"]
-                ),
-                "linear_final_rh": linear_summary["final_relative_humidity"],
-                "v06_transport_final_rh": (
-                    transport_summary["final_relative_humidity"]
-                ),
-                "linear_h2_balance_error_mol": (
-                    linear_summary["h2_balance_error_mol"]
-                ),
-                "v06_transport_h2_balance_error_mol": (
-                    transport_summary["h2_balance_error_mol"]
-                ),
-                "linear_n2_balance_error_mol": (
-                    linear_summary["n2_balance_error_mol"]
-                ),
-                "v06_transport_n2_balance_error_mol": (
-                    transport_summary["n2_balance_error_mol"]
-                ),
-                "linear_water_balance_error_mol": (
-                    linear_summary["water_balance_error_mol"]
-                ),
-                "v06_transport_water_balance_error_mol": (
-                    transport_summary["water_balance_error_mol"]
-                ),
-            }
-            rows.append(row)
-            print(
-                f"{regime} gamma={feedback_exponent:.1f}: "
-                f"J {linear_flux:.3e}->{transport_flux:.3e} "
-                f"({100.0 * row['jmean_change_fraction']:+.1f}%), "
-                f"xN2,max {linear_xn2:.5f}->{transport_xn2:.5f} "
-                f"({100.0 * row['xn2_change_fraction']:+.1f}%)",
-                flush=True,
-            )
+    for row in rows:
+        print(
+            f"{row['regime']} "
+            f"gamma={row['hydrogen_feedback_exponent']:.1f}: "
+            f"J {row['linear_jmean_mol_m2_s']:.3e}->"
+            f"{row['v06_transport_jmean_mol_m2_s']:.3e} "
+            f"({100.0 * row['jmean_change_fraction']:+.1f}%), "
+            f"xN2,max {row['linear_xn2_max']:.5f}->"
+            f"{row['v06_transport_xn2_max']:.5f} "
+            f"({100.0 * row['xn2_change_fraction']:+.1f}%)",
+            flush=True,
+        )
 
     output = {
         "schema_version": 1,
@@ -448,6 +480,7 @@ def main() -> None:
         "regimes": args.regimes,
         "stop_time_s": args.stop_time,
         "dt_s": args.dt,
+        "jobs": worker_count,
         "summaries": rows,
     }
 
