@@ -9,13 +9,17 @@ from pemfc_dedalus.membrane import (
     membrane_fixed_charge_concentration,
     membrane_proton_conductivity,
     membrane_water_content_from_activity,
+    membrane_water_content_grimaldi_da,
+    membrane_water_diffusivity_grimaldi,
     membrane_water_diffusivity_motupally,
     nafion_water_interfacial_transfer_coefficient_ge,
     nafion_water_interfacial_transfer_coefficient_grimaldi,
     steady_membrane_water_profile,
     steady_membrane_water_profile_anode_transfer,
     steady_membrane_water_profile_motupally,
+    steady_membrane_water_profile_grimaldi_consistent,
     steady_membrane_water_profile_motupally_grimaldi,
+    steady_membrane_water_profile_two_interface_transfer,
     steady_membrane_water_profile_variable_diffusivity,
     steady_membrane_water_profile_variable_transfer,
     steady_membrane_water_profile_zero_anode_flux,
@@ -99,6 +103,89 @@ def test_grimaldi_interfacial_transfer_increases_with_lambda_and_temperature():
 
     assert high_lambda > low_lambda > 0.0
     assert hotter > high_lambda
+
+
+def test_grimaldi_da_isotherm_matches_published_form():
+    temperature = 313.15
+    rh = np.array([0.0, 0.5, 1.0])
+
+    values = membrane_water_content_grimaldi_da(rh, temperature)
+
+    adsorption_potential = -8.31446261815324 * temperature * np.log(0.5)
+    expected_half = 15.01 * np.exp(
+        -(adsorption_potential / 1047.0) ** 0.4712
+    )
+
+    assert values[0] == pytest.approx(0.0)
+    assert values[1] == pytest.approx(expected_half)
+    assert values[2] == pytest.approx(15.01)
+    assert np.all(np.diff(values) > 0.0)
+
+
+def test_grimaldi_diffusivity_matches_published_form():
+    p = CathodeParameters()
+    water_content = 4.0
+    temperature = p.stack_temperature
+    membrane_molar_volume = (
+        p.membrane_equivalent_weight / p.membrane_dry_density
+    )
+    expected = (
+        6.47e-6
+        * (
+            1.0
+            + 1.8e-5 / membrane_molar_volume * water_content
+        )
+        ** -2.0
+        * (1.0 + 2.7e-3 * water_content**2)
+        * (1.0 + np.tanh((water_content - 2.15) / 0.8758))
+        * np.exp(-27800.0 / (p.gas_constant * temperature))
+    )
+
+    actual = membrane_water_diffusivity_grimaldi(
+        water_content,
+        temperature,
+        equivalent_weight_kg_mol=p.membrane_equivalent_weight,
+        dry_density_kg_m3=p.membrane_dry_density,
+        gas_constant_j_mol_k=p.gas_constant,
+    ).item()
+
+    assert actual == pytest.approx(expected)
+    assert actual > 0.0
+
+
+def test_two_interface_solver_recovers_symmetric_equilibrium_without_drag():
+    z = np.linspace(0.0, 50.0e-6, 129)
+
+    profile = steady_membrane_water_profile_two_interface_transfer(
+        z,
+        lambda_anode_equilibrium=4.0,
+        lambda_cathode_equilibrium=4.0,
+        drag_velocity_m_s=0.0,
+        diffusivity_model=lambda _value: 2.0e-10,
+        transfer_coefficient_model=lambda _value: 5.0e-6,
+    )
+
+    assert np.allclose(profile, 4.0, rtol=0.0, atol=2.0e-5)
+
+
+def test_grimaldi_consistent_profile_is_physical():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 129)
+
+    profile = steady_membrane_water_profile_grimaldi_consistent(
+        z,
+        anode_relative_humidity=0.5,
+        cathode_relative_humidity=p.relative_humidity,
+        temperature_k=p.stack_temperature,
+        drag_velocity_m_s=2.0e-7,
+        equivalent_weight_kg_mol=p.membrane_equivalent_weight,
+        dry_density_kg_m3=p.membrane_dry_density,
+        gas_constant_j_mol_k=p.gas_constant,
+    )
+
+    assert np.all(np.isfinite(profile))
+    assert np.all(profile > 0.0)
+    assert np.all(profile < 17.0)
 
 def test_motupally_water_diffusivity_matches_published_branches():
     temperature = 313.15
