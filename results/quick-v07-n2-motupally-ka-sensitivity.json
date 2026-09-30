@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "model": "v07-n2-motupally-ka-sensitivity",
+  "transfer_coefficients_m_s": [
+    1e-06,
+    2e-06,
+    4e-06
+  ],
+  "feedback_exponents": [
+    0.0
+  ],
+  "regimes": [
+    "nominal",
+    "wet_low_load"
+  ],
+  "jobs": 6,
+  "lookup_rh_points": 21,
+  "lookup_current_points": 21,
+  "lookup_current_density_min_a_m2": 540.6059144761992,
+  "lookup_current_density_max_a_m2": 1274.4174807991803,
+  "stop_time_s": 200.0,
+  "dt_s": 0.01,
+  "summaries": [
+    {
+      "regime": "nominal",
+      "hydrogen_feedback_exponent": 0.0,
+      "anode_transfer_coefficient_m_s": 1e-06,
+      "mean_n2_crossover_flux_mol_m2_s": 1.6949371360257122e-06,
+      "max_nitrogen_mole_fraction": 0.004847374357066469,
+      "min_hydrogen_mole_fraction": 0.9720729999074418,
+      "mean_cell_current_a": 28.59013009895539,
+      "purge_count": 2,
+      "mean_purge_period_s": 80.45,
+      "final_relative_humidity": 0.43366929333076015,
+      "h2_balance_error_mol": 8.711998136790022e-15,
+      "n2_balance_error_mol": 8.470329472543003e-21,
+      "water_balance_error_mol": 1.5585406229479126e-19
+    },
+    {
+      "regime": "wet_low_load",
+      "hydrogen_feedback_exponent": 0.0,
+      "anode_transfer_coefficient_m_s": 1e-06,
+      "mean_n2_crossover_flux_mol_m2_s": 3.548189933275411e-06,
+      "max_nitrogen_mole_fraction": 0.01257272186146415,
+      "min_hydrogen_mole_fraction": 0.9404173387405442,
+      "mean_cell_current_a": 16.20755417652962,
+      "purge_count": 1,
+      "mean_purge_period_s": null,
+      "final_relative_humidity": 0.883323128021883,
+      "h2_balance_error_mol": -1.3387728425851009e-15,
+      "n2_balance_error_mol": -3.3881317890172014e-21,
+      "water_balance_error_mol": 1.3552527156068805e-20
+    },
+    {
+      "regime": "nominal",
+      "hydrogen_feedback_exponent": 0.0,
+      "anode_transfer_coefficient_m_s": 2e-06,
+      "mean_n2_crossover_flux_mol_m2_s": 1.706208360863775e-06,
+      "max_nitrogen_mole_fraction": 0.004879888909226058,
+      "min_hydrogen_mole_fraction": 0.9720404853552822,
+      "mean_cell_current_a": 28.59013009897272,
+      "purge_count": 2,
+      "mean_purge_period_s": 80.45,
+      "final_relative_humidity": 0.43366929333076015,
+      "h2_balance_error_mol": 8.324937961212697e-15,
+      "n2_balance_error_mol": 1.6940658945086007e-21,
+      "water_balance_error_mol": 3.3881317890172014e-20
+    },
+    {
+      "regime": "wet_low_load",
+      "hydrogen_feedback_exponent": 0.0,
+      "anode_transfer_coefficient_m_s": 2e-06,
+      "mean_n2_crossover_flux_mol_m2_s": 4.088897411990737e-06,
+      "max_nitrogen_mole_fraction": 0.014489900159139143,
+      "min_hydrogen_mole_fraction": 0.9385001604428693,
+      "mean_cell_current_a": 16.207554176487186,
+      "purge_count": 1,
+      "mean_purge_period_s": null,
+      "final_relative_humidity": 0.883323128021883,
+      "h2_balance_error_mol": -1.3272802995567545e-15,
+      "n2_balance_error_mol": 3.218725199566341e-20,
+      "water_balance_error_mol": 1.3552527156068805e-20
+    },
+    {
+      "regime": "nominal",
+      "hydrogen_feedback_exponent": 0.0,
+      "anode_transfer_coefficient_m_s": 4e-06,
+      "mean_n2_crossover_flux_mol_m2_s": 1.719029072026236e-06,
+      "max_nitrogen_mole_fraction": 0.004916885778104609,
+      "min_hydrogen_mole_fraction": 0.9720034884864037,
+      "mean_cell_current_a": 28.59013009899422,
+      "purge_count": 2,
+      "mean_purge_period_s": 80.45,
+      "final_relative_humidity": 0.43366929333076015,
+      "h2_balance_error_mol": 8.639790272102488e-15,
+      "n2_balance_error_mol": -2.202285662861181e-20,
+      "water_balance_error_mol": 1.5585406229479126e-19
+    },
+    {
+      "regime": "wet_low_load",
+      "hydrogen_feedback_exponent": 0.0,
+      "anode_transfer_coefficient_m_s": 4e-06,
+      "mean_n2_crossover_flux_mol_m2_s": 4.3897726691446645e-06,
+      "max_nitrogen_mole_fraction": 0.015556884587815858,
+      "min_hydrogen_mole_fraction": 0.9374331760141925,
+      "mean_cell_current_a": 16.2075541764631,
+      "purge_count": 1,
+      "mean_purge_period_s": null,
+      "final_relative_humidity": 0.883323128021883,
+      "h2_balance_error_mol": -1.3231603313013096e-15,
+      "n2_balance_error_mol": 6.945670167485263e-20,
+      "water_balance_error_mol": 0.0
+    }
+  ]
+}
