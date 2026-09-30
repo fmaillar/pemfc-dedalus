@@ -276,6 +276,32 @@ def water_volume_fraction_dependent_permeability(
 
 
 
+
+def membrane_permeance_from_permeability_profile(
+    permeability_profile: list[float],
+    membrane_thickness_m: float,
+) -> float:
+    """Return through-plane permeance for permeability layers in series.
+
+    The profile is sampled at equally spaced points across the membrane.
+    Integrating 1/P through the thickness represents the local transport
+    resistances in series, avoiding evaluation of a nonlinear permeability
+    law at one mean membrane state.
+    """
+    if membrane_thickness_m <= 0.0:
+        raise ValueError("membrane_thickness_m must be positive")
+    if len(permeability_profile) < 2:
+        raise ValueError("permeability_profile must contain at least 2 points")
+    if any(value <= 0.0 for value in permeability_profile):
+        raise ValueError("permeability profile values must be positive")
+
+    dz = membrane_thickness_m / (len(permeability_profile) - 1)
+    inverse_sum = 0.5 / permeability_profile[0]
+    inverse_sum += sum(1.0 / value for value in permeability_profile[1:-1])
+    inverse_sum += 0.5 / permeability_profile[-1]
+    resistance = dz * inverse_sum
+    return 1.0 / resistance
+
 def membrane_water_volume_fraction_from_partial_molar_volume(
     water_content: float,
     *,
