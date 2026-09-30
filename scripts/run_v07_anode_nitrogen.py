@@ -87,6 +87,7 @@ def simulate_nitrogen_regime(
     n2_crossover_permeance_mol_m2_s_pa: float | None = None,
     cathode_n2_partial_pressure_pa: float | None = None,
     n2_permeance_model: Callable[[float], float] | None = None,
+    n2_state_permeance_model: Callable[[float, float], float] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Integrate H2/N2/H2O inventories with charge-triggered standard purges."""
     if stop_time_s <= 0.0 or dt_s <= 0.0:
@@ -100,9 +101,17 @@ def simulate_nitrogen_regime(
     if n2_crossover_permeance_mol_m2_s_pa is not None:
         if n2_crossover_permeance_mol_m2_s_pa < 0.0:
             raise ValueError("n2 crossover permeance must be non-negative")
+    if (
+        n2_permeance_model is not None
+        and n2_state_permeance_model is not None
+    ):
+        raise ValueError(
+            "provide only one dynamic N2 permeance model"
+        )
     pressure_driven = (
         n2_crossover_permeance_mol_m2_s_pa is not None
         or n2_permeance_model is not None
+        or n2_state_permeance_model is not None
     )
     if pressure_driven:
         if cathode_n2_partial_pressure_pa is None:
@@ -274,8 +283,14 @@ def simulate_nitrogen_regime(
             dynamic_permeance = n2_permeance_model(
                 water_state.relative_humidity
             )
-            if dynamic_permeance < 0.0:
-                raise ValueError("n2 permeance model returned a negative value")
+        elif n2_state_permeance_model is not None:
+            current_density_a_m2 = cell_current_a / active_area_m2
+            dynamic_permeance = n2_state_permeance_model(
+                water_state.relative_humidity,
+                current_density_a_m2,
+            )
+        if dynamic_permeance is not None and dynamic_permeance < 0.0:
+            raise ValueError("n2 permeance model returned a negative value")
 
         if dynamic_permeance is None:
             n2_flux = n2_crossover_flux_mol_m2_s
