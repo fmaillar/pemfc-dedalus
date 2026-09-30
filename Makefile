@@ -602,8 +602,9 @@ analyze-n2-motupally-v07:
 
 quick-n2-catalano-motupally-v07:
 	$(PYTHON) -m scripts.run_v07_n2_catalano_motupally \
-	  --regimes nominal wet_low_load --feedback-exponents 0 \
-	  --jobs 6 --stop-time 200 --dt 0.01 --write-every 100 \
+	  --regimes nominal wet_low_load --feedback-exponents 0 1 \
+	  --jobs 6 --lookup-rh-points 21 --lookup-current-points 21 \
+	  --stop-time 200 --dt 0.01 --write-every 100 \
 	  --output-json results/quick-v07-n2-catalano-motupally-comparison.json \
 	  --output-csv results/quick-v07-n2-catalano-motupally-comparison.csv
 
