@@ -256,7 +256,7 @@ def main() -> None:
         water_partial_molar_volume_m3_mol=water_volume_m3_mol,
     )
 
-    common_kwargs = {
+    common_kwargs: dict[str, Any] = {
         "initial_rh": args.initial_rh,
         "stop_time_s": args.stop_time,
         "dt_s": args.dt,
