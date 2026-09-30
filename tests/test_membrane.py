@@ -15,6 +15,8 @@ from pemfc_dedalus.membrane import (
     steady_membrane_water_profile,
     steady_membrane_water_profile_anode_transfer,
     steady_membrane_water_profile_motupally,
+    steady_membrane_water_profile_motupally_grimaldi,
+    steady_membrane_water_profile_variable_transfer,
     steady_membrane_water_profile_variable_diffusivity,
     steady_membrane_water_profile_zero_anode_flux,
 )
@@ -334,6 +336,53 @@ def test_motupally_profile_handles_equal_anode_cathode_equilibrium():
     assert np.all(profile > 0.0)
     assert np.all(profile < 17.0)
     assert profile[-1] == pytest.approx(lambda_equilibrium, abs=1.0e-8)
+
+
+def test_variable_transfer_solver_recovers_constant_transfer_solution():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 129)
+    lambda_cathode = 4.0
+    lambda_equilibrium = 1.5
+    drag_velocity = 4.0e-7
+    diffusivity = 2.0e-10
+    transfer = p.anode_water_transfer_coefficient
+
+    expected = steady_membrane_water_profile_variable_diffusivity(
+        z,
+        lambda_cathode=lambda_cathode,
+        lambda_anode_equilibrium=lambda_equilibrium,
+        drag_velocity_m_s=drag_velocity,
+        anode_transfer_coefficient_m_s=transfer,
+        diffusivity_model=lambda _value: diffusivity,
+    )
+    actual = steady_membrane_water_profile_variable_transfer(
+        z,
+        lambda_cathode=lambda_cathode,
+        lambda_anode_equilibrium=lambda_equilibrium,
+        drag_velocity_m_s=drag_velocity,
+        diffusivity_model=lambda _value: diffusivity,
+        transfer_coefficient_model=lambda _value: transfer,
+    )
+
+    assert np.allclose(actual, expected, rtol=3.0e-4, atol=3.0e-6)
+
+
+def test_motupally_grimaldi_profile_hits_cathode_boundary():
+    p = CathodeParameters()
+    z = np.linspace(0.0, p.membrane_thickness, 129)
+
+    profile = steady_membrane_water_profile_motupally_grimaldi(
+        z,
+        lambda_cathode=3.4855,
+        lambda_anode_equilibrium=5.37,
+        temperature_k=p.stack_temperature,
+        drag_velocity_m_s=3.0e-7,
+        gas_constant_j_mol_k=p.gas_constant,
+    )
+
+    assert np.all(profile > 0.0)
+    assert np.all(profile < 17.0)
+    assert profile[-1] == pytest.approx(3.4855, abs=1.0e-8)
 
 def test_membrane_asr_is_positive_and_decreases_with_hydration():
     p = CathodeParameters()
