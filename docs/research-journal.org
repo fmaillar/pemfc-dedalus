@@ -10578,3 +10578,105 @@ Deux voies sont envisageables :
 
 La prochaine étape est donc une revue ciblée de littérature sur les échanges
 d'eau à l'interface Nafion/gaz, avant toute nouvelle campagne dynamique.
+
+
+*** Revue ciblée : transfert interfacial eau / Nafion
+
+La sensibilité complète à k_a montre que l'incertitude sur le transfert
+interfacial reste dominante en wet_low_load.
+
+Une recherche bibliographique ciblée identifie une relation directement
+pertinente dans :
+
+  Ge, Li, Yi, Hsing
+  Journal of The Electrochemical Society 152(6), A1149-A1157 (2005)
+  DOI 10.1149/1.1899263.
+
+À 353 K, les auteurs rapportent des coefficients dépendant de la fraction
+volumique d'eau f_v :
+
+  absorption :
+    k_abs = 3.53e-5 f_v m/s
+
+  désorption :
+    k_des = 1.42e-4 f_v m/s.
+
+La désorption est donc beaucoup plus rapide que l'absorption dans cette
+fermeture.
+
+Cette littérature confirme également que l'interface membrane/gaz peut
+constituer une résistance de transport importante.
+
+D'autres travaux ultérieurs, notamment Kongkanand (2011) et Zhao, Majsztrik
+et Benziger (2011), confirment l'importance de la résistance interfaciale et
+proposent des coefficients dépendant de l'état hydrique et de la température.
+
+*** Prudence d'utilisation
+
+Notre pile est actuellement simulée autour de :
+
+  T ≈ 313 K
+
+alors que les coefficients explicites Ge ci-dessus sont donnés à :
+
+  353 K.
+
+Ils ne doivent donc pas être injectés directement dans la baseline sans loi
+de dépendance en température.
+
+De plus, notre fermeture actuelle utilise :
+
+  J_lambda =
+    -k_a (lambda_anode - lambda_equilibre)
+
+alors que la littérature formule généralement le flux via une différence de
+concentration ou d'activité.
+
+L'équivalence des deux coefficients doit donc être documentée avant toute
+substitution directe.
+
+*** Infrastructure de diagnostic Ge
+
+Une corrélation constitutive est ajoutée :
+
+  nafion_water_interfacial_transfer_coefficient_ge(...)
+
+avec deux modes :
+
+  absorption
+  desorption.
+
+Elle reproduit uniquement les relations publiées à 353 K.
+
+Un diagnostic dédié est ajouté :
+
+  scripts/analyze_v07_ge_interfacial_transfer.py
+
+Commande :
+
+  make analyze-ge-transfer-v07
+
+Le diagnostic compare les coefficients Ge à la valeur actuelle :
+
+  k_a = 2e-6 m/s
+
+sur des plages de lambda représentatives de :
+
+  dry_high_load
+  nominal
+  wet_low_load.
+
+Sortie :
+
+  results/v07-ge-interfacial-transfer-diagnostic.csv
+
+Cette étape reste strictement diagnostique.
+
+Décision :
+
+  exécuter le diagnostic ;
+
+  utiliser ses ordres de grandeur pour décider si k_a actuel est cohérent ;
+
+  ne modifier la baseline qu'après traitement de la dépendance en température
+  et de la variable motrice du flux interfacial.
