@@ -8179,3 +8179,176 @@ Commandes Makefile :
 
 Les sorties conservent un ordre déterministe identique à la liste des tâches
 et enregistrent le nombre effectif de workers dans le JSON.
+
+
+*** Résultats complets : profil hydrique V0.6 dans la fermeture Catalano
+
+La campagne complète linear_profile vs v06_finite_transfer_profile est
+terminée sur :
+
+  3 régimes x 2 valeurs de gamma
+
+avec 6 workers parallèles.
+
+Paramètres Catalano :
+
+  Vbar_water = 17.0 cm3/mol
+  E_a = 49.6 kJ/mol
+  P_N2,dry = 0.18 Barrer
+  ancre hydrique = 95x à a_w = 0.75.
+
+Paramètres hydriques V0.6 :
+
+  D_water = 2.0e-10 m2/s
+  k_a = 2.0e-6 m/s.
+
+Pour gamma = 0 :
+
+dry_high_load :
+
+  J_N2,moy :
+    1.380e-6 -> 1.588e-6 mol/m2/s
+    variation = +15.12 %
+
+  x_N2,max :
+    0.003057 -> 0.003519
+    variation = +15.09 %.
+
+nominal :
+
+  J_N2,moy :
+    1.754e-6 -> 1.772e-6 mol/m2/s
+    variation = +0.99 %
+
+  x_N2,max :
+    0.006133 -> 0.006193
+    variation = +0.98 %.
+
+wet_low_load :
+
+  J_N2,moy :
+    6.475e-6 -> 3.460e-6 mol/m2/s
+    variation = -46.56 %
+
+  x_N2,max :
+    0.03954 -> 0.02120
+    variation = -46.39 %.
+
+Pour gamma = 1 :
+
+dry_high_load :
+
+  J_N2,moy :
+    variation = +15.14 %
+
+  x_N2,max :
+    variation = +15.16 %.
+
+nominal :
+
+  J_N2,moy :
+    variation = +1.02 %
+
+  x_N2,max :
+    variation = +1.01 %.
+
+wet_low_load :
+
+  J_N2,moy :
+    6.470e-6 -> 3.461e-6 mol/m2/s
+    variation = -46.51 %
+
+  x_N2,max :
+    0.04058 -> 0.02147
+    variation = -47.09 %.
+
+Dans wet_low_load avec gamma = 1, la période moyenne de purge passe de :
+
+  146.01 s
+
+à :
+
+  144.04 s.
+
+Le nombre total de purges reste toutefois inchangé :
+
+  6 purges / 1000 s.
+
+Les RH finales sont identiques entre les deux formulations et les bilans
+H2/H2O/N2 restent fermés à la précision numérique.
+
+*** Interprétation du profil hydrique V0.6
+
+L'effet du profil hydrique n'est ni faible ni monotone entre régimes.
+
+Dans dry_high_load, le profil V0.6 augmente la perméance effective d'environ
+15 %.
+
+Au nominal, l'effet est presque nul :
+
+  environ +1 %.
+
+Dans wet_low_load, le profil V0.6 diminue au contraire la perméance effective
+d'environ 46 %.
+
+Cette inversion de signe montre que la forme spatiale de lambda(z), et pas
+seulement sa moyenne, devient un mécanisme de premier ordre dès que la membrane
+est fortement hydratée.
+
+La fermeture Catalano exponentielle amplifie fortement les différences de
+profil hydrique à travers la moyenne harmonique spatiale de P_N2.
+
+La formulation linéaire ne doit donc plus être considérée comme suffisante pour
+le régime wet_low_load.
+
+Décision :
+
+  la fermeture Catalano through-plane doit désormais utiliser le profil
+  hydrique V0.6 comme formulation physique de référence candidate.
+
+Cependant cette décision ne peut pas être finalisée avant une sensibilité sur
+les deux paramètres V0.6 encore explicitement hypothétiques :
+
+  D_water = 2.0e-10 m2/s
+  k_a = 2.0e-6 m/s.
+
+*** Étape suivante : sensibilité D_water / k_a
+
+Le profil hydrique V0.6 produit désormais un effet suffisamment important pour
+que l'incertitude sur D_water et k_a devienne prioritaire.
+
+La prochaine campagne doit faire varier séparément et conjointement :
+
+  D_water
+  k_a
+
+autour de leurs valeurs nominales.
+
+Premier plan de screening :
+
+  D_water =
+    1.0e-10
+    2.0e-10
+    4.0e-10 m2/s
+
+  k_a =
+    1.0e-6
+    2.0e-6
+    4.0e-6 m/s.
+
+La grille 3x3 permet de distinguer :
+
+- effet de diffusion membranaire ;
+- effet du transfert vers le gaz anodique ;
+- interaction entre les deux ;
+- robustesse du signe de l'effet dans wet_low_load.
+
+Les régimes dry_high_load, nominal et wet_low_load doivent être conservés.
+
+gamma = 0 isole le transport.
+
+gamma = 1 conserve la rétroaction H2.
+
+Compte tenu du nombre de cas indépendants, la campagne doit rester parallélisée.
+
+Cette sensibilité constitue désormais le prochain verrou physique de V0.7.
