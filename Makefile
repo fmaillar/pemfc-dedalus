@@ -30,7 +30,7 @@ TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
         quick-n2-motupally-ka-v07 n2-motupally-ka-v07 analyze-ge-transfer-v07 \
         analyze-grimaldi-transfer-v07 \
         quick-n2-grimaldi-transfer-v07 n2-grimaldi-transfer-v07 \
-        analyze-grimaldi-validity-v07 \
+        analyze-grimaldi-validity-v07 analyze-grimaldi-consistent-validity-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -116,6 +116,7 @@ help:
 	  'make quick-n2-grimaldi-transfer-v07 preflight Grimaldi transfer closure' \
 	  'make n2-grimaldi-transfer-v07 run full Grimaldi transfer comparison' \
 	  'make analyze-grimaldi-validity-v07 map Motupally/Grimaldi hybrid validity' \
+	  'make analyze-grimaldi-consistent-validity-v07 map coherent Grimaldi validity' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -677,4 +678,9 @@ n2-grimaldi-transfer-v07:
 
 analyze-grimaldi-validity-v07:
 	$(TIME) $(PYTHON) -m scripts.analyze_v07_grimaldi_hybrid_validity \
+	  --jobs $(JOBS) --rh-points 21 --current-points 21
+
+
+analyze-grimaldi-consistent-validity-v07:
+	$(TIME) $(PYTHON) -m scripts.analyze_v07_grimaldi_consistent_validity \
 	  --jobs $(JOBS) --rh-points 21 --current-points 21
