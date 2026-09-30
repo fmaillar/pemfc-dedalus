@@ -230,9 +230,10 @@ def steady_membrane_water_profile_variable_diffusivity(
     diffusivity_model: Callable[[float], float],
     lambda_lower_bound: float = 1.0e-6,
     lambda_upper_bound: float = 16.999,
-    scan_points: int = 129,
+    scan_points: int = 65,
     root_iterations: int = 60,
     quadrature_points: int = 129,
+    initial_lambda_anode: float | None = None,
 ) -> np.ndarray:
     """Return steady lambda with finite transfer and variable diffusivity.
 
@@ -285,30 +286,78 @@ def steady_membrane_water_profile_variable_diffusivity(
             return float("nan")
         return transport_length - length
 
-    candidates = np.linspace(
+    def evaluate_candidates(values: list[float]) -> list[tuple[float, float]]:
+        trials: list[tuple[float, float]] = []
+        seen: set[float] = set()
+        for candidate in sorted(values):
+            value = float(np.clip(
+                candidate,
+                lambda_lower_bound,
+                lambda_upper_bound,
+            ))
+            key = round(value, 12)
+            if key in seen:
+                continue
+            seen.add(key)
+            residual_value = residual(value)
+            if np.isfinite(residual_value):
+                trials.append((value, residual_value))
+        return trials
+
+    center = (
+        float(initial_lambda_anode)
+        if initial_lambda_anode is not None
+        else 0.5 * (lambda_anode_equilibrium + lambda_cathode)
+    )
+    span = max(
+        abs(lambda_cathode - lambda_anode_equilibrium),
+        0.25,
+    )
+    local_candidates = [
         lambda_lower_bound,
         lambda_upper_bound,
-        scan_points,
-    )
-    finite_trials: list[tuple[float, float]] = []
-    for candidate in candidates:
-        value = float(candidate)
-        residual_value = residual(value)
-        if np.isfinite(residual_value):
-            finite_trials.append((value, residual_value))
+        lambda_anode_equilibrium,
+        lambda_cathode,
+        3.0 - 1.0e-6,
+        3.0,
+        3.0 + 1.0e-6,
+        center,
+    ]
+    for factor in (0.125, 0.25, 0.5, 1.0, 2.0, 4.0):
+        local_candidates.extend(
+            [center - factor * span, center + factor * span]
+        )
 
-    bracket: tuple[float, float] | None = None
-    for (left, left_residual), (right, right_residual) in zip(
-        finite_trials,
-        finite_trials[1:],
-        strict=False,
-    ):
-        if left_residual == 0.0:
-            bracket = (left, left)
-            break
-        if left_residual * right_residual <= 0.0:
-            bracket = (left, right)
-            break
+    finite_trials = evaluate_candidates(local_candidates)
+
+    def find_bracket(
+        trials: list[tuple[float, float]],
+    ) -> tuple[float, float] | None:
+        for (left, left_residual), (right, right_residual) in zip(
+            trials,
+            trials[1:],
+            strict=False,
+        ):
+            if left_residual == 0.0:
+                return (left, left)
+            if left_residual * right_residual <= 0.0:
+                return (left, right)
+        return None
+
+    bracket = find_bracket(finite_trials)
+
+    if bracket is None:
+        global_candidates = list(
+            np.linspace(
+                lambda_lower_bound,
+                lambda_upper_bound,
+                scan_points,
+            )
+        )
+        finite_trials = evaluate_candidates(
+            local_candidates + global_candidates
+        )
+        bracket = find_bracket(finite_trials)
 
     if bracket is None:
         if not finite_trials:
@@ -380,18 +429,6 @@ def steady_membrane_water_profile_motupally(
             ).item()
         )
 
-    lower_bound = max(
-        1.0e-6,
-        min(lambda_cathode, lambda_anode_equilibrium),
-    )
-    upper_bound = min(
-        16.999,
-        max(lambda_cathode, lambda_anode_equilibrium),
-    )
-    if upper_bound <= lower_bound:
-        lower_bound = max(1.0e-6, lambda_cathode - 0.5)
-        upper_bound = min(16.999, lambda_cathode + 0.5)
-
     return steady_membrane_water_profile_variable_diffusivity(
         z_m,
         lambda_cathode=lambda_cathode,
@@ -399,8 +436,8 @@ def steady_membrane_water_profile_motupally(
         drag_velocity_m_s=drag_velocity_m_s,
         anode_transfer_coefficient_m_s=anode_transfer_coefficient_m_s,
         diffusivity_model=diffusivity_model,
-        lambda_lower_bound=lower_bound,
-        lambda_upper_bound=upper_bound,
+        lambda_lower_bound=1.0e-4,
+        lambda_upper_bound=16.99,
     )
 
 def membrane_area_specific_resistance(
