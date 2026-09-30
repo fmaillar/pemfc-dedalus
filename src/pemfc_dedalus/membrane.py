@@ -315,8 +315,20 @@ def steady_membrane_water_profile_motupally(
             membrane_water_diffusivity_motupally(
                 water_content,
                 temperature_k,
-            )
+            ).item()
         )
+
+    lower_bound = max(
+        1.0e-6,
+        min(lambda_cathode, lambda_anode_equilibrium),
+    )
+    upper_bound = min(
+        16.999,
+        max(lambda_cathode, lambda_anode_equilibrium),
+    )
+    if upper_bound <= lower_bound:
+        lower_bound = max(1.0e-6, lambda_cathode - 0.5)
+        upper_bound = min(16.999, lambda_cathode + 0.5)
 
     return steady_membrane_water_profile_variable_diffusivity(
         z_m,
@@ -325,6 +337,8 @@ def steady_membrane_water_profile_motupally(
         drag_velocity_m_s=drag_velocity_m_s,
         anode_transfer_coefficient_m_s=anode_transfer_coefficient_m_s,
         diffusivity_model=diffusivity_model,
+        lambda_lower_bound=lower_bound,
+        lambda_upper_bound=upper_bound,
     )
 
 def membrane_area_specific_resistance(
