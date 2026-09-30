@@ -9869,3 +9869,193 @@ et de confirmer :
 - la fermeture des bilans.
 
 Aucune nouvelle modification physique n'est introduite avant cette campagne.
+
+
+*** Résultats complets constant-D vs Motupally
+
+La campagne complète est terminée avec :
+
+  3 régimes
+  x 2 valeurs de gamma
+  x 2 modèles
+
+sur :
+
+  1000 s
+  dt = 0.01 s
+  lookup Motupally = 33 x 33
+  jobs = 8.
+
+Le domaine de lookup en densité de courant couvre :
+
+  446.5 à 2309.5 A/m2.
+
+Résultats gamma = 0 :
+
+dry_high_load :
+
+  J_N2,moy :
+    D constant = 1.58821e-6 mol/m2/s
+    Motupally  = 1.47716e-6 mol/m2/s
+
+  variation :
+    -6.99 %
+
+  x_N2,max :
+    0.0035189 -> 0.0032729
+    -6.99 %
+
+  purge count :
+    19 -> 19
+
+  période moyenne :
+    50.942 s -> 50.942 s.
+
+nominal :
+
+  J_N2,moy :
+    1.77152e-6 -> 1.70136e-6 mol/m2/s
+    -3.96 %
+
+  x_N2,max :
+    0.0061929 -> 0.0059480
+    -3.96 %
+
+  purge count :
+    12 -> 12
+
+  période moyenne :
+    80.445 s -> 80.445 s.
+
+wet_low_load :
+
+  J_N2,moy :
+    3.46023e-6 -> 4.03612e-6 mol/m2/s
+    +16.64 %
+
+  x_N2,max :
+    0.0211988 -> 0.0247117
+    +16.57 %
+
+  purge count :
+    7 -> 7
+
+  période moyenne :
+    141.908 s -> 141.908 s.
+
+Résultats gamma = 1 :
+
+dry_high_load :
+
+  J_N2,moy :
+    -6.99 %
+
+  x_N2,max :
+    -7.01 %
+
+  purge count :
+    19 -> 19
+
+  période moyenne :
+    51.069 s -> 51.061 s.
+
+nominal :
+
+  J_N2,moy :
+    -3.95 %
+
+  x_N2,max :
+    -3.97 %
+
+  purge count :
+    12 -> 12
+
+  période moyenne :
+    80.798 s -> 80.785 s.
+
+wet_low_load :
+
+  J_N2,moy :
+    +16.59 %
+
+  x_N2,max :
+    +16.82 %
+
+  purge count :
+    6 -> 6
+
+  période moyenne :
+    144.042 s -> 144.408 s.
+
+Les bilans H2, N2 et H2O restent fermés à la précision numérique dans tous les
+cas.
+
+*** Interprétation physique du full Motupally
+
+Le changement de D_water constant vers D_Motupally(lambda,T) produit un effet
+systématique mais dépendant du régime :
+
+  dry_high_load :
+    crossover plus faible d'environ 7 %
+
+  nominal :
+    crossover plus faible d'environ 4 %
+
+  wet_low_load :
+    crossover plus élevé d'environ 16 à 17 %.
+
+Le changement de signe entre dry et wet confirme le mécanisme mis en évidence
+par l'analyse spatiale de résistance membranaire.
+
+Dans dry_high_load, le profil est dominé par une zone anodique relativement
+sèche. La diffusivité variable modifie le gradient de façon à augmenter la
+résistance effective N2.
+
+Dans wet_low_load, la diffusivité Motupally est beaucoup plus faible que la
+valeur constante 2e-10 m2/s sur une grande partie du profil. Cela permet un
+écart d'hydratation plus marqué et augmente la perméance effective N2.
+
+Le régime nominal reste intermédiaire et relativement peu sensible.
+
+Le fait que les nombres de purge restent inchangés montre que l'effet observé
+est principalement une modification du transport membranaire, et non un
+changement de régime de purge.
+
+L'effet relatif est également très proche entre gamma = 0 et gamma = 1, ce qui
+confirme que la rétroaction H2 ne pilote pas la différence constant-D /
+Motupally.
+
+*** Décision après campagne Motupally complète
+
+La formulation Motupally 33x33 est retenue comme baseline de transport d'eau
+membranaire pour la suite de V0.7.
+
+Le paramètre phénoménologique principal restant dans ce sous-modèle est :
+
+  k_a =
+    coefficient de transfert d'eau membrane -> gaz anodique.
+
+La prochaine étape est donc une sensibilité de k_a avec :
+
+  D_water = D_Motupally(lambda,T)
+
+fixé.
+
+La grille D_water x k_a précédente devient secondaire, car D_water constant
+n'est plus la baseline.
+
+La nouvelle campagne doit varier uniquement :
+
+  k_a = 1e-6, 2e-6, 4e-6 m/s
+
+sur les trois régimes et gamma = 0/1.
+
+Objectifs :
+
+- quantifier l'incertitude résiduelle due à k_a ;
+- vérifier si wet_low_load reste le régime le plus sensible ;
+- mesurer l'impact sur J_N2, x_N2,max et les purges ;
+- décider si k_a doit être calibré/littératuré avant d'ajouter une nouvelle
+  physique.
+
+La mesure de temps mur et CPU doit être ajoutée aux nouvelles cibles de calcul.
