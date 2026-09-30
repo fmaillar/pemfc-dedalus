@@ -27,7 +27,7 @@ TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
         quick-n2-catalano-transport-sensitivity-v07 n2-catalano-transport-sensitivity-v07 \
         analyze-n2-membrane-profiles-v07 analyze-n2-motupally-v07 \
         quick-n2-catalano-motupally-v07 quick-n2-catalano-motupally-33-v07 analyze-n2-catalano-motupally-lookup-v07 n2-catalano-motupally-v07 \
-        quick-n2-motupally-ka-v07 n2-motupally-ka-v07 \
+        quick-n2-motupally-ka-v07 n2-motupally-ka-v07 analyze-ge-transfer-v07 \
         study-v02 study-v03 study-v04 validate-results validate-v01 validate-v02 validate-v03 results \
         push-results clean-results
 
@@ -108,6 +108,7 @@ help:
 	  'make n2-catalano-motupally-v07 run constant-D vs Motupally crossover' \
 	  'make quick-n2-motupally-ka-v07 preflight Motupally k_a sensitivity' \
 	  'make n2-motupally-ka-v07 run full Motupally k_a sensitivity' \
+	  'make analyze-ge-transfer-v07 compare k_a with Ge et al. 2005' \
 	  'make results          validate existing output/ and output-electrochem/' \
 	  'make push-results     commit only results/ and push them to GitHub' \
 	  'make clean-results    remove generated validation reports'
@@ -644,3 +645,7 @@ n2-motupally-ka-v07:
 	$(TIME) $(PYTHON) -m scripts.run_v07_n2_motupally_ka_sensitivity \
 	  --transfer-coefficients-m-s 1e-6 2e-6 4e-6 \
 	  --jobs $(JOBS) --lookup-rh-points 33 --lookup-current-points 33
+
+
+analyze-ge-transfer-v07:
+	$(PYTHON) -m scripts.analyze_v07_ge_interfacial_transfer
