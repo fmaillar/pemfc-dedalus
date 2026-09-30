@@ -10335,3 +10335,32 @@ Décision :
   relancer make test puis la campagne complète k_a ;
 
   conserver la mesure /usr/bin/time déjà intégrée à la cible.
+
+
+*** Gate Ruff après refactorisation du lookup k_a
+
+Le premier passage de make test après regroupement des 99 tâches de lookup
+échoue uniquement sur Ruff :
+
+  E501 line too long
+
+dans :
+
+  scripts/run_v07_n2_motupally_ka_sensitivity.py
+
+La ligne concernait uniquement le message de progression indiquant le nombre
+de tâches et de workers.
+
+Correction :
+
+  calcul séparé de :
+    lookup_task_count
+    lookup_worker_count
+
+puis formatage du message sur plusieurs lignes.
+
+Aucune modification de physique, de parallélisme ou de résultat numérique.
+
+Décision :
+
+  relancer make test avant la campagne complète k_a.
