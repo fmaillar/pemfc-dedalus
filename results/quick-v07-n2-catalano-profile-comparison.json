@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "model": "v07-n2-catalano-profile-comparison",
+  "comparison": "mean_state_vs_through_plane",
+  "closure_source": "results/v06-rha-sensitivity.csv",
+  "water_partial_molar_volume_cm3_mol": 17.0,
+  "activation_energy_j_mol": 49600.0,
+  "dry_reference_permeability_barrer": 0.18,
+  "anchor_water_activity": 0.75,
+  "anchor_permeability_factor": 95.0,
+  "maximum_permeability_factor": 100.0,
+  "feedback_exponents": [
+    0.0,
+    1.0
+  ],
+  "regimes": [
+    "nominal"
+  ],
+  "stop_time_s": 200.0,
+  "dt_s": 0.01,
+  "summaries": [
+    {
+      "regime": "nominal",
+      "hydrogen_feedback_exponent": 0.0,
+      "water_partial_molar_volume_cm3_mol": 17.0,
+      "activation_energy_j_mol": 49600.0,
+      "mean_state_jmean_mol_m2_s": 1.761314980049356e-06,
+      "through_plane_jmean_mol_m2_s": 1.7579829673598728e-06,
+      "jmean_ratio_through_to_mean": 0.9981082244077718,
+      "jmean_change_fraction": -0.0018917755922281954,
+      "mean_state_xn2_max": 0.005038312071130964,
+      "through_plane_xn2_max": 0.005028884681793221,
+      "xn2_max_ratio_through_to_mean": 0.9981288595853836,
+      "xn2_max_change_fraction": -0.0018711404146164456,
+      "mean_state_purge_count": 2,
+      "through_plane_purge_count": 2,
+      "mean_state_final_rh": 0.43366929333076015,
+      "through_plane_final_rh": 0.43366929333076015
+    },
+    {
+      "regime": "nominal",
+      "hydrogen_feedback_exponent": 1.0,
+      "water_partial_molar_volume_cm3_mol": 17.0,
+      "activation_energy_j_mol": 49600.0,
+      "mean_state_jmean_mol_m2_s": 1.7613032654250353e-06,
+      "through_plane_jmean_mol_m2_s": 1.757971598146206e-06,
+      "jmean_ratio_through_to_mean": 0.9981084079361965,
+      "jmean_change_fraction": -0.0018915920638035155,
+      "mean_state_xn2_max": 0.0050529243168929636,
+      "through_plane_xn2_max": 0.005043033348334123,
+      "xn2_max_ratio_through_to_mean": 0.9980425258843136,
+      "xn2_max_change_fraction": -0.001957474115686364,
+      "mean_state_purge_count": 2,
+      "through_plane_purge_count": 2,
+      "mean_state_final_rh": 0.43366929333076015,
+      "through_plane_final_rh": 0.43366929333076015
+    }
+  ]
+}
