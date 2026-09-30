@@ -138,37 +138,86 @@ def steady_membrane_water_profile(
 
 
 
-def _integrate_lambda_profile_rk4(
-    z_m: np.ndarray,
+def _variable_diffusivity_transport_length(
     *,
     lambda_anode: float,
+    lambda_cathode: float,
     flux_lambda_m_s: float,
     drag_velocity_m_s: float,
     diffusivity_model: Callable[[float], float],
+    quadrature_points: int,
+) -> float:
+    """Return membrane length implied by one steady monotone lambda path."""
+    if quadrature_points < 17:
+        raise ValueError("quadrature_points must be >= 17")
+    if lambda_anode == lambda_cathode:
+        return 0.0
+
+    lambda_path = np.linspace(
+        lambda_anode,
+        lambda_cathode,
+        quadrature_points,
+    )
+    diffusivity = np.asarray(
+        [diffusivity_model(float(value)) for value in lambda_path],
+        dtype=float,
+    )
+    if np.any(~np.isfinite(diffusivity)) or np.any(diffusivity <= 0.0):
+        raise ValueError("diffusivity_model must return finite positive values")
+
+    denominator = drag_velocity_m_s * lambda_path - flux_lambda_m_s
+    scale = max(
+        float(np.max(np.abs(drag_velocity_m_s * lambda_path))),
+        abs(flux_lambda_m_s),
+        1.0e-30,
+    )
+    if np.any(np.abs(denominator) <= 1.0e-12 * scale):
+        raise ValueError("steady lambda path contains a transport singularity")
+
+    dz_dlambda = diffusivity / denominator
+    increments = (
+        0.5
+        * (dz_dlambda[:-1] + dz_dlambda[1:])
+        * np.diff(lambda_path)
+    )
+    if np.any(increments <= 0.0):
+        raise ValueError("steady lambda path is not monotone in z")
+    return float(np.sum(increments))
+
+
+def _reconstruct_variable_diffusivity_profile(
+    z_m: np.ndarray,
+    *,
+    lambda_anode: float,
+    lambda_cathode: float,
+    flux_lambda_m_s: float,
+    drag_velocity_m_s: float,
+    diffusivity_model: Callable[[float], float],
+    quadrature_points: int,
 ) -> np.ndarray:
-    """Integrate steady lambda transport for a prescribed total flux."""
+    """Reconstruct lambda(z) once the anode boundary value is known."""
     z = np.asarray(z_m, dtype=float)
-    profile = np.empty_like(z)
-    profile[0] = lambda_anode
+    if lambda_anode == lambda_cathode:
+        return np.full_like(z, lambda_anode)
 
-    def derivative(value: float) -> float:
-        diffusivity = float(diffusivity_model(value))
-        if diffusivity <= 0.0:
-            raise ValueError("diffusivity_model must return positive values")
-        return (drag_velocity_m_s * value - flux_lambda_m_s) / diffusivity
-
-    for index in range(z.size - 1):
-        dz = float(z[index + 1] - z[index])
-        if dz <= 0.0:
-            raise ValueError("z_m must be strictly increasing")
-        value = float(profile[index])
-        k1 = derivative(value)
-        k2 = derivative(value + 0.5 * dz * k1)
-        k3 = derivative(value + 0.5 * dz * k2)
-        k4 = derivative(value + dz * k3)
-        profile[index + 1] = value + dz * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0
-
-    return profile
+    lambda_path = np.linspace(
+        lambda_anode,
+        lambda_cathode,
+        quadrature_points,
+    )
+    diffusivity = np.asarray(
+        [diffusivity_model(float(value)) for value in lambda_path],
+        dtype=float,
+    )
+    denominator = drag_velocity_m_s * lambda_path - flux_lambda_m_s
+    dz_dlambda = diffusivity / denominator
+    increments = (
+        0.5
+        * (dz_dlambda[:-1] + dz_dlambda[1:])
+        * np.diff(lambda_path)
+    )
+    cumulative_z = np.concatenate(([0.0], np.cumsum(increments)))
+    return np.interp(z - z[0], cumulative_z, lambda_path)
 
 
 def steady_membrane_water_profile_variable_diffusivity(
@@ -181,22 +230,23 @@ def steady_membrane_water_profile_variable_diffusivity(
     diffusivity_model: Callable[[float], float],
     lambda_lower_bound: float = 1.0e-6,
     lambda_upper_bound: float = 16.999,
-    scan_points: int = 257,
-    root_iterations: int = 80,
+    scan_points: int = 129,
+    root_iterations: int = 60,
+    quadrature_points: int = 129,
 ) -> np.ndarray:
     """Return steady lambda with finite transfer and variable diffusivity.
 
-    Solves the steady first-order flux relation
+    The autonomous steady flux equation is integrated in lambda-space:
 
-        J = -D(lambda) d(lambda)/dz + v lambda
+        dz/dlambda = D(lambda) / (v lambda - J),
 
-    with fixed cathode lambda and the V0.6 Robin anode condition
+    with
 
-        -J = k_a (lambda_anode - lambda_anode_equilibrium).
+        J = -k_a (lambda_anode - lambda_anode_equilibrium).
 
-    A shooting method determines lambda_anode. The ODE is integrated with RK4
-    and the scalar boundary residual is bracketed by scanning the physically
-    admissible lambda interval before bisection.
+    This avoids unstable forward shooting through very-low-diffusivity states.
+    Invalid or singular trial paths are skipped while bracketing the scalar
+    anode boundary value.
     """
     z = np.asarray(z_m, dtype=float)
     if z.ndim != 1 or z.size < 2:
@@ -212,58 +262,68 @@ def steady_membrane_water_profile_variable_diffusivity(
     if scan_points < 3 or root_iterations < 1:
         raise ValueError("scan_points and root_iterations are too small")
 
-    if anode_transfer_coefficient_m_s == 0.0:
-        flux_lambda_m_s = 0.0
+    length = float(z[-1] - z[0])
 
-        def residual_zero_flux(lambda_anode: float) -> float:
-            profile = _integrate_lambda_profile_rk4(
-                z,
+    def flux_for(lambda_anode: float) -> float:
+        if anode_transfer_coefficient_m_s == 0.0:
+            return 0.0
+        return -anode_transfer_coefficient_m_s * (
+            lambda_anode - lambda_anode_equilibrium
+        )
+
+    def residual(lambda_anode: float) -> float:
+        try:
+            transport_length = _variable_diffusivity_transport_length(
                 lambda_anode=lambda_anode,
-                flux_lambda_m_s=flux_lambda_m_s,
+                lambda_cathode=lambda_cathode,
+                flux_lambda_m_s=flux_for(lambda_anode),
                 drag_velocity_m_s=drag_velocity_m_s,
                 diffusivity_model=diffusivity_model,
+                quadrature_points=quadrature_points,
             )
-            return float(profile[-1] - lambda_cathode)
-
-        residual = residual_zero_flux
-    else:
-
-        def residual(lambda_anode: float) -> float:
-            flux_lambda_m_s = -anode_transfer_coefficient_m_s * (
-                lambda_anode - lambda_anode_equilibrium
-            )
-            profile = _integrate_lambda_profile_rk4(
-                z,
-                lambda_anode=lambda_anode,
-                flux_lambda_m_s=flux_lambda_m_s,
-                drag_velocity_m_s=drag_velocity_m_s,
-                diffusivity_model=diffusivity_model,
-            )
-            return float(profile[-1] - lambda_cathode)
+        except (ValueError, FloatingPointError, OverflowError):
+            return float("nan")
+        return transport_length - length
 
     candidates = np.linspace(
         lambda_lower_bound,
         lambda_upper_bound,
         scan_points,
     )
-    left = float(candidates[0])
-    left_residual = residual(left)
-    bracket: tuple[float, float] | None = None
+    finite_trials: list[tuple[float, float]] = []
+    for candidate in candidates:
+        value = float(candidate)
+        residual_value = residual(value)
+        if np.isfinite(residual_value):
+            finite_trials.append((value, residual_value))
 
-    for candidate in candidates[1:]:
-        right = float(candidate)
-        right_residual = residual(right)
+    bracket: tuple[float, float] | None = None
+    for (left, left_residual), (right, right_residual) in zip(
+        finite_trials,
+        finite_trials[1:],
+        strict=False,
+    ):
         if left_residual == 0.0:
             bracket = (left, left)
             break
         if left_residual * right_residual <= 0.0:
             bracket = (left, right)
             break
-        left = right
-        left_residual = right_residual
 
     if bracket is None:
-        raise RuntimeError("could not bracket variable-diffusivity membrane solution")
+        if not finite_trials:
+            raise RuntimeError(
+                "no physical variable-diffusivity membrane trial path"
+            )
+        best_value, best_residual = min(
+            finite_trials,
+            key=lambda item: abs(item[1]),
+        )
+        raise RuntimeError(
+            "could not bracket variable-diffusivity membrane solution; "
+            f"best lambda_anode={best_value:.6g}, "
+            f"length residual={best_residual:.6g} m"
+        )
 
     lower, upper = bracket
     if lower == upper:
@@ -273,7 +333,10 @@ def steady_membrane_water_profile_variable_diffusivity(
         for _ in range(root_iterations):
             midpoint = 0.5 * (lower + upper)
             midpoint_residual = residual(midpoint)
-            if abs(midpoint_residual) < 1.0e-10:
+            if not np.isfinite(midpoint_residual):
+                upper = midpoint
+                continue
+            if abs(midpoint_residual) <= 1.0e-10 * max(length, 1.0e-12):
                 lower = midpoint
                 upper = midpoint
                 break
@@ -284,19 +347,18 @@ def steady_membrane_water_profile_variable_diffusivity(
                 lower_residual = midpoint_residual
         lambda_anode = 0.5 * (lower + upper)
 
-    flux_lambda_m_s = (
-        0.0
-        if anode_transfer_coefficient_m_s == 0.0
-        else -anode_transfer_coefficient_m_s
-        * (lambda_anode - lambda_anode_equilibrium)
-    )
-    return _integrate_lambda_profile_rk4(
+    flux_lambda_m_s = flux_for(lambda_anode)
+    profile = _reconstruct_variable_diffusivity_profile(
         z,
         lambda_anode=lambda_anode,
+        lambda_cathode=lambda_cathode,
         flux_lambda_m_s=flux_lambda_m_s,
         drag_velocity_m_s=drag_velocity_m_s,
         diffusivity_model=diffusivity_model,
+        quadrature_points=quadrature_points,
     )
+    profile[-1] = lambda_cathode
+    return profile
 
 
 def steady_membrane_water_profile_motupally(
