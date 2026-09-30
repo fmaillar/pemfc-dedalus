@@ -27,6 +27,7 @@ TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
         quick-n2-catalano-transport-sensitivity-v07 n2-catalano-transport-sensitivity-v07 \
         analyze-n2-membrane-profiles-v07 analyze-n2-motupally-v07 \
         quick-n2-catalano-motupally-v07 quick-n2-catalano-motupally-33-v07 analyze-n2-catalano-motupally-lookup-v07 n2-catalano-motupally-v07 \
+        validate-v07-final \
         quick-n2-motupally-ka-v07 n2-motupally-ka-v07 analyze-ge-transfer-v07 \
         analyze-grimaldi-transfer-v07 \
         quick-n2-grimaldi-transfer-v07 n2-grimaldi-transfer-v07 \
@@ -109,6 +110,7 @@ help:
 	  'make quick-n2-catalano-motupally-33-v07 rerun quick with 33x33 lookup' \
 	  'make analyze-n2-catalano-motupally-lookup-v07 compare 21x21 and 33x33 lookups' \
 	  'make n2-catalano-motupally-v07 run constant-D vs Motupally crossover' \
+	  'make validate-v07-final run final V0.7 baseline validation' \
 	  'make quick-n2-motupally-ka-v07 preflight Motupally k_a sensitivity' \
 	  'make n2-motupally-ka-v07 run full Motupally k_a sensitivity' \
 	  'make analyze-ge-transfer-v07 compare k_a with Ge et al. 2005' \
@@ -684,3 +686,7 @@ analyze-grimaldi-validity-v07:
 analyze-grimaldi-consistent-validity-v07:
 	$(TIME) $(PYTHON) -m scripts.analyze_v07_grimaldi_consistent_validity \
 	  --jobs $(JOBS) --rh-points 21 --current-points 21
+
+
+validate-v07-final: test n2-catalano-motupally-v07
+	@echo "V0.7 final baseline validation completed"
