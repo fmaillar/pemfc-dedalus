@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "model": "v07-n2-grimaldi-transfer-comparison",
+  "comparison": "constant_k_a_vs_grimaldi_k_g",
+  "constant_k_a_m_s": 2e-06,
+  "regimes": [
+    "nominal",
+    "wet_low_load"
+  ],
+  "feedback_exponents": [
+    0.0
+  ],
+  "jobs": 4,
+  "lookup_rh_points": 21,
+  "lookup_current_points": 21,
+  "stop_time_s": 200.0,
+  "dt_s": 0.01,
+  "summaries": [
+    {
+      "regime": "nominal",
+      "hydrogen_feedback_exponent": 0.0,
+      "constant_ka_jmean_mol_m2_s": 1.706208360863775e-06,
+      "grimaldi_jmean_mol_m2_s": 1.7215972802445285e-06,
+      "jmean_change_fraction": 0.009019366997453204,
+      "constant_ka_xn2_max": 0.004879888909226058,
+      "grimaldi_xn2_max": 0.0049242495179557064,
+      "xn2_change_fraction": 0.00909049561472175,
+      "constant_ka_mean_cell_current_a": 28.59013009897272,
+      "grimaldi_mean_cell_current_a": 28.59013009899487,
+      "constant_ka_purge_count": 2,
+      "grimaldi_purge_count": 2,
+      "constant_ka_mean_purge_period_s": 80.45,
+      "grimaldi_mean_purge_period_s": 80.45,
+      "constant_ka_h2_balance_error_mol": 8.324937961212697e-15,
+      "grimaldi_h2_balance_error_mol": 8.329491610337136e-15,
+      "constant_ka_n2_balance_error_mol": 1.6940658945086007e-21,
+      "grimaldi_n2_balance_error_mol": 8.470329472543003e-22,
+      "constant_ka_water_balance_error_mol": 3.3881317890172014e-20,
+      "grimaldi_water_balance_error_mol": 1.3552527156068805e-19
+    },
+    {
+      "regime": "wet_low_load",
+      "hydrogen_feedback_exponent": 0.0,
+      "constant_ka_jmean_mol_m2_s": 4.088897411990737e-06,
+      "grimaldi_jmean_mol_m2_s": 4.663409722775202e-06,
+      "jmean_change_fraction": 0.14050543530383042,
+      "constant_ka_xn2_max": 0.014489900159139143,
+      "grimaldi_xn2_max": 0.0165275638603161,
+      "xn2_change_fraction": 0.14062648319158733,
+      "constant_ka_mean_cell_current_a": 16.207554176487186,
+      "grimaldi_mean_cell_current_a": 16.207554176442486,
+      "constant_ka_purge_count": 1,
+      "grimaldi_purge_count": 1,
+      "constant_ka_mean_purge_period_s": null,
+      "grimaldi_mean_purge_period_s": null,
+      "constant_ka_h2_balance_error_mol": -1.3272802995567545e-15,
+      "grimaldi_h2_balance_error_mol": -1.2995247239411256e-15,
+      "constant_ka_n2_balance_error_mol": 3.218725199566341e-20,
+      "grimaldi_n2_balance_error_mol": -6.776263578034403e-20,
+      "constant_ka_water_balance_error_mol": 1.3552527156068805e-20,
+      "grimaldi_water_balance_error_mol": 1.3552527156068805e-20
+    }
+  ]
+}
