@@ -9439,3 +9439,22 @@ Cette modification est à la fois :
 - physiquement équivalente à interpolation près ;
 - massivement moins coûteuse ;
 - naturellement parallélisable.
+
+
+*** Motupally 2D lookup failure and solver correction
+
+The first parallel lookup failed near equal anode/cathode hydration. The
+previous lambda-space formulation assumed a globally monotone profile. That
+assumption is not valid for every state when electro-osmotic drag and finite
+anode transfer are both active.
+
+The variable-diffusivity solver now shoots on the through-plane water flux
+J_lambda in physical z-space. The anode Robin condition gives lambda_anode
+from J_lambda, RK4 integrates d(lambda)/dz, and the scalar root imposes the
+cathode boundary value.
+
+A regression test now covers equal anode/cathode equilibrium hydration with
+non-zero drag.
+
+The 2D parallel lookup strategy is retained. Run make test, then rerun the
+21x21 quick lookup before any full campaign.
