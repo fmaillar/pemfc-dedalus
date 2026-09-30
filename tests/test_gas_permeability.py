@@ -8,6 +8,7 @@ from pemfc_dedalus.gas_permeability import (
     effective_membrane_relative_humidity,
     humidity_permeability_multiplier,
     membrane_permeance_from_permeability,
+    membrane_permeance_from_permeability_profile,
     membrane_water_volume_fraction,
     membrane_water_volume_fraction_from_partial_molar_volume,
     state_dependent_permeability,
@@ -46,6 +47,54 @@ def test_gas_permeability_rejects_invalid_inputs():
         membrane_permeance_from_permeability(1.0, 0.0)
 
 
+
+
+def test_membrane_profile_permeance_matches_uniform_membrane():
+    permeability = barrer_to_si_permeability(0.24)
+    thickness = 50.0e-6
+
+    uniform = membrane_permeance_from_permeability(
+        permeability,
+        thickness,
+    )
+    profiled = membrane_permeance_from_permeability_profile(
+        [permeability] * 65,
+        thickness,
+    )
+
+    assert profiled == pytest.approx(uniform)
+
+
+def test_membrane_profile_permeance_is_limited_by_low_permeability_region():
+    thickness = 50.0e-6
+    low = barrer_to_si_permeability(0.24)
+    high = 100.0 * low
+
+    profiled = membrane_permeance_from_permeability_profile(
+        [low, high],
+        thickness,
+    )
+    arithmetic_mean_model = membrane_permeance_from_permeability(
+        0.5 * (low + high),
+        thickness,
+    )
+
+    assert profiled < arithmetic_mean_model
+
+
+def test_membrane_profile_permeance_rejects_invalid_inputs():
+    with pytest.raises(ValueError):
+        membrane_permeance_from_permeability_profile([1.0], 50.0e-6)
+    with pytest.raises(ValueError):
+        membrane_permeance_from_permeability_profile(
+            [1.0, 0.0],
+            50.0e-6,
+        )
+    with pytest.raises(ValueError):
+        membrane_permeance_from_permeability_profile(
+            [1.0, 1.0],
+            0.0,
+        )
 
 def test_arrhenius_permeability_increases_with_temperature():
     reference = barrer_to_si_permeability(0.24)
