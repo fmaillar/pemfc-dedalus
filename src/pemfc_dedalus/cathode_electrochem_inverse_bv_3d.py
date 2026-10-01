@@ -619,9 +619,18 @@ def solve_stationary_inverse_bv(
     forward_relative_error = np.abs(forward_values - q_values) / forward_scale
 
     residual_component_values = normalized_residuals()
-    residual_components = dict(
-        zip(residual_names, residual_component_values, strict=True)
-    )
+    residual_components: InverseBVResidualComponents = {
+        "oxygen": residual_component_values[0],
+        "solid_potential": residual_component_values[1],
+        "membrane_potential": residual_component_values[2],
+        "inverse_bv": residual_component_values[3],
+        "bc_c_inlet": residual_component_values[4],
+        "bc_c_flux": residual_component_values[5],
+        "bc_phi_s": residual_component_values[6],
+        "bc_phi_s_flux": residual_component_values[7],
+        "bc_phi_m_flux": residual_component_values[8],
+        "bc_phi_m": residual_component_values[9],
+    }
 
     total_reaction_current = float(d3.Integrate(j_orr).evaluate()["g"].ravel()[0])
     mean_eta = float(d3.Average(eta).evaluate()["g"].ravel()[0])
