@@ -12185,3 +12185,238 @@ Décision :
 
   analyser l'enveloppe avant toute introduction d'une capacité thermique,
   d'un coefficient convectif ou d'un champ de température.
+
+
+*** Résultats de l'enveloppe thermique stationnaire
+
+L'enveloppe stationnaire courant x température d'entrée est terminée.
+
+Les neuf états étudiés utilisent :
+
+  I =
+    7.3
+    14.5
+    26.04 A
+
+et :
+
+  T_in =
+    10
+    20
+    30 °C.
+
+La tension cellule est interpolée sur la courbe BOL typique Ballard.
+
+*** Résultats à 7.3 A
+
+V_cell :
+
+  0.83 V
+
+Q_dot :
+
+  30.879 W
+
+T_opt :
+
+  29.879 °C
+
+plancher d'air :
+
+  60.59 slpm.
+
+À T_in = 10 °C :
+
+  débit thermique requis =
+    77.02 slpm
+
+  ratio requis / plancher =
+    1.27.
+
+À T_in = 20 °C :
+
+  débit thermique requis =
+    154.99 slpm
+
+  ratio =
+    2.56.
+
+À T_in = 30 °C :
+
+  T_in > T_opt
+
+donc la cible :
+
+  T_out <= T_opt
+
+est impossible avec de l'air ambiant seul.
+
+*** Résultats à 14.5 A
+
+V_cell :
+
+  0.80 V
+
+Q_dot :
+
+  65.685 W
+
+T_opt :
+
+  33.695 °C
+
+plancher d'air :
+
+  120.35 slpm.
+
+À T_in = 10 °C :
+
+  débit thermique requis =
+    137.46 slpm
+
+  ratio =
+    1.14.
+
+À T_in = 20 °C :
+
+  débit thermique requis =
+    237.83 slpm
+
+  ratio =
+    1.98.
+
+À T_in = 30 °C :
+
+  marge thermique =
+    3.695 K
+
+  débit thermique requis =
+    881.48 slpm
+
+  ratio =
+    7.32.
+
+Le très grand débit résulte directement de la faible différence :
+
+  T_opt - T_in.
+
+*** Résultats à 26.04 A
+
+V_cell BOL interpolée :
+
+  0.76817 V
+
+Q_dot :
+
+  126.251 W
+
+T_opt :
+
+  39.811 °C
+
+plancher d'air :
+
+  216.132 slpm.
+
+À T_in = 10 °C :
+
+  débit thermique requis =
+    210.00 slpm
+
+  ratio =
+    0.972.
+
+Le plancher d'air est donc suffisant dans ce cas idéal.
+
+À T_in = 20 °C :
+
+  débit thermique requis =
+    316.00 slpm
+
+  ratio =
+    1.462.
+
+À T_in = 30 °C :
+
+  débit thermique requis =
+    638.07 slpm
+
+  ratio =
+    2.952.
+
+*** Interprétation physique
+
+Le besoin de refroidissement ne dépend pas seulement de la puissance thermique.
+
+Il dépend fortement de la marge :
+
+  Delta T =
+    T_opt(I) - T_in.
+
+Lorsque cette marge devient petite :
+
+  débit requis
+  ~
+  Q_dot / Delta T
+
+et diverge lorsque :
+
+  T_in -> T_opt.
+
+Pour :
+
+  T_in >= T_opt
+
+la cible T_out <= T_opt devient impossible avec de l'air ambiant seul.
+
+Cela montre que la relation Ballard :
+
+  T_opt(I) = 26.01 + 0.53 I
+
+ne doit pas être interprétée comme une contrainte universelle imposée à la
+température de sortie d'air.
+
+Elle représente plutôt une cible de température de pile / zone de fonctionnement
+optimale.
+
+Le bilan stationnaire reste néanmoins très utile pour construire une première
+loi de commande de débit.
+
+*** Décision après enveloppe stationnaire
+
+Ne pas introduire encore :
+
+- capacité thermique ;
+- coefficient convectif ;
+- PDE de température.
+
+Construire d'abord une commande système minimale et sans nouveau paramètre libre :
+
+  Q_air,target =
+    max(
+      Q_air,stoich_floor,
+      Q_air,thermal
+    )
+
+lorsque :
+
+  T_in < T_opt.
+
+Lorsque :
+
+  T_in >= T_opt
+
+le contrôleur doit signaler :
+
+  target_unreachable
+
+au lieu de produire un débit artificiellement infini.
+
+Cette loi permettra de séparer explicitement :
+
+- contrainte d'alimentation en oxygène ;
+- contrainte thermique ;
+- impossibilité thermodynamique de rejoindre la cible avec l'air ambiant.
+
+La prochaine étape est donc un diagnostic de cette loi de commande sur
+l'enveloppe courant x température d'entrée.
