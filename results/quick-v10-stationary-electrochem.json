@@ -10,15 +10,15 @@
     16
   ],
   "newton_tolerance": 1e-06,
-  "max_newton_iterations": 12,
+  "max_newton_iterations": 8,
   "oxygen_feed_concentration_mol_m3": 8.229922696355533,
   "target_current_density_a_m2": 2150.0,
-  "current_density_a_m2": 0.002033073137909764,
-  "relative_current_error": -0.9999990543845869,
+  "current_density_a_m2": 0.002032035931303565,
+  "relative_current_error": -0.9999990548670087,
   "converged": false,
-  "newton_iterations": 12,
-  "perturbation_norm": 0.05940593492258451,
-  "newton_damping": 0.25,
+  "newton_iterations": 8,
+  "perturbation_norm": 8.380876340026155,
+  "newton_damping": 1.0,
   "continuation_history": [
     {
       "reaction_scale": 0.0,
@@ -27,37 +27,46 @@
       "converged": true,
       "perturbation_norm_history": [
         0.0
+      ],
+      "min_c_o2_history": [
+        6.915029146137645
       ]
     },
     {
       "reaction_scale": 1e-06,
-      "iterations": 12,
-      "perturbation_norm": 0.05940593492258451,
+      "iterations": 8,
+      "perturbation_norm": 8.380876340026155,
       "converged": false,
       "perturbation_norm_history": [
-        0.6618462248793777,
-        0.44430137308581785,
-        0.3409068000073993,
-        0.2863079523227877,
-        0.23837120968932302,
-        0.19717930895895616,
-        0.16231069832649642,
-        0.13314703191809318,
-        0.10896110862847301,
-        0.08904552964811618,
-        0.07272503700635767,
-        0.05940593492258451
+        0.6618462417927066,
+        0.21002527113330544,
+        0.010552814177979626,
+        0.016327974485154464,
+        0.028465957825925738,
+        0.16342629542930487,
+        1.156726225587103,
+        8.380876340026155
+      ],
+      "min_c_o2_history": [
+        6.914956509789858,
+        6.914957119845677,
+        6.91495714564588,
+        6.914957084093098,
+        6.914957061029404,
+        6.914957048678921,
+        6.91495704242534,
+        6.914957039255445
       ]
     }
   ],
-  "total_reaction_current": 4.066146275819528e-09,
-  "mean_eta_v": -0.41183445543000863,
-  "mean_c_o2_mol_m3": 7.57152883378138,
-  "min_c_o2_mol_m3": -0.18715940235269996,
-  "min_eta_v": -0.41183448308736353,
-  "max_eta_v": -0.4118344186282667,
-  "min_j_orr_a_m3": -1.958215066788757,
-  "max_j_orr_a_m3": 196.57778978180795,
+  "total_reaction_current": 4.06407186260713e-09,
+  "mean_eta_v": -0.40311923563235885,
+  "mean_c_o2_mol_m3": 7.57152883158137,
+  "min_c_o2_mol_m3": -0.18720187589372742,
+  "min_eta_v": -0.4127336553346907,
+  "max_eta_v": -0.38844914408173337,
+  "min_j_orr_a_m3": -1.9645880131558136,
+  "max_j_orr_a_m3": 196.38752756314176,
   "initial_min_c_o2_mol_m3": 6.915029146137645,
   "initial_max_c_o2_mol_m3": 8.228028615156532,
   "initial_mean_c_o2_mol_m3": 7.57152888064709
