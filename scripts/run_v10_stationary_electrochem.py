@@ -105,6 +105,13 @@ def main() -> None:
     output_json.write_text(json.dumps(output, indent=2) + "\n")
 
     print(
+        f"LBVP cO2 min/mean/max="
+        f"{result['initial_min_c_o2_mol_m3']:.6g}/"
+        f"{result['initial_mean_c_o2_mol_m3']:.6g}/"
+        f"{result['initial_max_c_o2_mol_m3']:.6g} mol/m3",
+        flush=True,
+    )
+    print(
         f"converged={result['converged']} "
         f"newton={result['newton_iterations']} "
         f"norm={float(result['perturbation_norm']):.3e}",
@@ -120,6 +127,12 @@ def main() -> None:
         f"error={100.0 * relative_current_error:+.3f}%",
         flush=True,
     )
+    for stage in result["continuation_history"]:
+        print(
+            f"lambda={stage['reaction_scale']:.3g} "
+            f"norm_history={stage['perturbation_norm_history']}",
+            flush=True,
+        )
     print(f"Wrote {output_json}")
 
 
