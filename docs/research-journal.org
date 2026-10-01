@@ -18309,3 +18309,173 @@ Si elle s'arrête avant lambda = 1, l'historique de backtracking indiquera
 directement les zones de raideur et permettra de décider si une vraie
 pseudo-transient continuation Newton est nécessaire.
 
+*** Analyse du run globalisé af4cd42
+
+Le fichier :
+
+  results/quick-v10-stationary-globalized.json
+
+indique formellement :
+
+  reaction_scale_reached = 1
+  converged = true
+
+mais ce résultat ne peut pas être considéré comme une convergence physique
+valide.
+
+Après le premier niveau :
+
+  lambda = 1e-6
+
+le mérite résiduel vaut environ :
+
+  6.5245e-6.
+
+Pour tous les niveaux suivants jusqu'à lambda = 1, le solveur rapporte :
+
+  0 itération Newton
+  résidu initial = résidu final = 6.5245e-6.
+
+Le changement du champ paramétrique reaction_scale n'est donc pas reflété dans
+le mérite résiduel réévalué entre deux niveaux. La continuation accepte alors
+artificiellement tous les niveaux suivants parce que le mérite résiduel hérité
+du niveau précédent est déjà inférieur au seuil.
+
+Conclusion :
+
+- le résultat af4cd42 ne valide pas lambda = 1 ;
+- le bug appartient à la logique de réévaluation du résidu de la continuation
+  globalisée, pas à une preuve de convergence du système complet ;
+- plutôt que d'investir davantage dans la formulation exponentielle directe,
+  la prochaine étape change la variable cinétique.
+
+*** Étape 19 — Butler-Volmer inversé avec courant réactionnel comme inconnue
+
+La source exponentielle directe est remplacée par une formulation exactement
+équivalente de Butler-Volmer symétrique.
+
+Les paramètres actuels vérifient :
+
+  alpha_a = alpha_c = 0.5
+
+et donc :
+
+  beta_a = beta_c = beta.
+
+Avec la convention cathodique positive utilisée dans le modèle :
+
+  q = 2 j0 a_O2^gamma sinh(-beta eta)
+
+où q est le courant réactionnel volumique intrinsèque de la couche catalytique.
+
+La relation est inversée exactement :
+
+  eta = -(1/beta) asinh(q / (2 j0 a_O2^gamma)).
+
+Il ne s'agit donc ni d'une approximation de Tafel, ni d'une linéarisation à
+faible surtension.
+
+**** Mise à l'échelle de la nouvelle inconnue
+
+Introduire directement q donnerait une inconnue de l'ordre de 1e8 A/m3 au point
+nominal.
+
+Pour éviter de créer une nouvelle disparité d'échelles dans Newton, le solveur
+utilise :
+
+  q_hat = q / q_ref
+
+avec :
+
+  q_ref = j_target / L_CL
+
+où :
+
+  j_target = membrane_current_density
+  L_CL = thickness_z - gdl_thickness.
+
+q_hat est donc attendu d'ordre unité dans le régime nominal.
+
+Les sources deviennent linéaires en q_hat :
+
+  j_ORR = chi_CL q_ref q_hat
+  s_O2 = j_ORR / (4 F).
+
+La seule non-linéarité cinétique restante est l'équation algébrique locale :
+
+  phi_s - phi_m - E_eq
+  + (1/beta) asinh(
+      q_ref q_hat / (2 j0 (c/c_ref)^gamma)
+    )
+  = 0.
+
+**** Initialisation
+
+Le problème LBVP sans réaction est résolu comme précédemment pour :
+
+  c_O2
+  phi_s
+  phi_m.
+
+La valeur initiale de q_hat est ensuite reconstruite exactement à partir de ces
+champs par la forme directe symétrique :
+
+  q_hat =
+    2 j0 (c/c_ref)^gamma sinh(-beta eta) / q_ref.
+
+Cette initialisation satisfait donc déjà la fermeture cinétique locale ; Newton
+doit principalement ajuster les champs de transport et de potentiel au courant
+réactionnel correspondant.
+
+**** Screening numérique
+
+Le premier test est volontairement sévère :
+
+  grille = 4 x 4 x 16
+  I = 26.04 A
+  xi = 0.5
+  damping Newton = 1
+  continuation en lambda = aucune
+  maximum = 30 itérations
+  seuil sur les perturbations physiques = 1e-7.
+
+Le solveur suit séparément les normes des perturbations de :
+
+  c_O2
+  phi_s
+  phi_m
+  q_hat
+
+et vérifie la positivité de c_O2.
+
+La sortie contrôle également deux identités de fermeture :
+
+  max | eta + asinh(q/(2 j_ex))/beta |
+
+et l'erreur relative du round-trip :
+
+  q -> eta -> 2 j_ex sinh(-beta eta).
+
+Nouvelle cible :
+
+  make quick-stationary-inverse-bv-v10
+
+Sortie :
+
+  results/quick-v10-stationary-inverse-bv.json
+
+*** Critère de décision
+
+Si le solveur converge directement avec damping = 1, sans continuation, avec :
+
+- c_O2 > 0 ;
+- résidu inverse Butler-Volmer proche de la précision numérique ;
+- round-trip Butler-Volmer proche de la précision numérique ;
+- courant surfacique cohérent avec le point nominal ;
+
+alors la formulation inverse devient la base du solveur stationnaire V1.0 et
+la continuation en reaction_scale n'est plus nécessaire pour ce régime.
+
+Si Newton ne converge pas, l'historique par composante permettra de distinguer
+une difficulté encore cinétique d'un mauvais conditionnement des opérateurs de
+transport ou des potentiels.
