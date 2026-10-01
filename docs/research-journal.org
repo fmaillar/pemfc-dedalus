@@ -14411,3 +14411,96 @@ on s'attend à une correction faible.
 
 Cette hypothèse doit toutefois être vérifiée quantitativement avant de geler
 V0.8.
+
+
+*** Étape 11 — fermeture bidirectionnelle thermo-N2
+
+La convergence de l'axe T confirme que le lookup Motupally complet ajoute peu
+d'effet système et n'est pas retenu comme fermeture principale V0.8.
+
+La dernière vérification avant gel de V0.8 consiste à rendre cohérent le cycle :
+
+  T(t)
+  -> propriétés gaz/N2
+  -> I(t)
+  -> Q_dot(t)
+  -> débit d'air
+  -> T(t).
+
+La fermeture N2 retenue pour cette étape est la fermeture principale V0.8 :
+
+- lookup Motupally RH x j à T_V0.7 ;
+- facteur Arrhenius explicite en T pour la perméabilité N2 ;
+- p_sat(T) ;
+- états gaz avec T(t).
+
+*** Schéma itératif
+
+On part de la trajectoire thermique déjà validée :
+
+  T^(0)(t).
+
+À l'itération k :
+
+1. simuler la dynamique anode/N2 avec T^(k)(t) ;
+2. récupérer I^(k)(t) ;
+3. calculer V_BOL(I) ;
+4. calculer Q_dot^(k)(t) ;
+5. recalculer la loi de débit d'air ;
+6. intégrer le modèle thermique lumped ;
+7. obtenir T^(k+1)(t).
+
+Critère de convergence :
+
+  max_t |T^(k+1) - T^(k)| <= 0.01 K.
+
+Maximum :
+
+  6 itérations.
+
+Le pas de sortie thermique reste :
+
+  1 s
+
+alors que la dynamique anode est intégrée avec :
+
+  dt = 0.01 s.
+
+Ce choix reste très fin devant les constantes de temps thermiques :
+
+  environ 80 ... 230 s.
+
+*** Diagnostic
+
+Script :
+
+  scripts/run_v08_bidirectional_thermal_coupling.py
+
+Cible :
+
+  make bidirectional-thermal-v08
+
+Sorties :
+
+  results/quick-v08-bidirectional-thermal-coupling.json
+  results/quick-v08-bidirectional-thermal-coupling.csv
+
+Le résumé conserve pour chaque itération :
+
+- max Delta T ;
+- RMS Delta T ;
+- température finale ;
+- courant moyen ;
+- flux N2 moyen ;
+- période moyenne de purge.
+
+*** Décision attendue
+
+Si le point fixe converge en quelques itérations et si la correction totale de
+T par rapport à la trajectoire prescrite initiale reste faible, le couplage
+unidirectionnel utilisé jusqu'ici est validé comme approximation.
+
+Dans ce cas, V0.8 peut être gelée avec la fermeture thermique retenue.
+
+Si la correction est significative, la trajectoire auto-cohérente devient la
+baseline thermique avant fermeture de V0.8.
