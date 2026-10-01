@@ -30,6 +30,9 @@ class Ballard1020ACSTechnologyReference:
     # Electrical operating limits.
     current_min_a: float = 0.0
     current_max_a: float = 75.0
+    # Reported for FCgen-1020ACS cells in the open literature.
+    # This is the electrochemically active cell area, not the external stack face.
+    active_cell_area_m2: float = 0.0145
     vcell_min_v: float = 0.5
     vcell_max_v: float = 1.0
     bus_plate_resistance_ohm: float = 2.2e-3
@@ -110,6 +113,12 @@ class Ballard1020ACSTechnologyReference:
     @staticmethod
     def reacted_h2_slpm_per_cell(current_a: float) -> float:
         return 0.00696 * current_a
+
+    def current_density_a_m2(self, current_a: float) -> float:
+        """Return current density using the reported 1020ACS active cell area."""
+        if current_a < 0.0:
+            raise ValueError("current_a must be non-negative")
+        return current_a / self.active_cell_area_m2
 
     @staticmethod
     def stoichiometric_air_slpm_per_cell(current_a: float) -> float:
