@@ -106,3 +106,15 @@ def test_manual_anode_pressure_drop_relation():
 
     assert np.isclose(tech.anode_pressure_drop_mbar(2.4), 74.904)
     assert np.isclose(tech.anode_pressure_drop_mbar(6.0), 187.26)
+
+
+
+def test_reported_active_cell_area_sets_current_density():
+    tech = Ballard1020ACSTechnologyReference()
+
+    assert np.isclose(tech.active_cell_area_m2, 0.0145)
+    assert np.isclose(
+        tech.current_density_a_m2(26.04),
+        26.04 / 0.0145,
+    )
+    assert np.isclose(tech.current_density_a_m2(26.04), 1795.8620689655172)
