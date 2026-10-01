@@ -19825,3 +19825,38 @@ calcul sur plusieurs maillages.
 La cible suivante lance la convergence spatiale 4x4x16, 6x6x24 et 8x8x32 :
 
   make quick-grid-stationary-inverse-bv-picard-v10
+
+
+*** Correctif performance de l'étude de maillage
+
+Le run 8 x 8 x 32 a été interrompu après environ 4 min 12 s.
+
+Le traceback montre que le temps n'était pas consommé par le LBVP/Gummel mais
+par le fallback Newton :
+
+  solver.newton_iteration()
+  -> build_matrices(..., ['dF'])
+
+À cette résolution, la reconstruction du Jacobien dF coûtait environ 2 s par
+itération et était répétée de nombreuses fois.
+
+Pour l'étude de convergence en maillage, ce comportement n'est pas souhaité :
+la cible doit mesurer le solveur Gummel et produire un résultat même si le
+critère Picard strict n'est pas atteint.
+
+Un paramètre newton_fallback est donc ajouté au solveur. Sa valeur par défaut
+reste true pour préserver le comportement nominal.
+
+La cible :
+
+  make quick-grid-stationary-inverse-bv-picard-v10
+
+force désormais :
+
+  V10_NEWTON_FALLBACK=0
+
+sur les trois grilles.
+
+Ainsi, aucun Newton caché n'est lancé pendant la grid study. Si Gummel ne
+satisfait pas la tolérance, le résultat est écrit avec converged=false et le
+défaut de point fixe final permet de diagnostiquer directement le maillage.
