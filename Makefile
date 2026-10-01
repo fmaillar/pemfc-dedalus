@@ -861,3 +861,12 @@ quick-quasi3d-convergence-v09:
 	  --stop-times 5e-4 1e-3 \
 	  --grids 8,8,32 12,12,40 \
 	  --max-dt 2e-6
+
+
+quick-quasi3d-thermal-map-v09:
+	$(TIME) $(PYTHON) -m scripts.run_v09_quasi3d_thermal_map \
+	  --current-a 26.04 \
+	  --inlet-temperatures-c 10 20 30 \
+	  --ntu-values 1 3 5 \
+	  --nx 8 --ny 8 --nz 32 \
+	  --stop-time 1e-3 --max-dt 2e-6

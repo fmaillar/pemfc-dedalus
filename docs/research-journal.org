@@ -15908,3 +15908,92 @@ robuste pour élargir la campagne physique.
 Sinon, V0.9 restera sur une phase de convergence numérique avant toute
 interprétation physique supplémentaire.
 
+
+*** Résultats de convergence quasi-3D
+
+Le span ORR entrée-sortie reste remarquablement stable sur les quatre
+configurations numériques testées.
+
+Valeur minimale :
+
+  6.9039 %
+
+Valeur maximale :
+
+  6.9303 %
+
+Écart total :
+
+  0.0264 point de pourcentage.
+
+Les configurations testées étaient :
+
+  8 x 8 x 32, 5e-4 s
+  8 x 8 x 32, 1e-3 s
+  12 x 12 x 40, 5e-4 s
+  12 x 12 x 40, 1e-3 s.
+
+Le résultat d'environ 7 % de non-uniformité ORR est donc robuste vis-à-vis de la
+résolution et du pseudo-temps dans cette fenêtre.
+
+*** Décision après convergence
+
+La phase de convergence numérique est considérée suffisante pour élargir la
+campagne physique.
+
+Afin de conserver un coût raisonnable et d'isoler l'effet thermo-streamwise, la
+prochaine campagne garde :
+
+  I = 26.04 A
+
+et ne compare que les tranches extrêmes :
+
+  xi = 0
+  xi = 1.
+
+Les paramètres thermiques balayés sont :
+
+  T_air,in =
+    10
+    20
+    30 degC
+
+et :
+
+  NTU =
+    1
+    3
+    5.
+
+La configuration numérique retenue pour ce screening est :
+
+  8 x 8 x 32
+  pseudo-temps = 1e-3 s.
+
+*** Étape 10 — carte physique quasi-3D nominale
+
+La nouvelle campagne doit quantifier, pour chaque couple (T_in, NTU) :
+
+- c_O2 entrée / sortie ;
+- courant ORR intégré entrée / sortie ;
+- span relatif du courant ORR ;
+- densité ORR volumique moyenne ;
+- surtension moyenne.
+
+Nouvelle cible :
+
+  make quick-quasi3d-thermal-map-v09
+
+Sorties :
+
+  results/quick-v09-quasi3d-thermal-map.json
+  results/quick-v09-quasi3d-thermal-map.csv
+
+*** Critère de décision
+
+Si le span ORR dépend fortement de NTU ou de la température d'entrée, V0.9 devra
+conserver explicitement cette dépendance thermo-streamwise dans sa baseline.
+
+Si la carte reste étroite autour de quelques pourcents, l'étape suivante pourra
+tester la sensibilité au courant avec un jeu réduit de cas représentatifs.
+
