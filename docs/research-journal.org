@@ -14940,3 +14940,156 @@ première distribution de vitesse / advection imposée dans Dedalus.
 S'il est important, la prochaine PDE devra coupler explicitement l'équation
 d'énergie de l'air au transport d'O2.
 
+
+*** Résultats du screening thermique streamwise
+
+Le screening thermique V0.9 a été exécuté sur le même ensemble de régimes que
+le screening O2.
+
+Le cas :
+
+  7.3 A / 30 degC
+
+reste non atteignable car la température d'entrée dépasse la température cible
+de pile.
+
+Sur les huit cas atteignables, l'élévation de température de l'air varie de :
+
+  3.695 K
+
+à :
+
+  28.965 K.
+
+La valeur maximale est obtenue à :
+
+  I = 26.04 A
+  T_air,in = 10 degC
+
+avec :
+
+  débit d'air :
+    216.132 slpm
+
+  contrainte active :
+    plancher stoechiométrique
+
+  T_air,out :
+    38.965 degC
+
+  T_stack,target :
+    39.811 degC
+
+  T_air,out - T_stack,target :
+    -0.846 K.
+
+Lorsque la contrainte thermique est active, le débit est construit de sorte que
+le bilan sensible idéal conduise exactement à :
+
+  T_air,out = T_stack,target.
+
+Les élévations correspondantes sont alors :
+
+  7.3 A :
+    19.879 K à 10 degC d'entrée
+     9.879 K à 20 degC d'entrée
+
+  14.5 A :
+    23.695 K à 10 degC
+    13.695 K à 20 degC
+     3.695 K à 30 degC
+
+  26.04 A :
+    19.811 K à 20 degC
+     9.811 K à 30 degC.
+
+*** Interprétation du screening thermique
+
+Contrairement à l'appauvrissement O2, limité à environ 1.6 %, le gradient
+thermique streamwise n'est pas perturbatif.
+
+Une variation de température de l'air pouvant approcher :
+
+  29 K
+
+sur la longueur d'écoulement implique que l'hypothèse d'un air cathodique
+spatialement isotherme ne peut pas constituer la prochaine baseline spatiale.
+
+Le fait que T_air,out coïncide exactement avec la température cible dans les
+cas thermiquement contraints n'est pas une validation locale du transfert :
+c'est une conséquence directe de la loi V0.8 fondée sur le bilan sensible
+global.
+
+La question physique restante est donc la distribution spatiale de ce transfert
+et son couplage aux champs cathodiques.
+
+*** Décision après screening thermique
+
+V0.9 doit maintenant reconnecter les deux bilans réduits au solveur spectral.
+
+Avant d'introduire une géométrie d'écoulement ou une vitesse d'air supposée, le
+prochain incrément sera un problème spatial 1D Dedalus sur la coordonnée
+streamwise normalisée :
+
+  xi = x / L.
+
+Ce choix évite d'inventer une section de passage ou une géométrie de canaux non
+documentée par Ballard.
+
+Le problème résoudra simultanément :
+
+  d n_dot_O2 / d xi = - n_dot_O2,rxn
+
+et :
+
+  d T_air / d xi = Delta T_air,total,
+
+avec conditions d'entrée imposées.
+
+Il s'agit d'un problème de vérification spectral : il doit reproduire les
+profils analytiques des deux screenings précédents à l'erreur numérique près.
+
+Cette étape constitue le pont minimal entre les fermetures système V0.8 et les
+futurs champs cathodiques Dedalus.
+
+*** Étape 3 — solveur Dedalus streamwise couplé O2 / thermique
+
+Nouveau module :
+
+  src/pemfc_dedalus/cathode_airflow_1d.py
+
+Nouveau driver :
+
+  scripts/run_v09_dedalus_coupled_profile.py
+
+Nouvelle cible :
+
+  make quick-dedalus-coupled-v09
+
+La campagne conserve :
+
+  I =
+    7.3
+    14.5
+    26.04 A
+
+  T_air,in =
+    10
+    20
+    30 degC.
+
+Pour chaque cas atteignable, le solveur Dedalus sera comparé aux solutions
+analytiques du bilan plug-flow.
+
+Les métriques de validation seront :
+
+- erreur absolue maximale sur le débit molaire O2 ;
+- erreur absolue maximale sur T_air ;
+- erreur sur y_O2 en sortie ;
+- erreur sur T_air,out.
+
+Si les erreurs sont à la précision spectrale attendue, la formulation
+streamwise est validée et l'étape suivante pourra ajouter la première physique
+non triviale : échange thermique local fini / advection avec une fermeture
+géométrique explicitement déclarée.
+
