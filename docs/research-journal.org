@@ -19421,3 +19421,80 @@ respecte l'ordre de priorité :
 La cible reste :
 
   make quick-stationary-inverse-bv-picard-v10
+
+
+*** Étape 32 — Gummel globalisé avec forcing explicite
+
+Après plus de dix itérations de diagnostic autour du couple Picard/Newton,
+la stratégie est simplifiée pour viser directement la convergence du point
+fixe électrochimique.
+
+Le sous-problème linéaire reste :
+
+  q_hat fixé
+  -> résolution LBVP de c, phi_s et phi_m.
+
+Deux champs de forcing explicites sont introduits :
+
+  j_orr_forcing
+  s_o2_forcing.
+
+Ils sont recalculés à chaque essai à partir du q_hat courant, avant l'appel au
+LBVP. Cela supprime toute ambiguïté sur la réévaluation du membre de droite.
+
+Le solveur LBVP est construit et factorisé une seule fois.
+
+La boucle Gummel utilise désormais comme critère principal le défaut de point
+fixe :
+
+  r_fp = max |G(q_hat)-q_hat| / max(|q_hat|, 1e-12),
+
+où G(q_hat) est le courant Butler-Volmer recalculé après résolution des trois
+PDE linéaires.
+
+La mise à jour n'utilise plus un amortissement fixe. Chaque itération essaie :
+
+  alpha = 1,
+
+puis, si le défaut de point fixe n'est pas réduit ou si l'état devient non
+physique :
+
+  alpha = 1/2, 1/4, 1/8, ...
+
+jusqu'à max_backtracks.
+
+Un pas n'est accepté que si :
+
+- c_O2 reste strictement positif ;
+- q_hat reste strictement positif ;
+- le courant Butler-Volmer reste fini et positif ;
+- le défaut de point fixe décroît strictement.
+
+Si le Gummel atteint picard_tolerance, le solveur est déclaré convergé et
+Newton n'est pas lancé. Newton globalisé devient uniquement un fallback
+lorsque Gummel n'atteint pas la tolérance.
+
+Cette architecture est retenue selon l'ordre de priorité suivant :
+
+1. convergence robuste ;
+2. simplicité conceptuelle ;
+3. quantité de code minimale.
+
+Anderson acceleration reste volontairement hors du chemin principal. Il ne
+sera ajouté que si ce Gummel globalisé échoue malgré un forcing explicite et
+un line search monotone.
+
+La cible de validation reste :
+
+  make quick-stationary-inverse-bv-picard-v10
+
+Le run doit maintenant afficher, pour chaque pas Gummel :
+
+  fp_res
+  alpha
+  backtracks
+
+et terminer idéalement avec :
+
+  picard_converged=True
+  newton=0.
