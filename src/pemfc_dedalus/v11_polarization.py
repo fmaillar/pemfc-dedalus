@@ -38,6 +38,10 @@ class V11PeriodicPolarizationPoint:
     cycle_state_error: float
     cycle_state_error_component: str
     mean_cell_voltage_v: float
+    mean_reversible_voltage_v: float
+    mean_activation_loss_v: float
+    mean_membrane_ohmic_loss_v: float
+    mean_additional_resolved_loss_v: float
     min_cell_voltage_v: float
     max_cell_voltage_v: float
     mean_stack_temperature_k: float
@@ -206,11 +210,19 @@ def simulate_periodic_polarization_point(
         raise RuntimeError("polarization cycle contains no regular samples")
 
     voltage_values: list[float] = []
+    reversible_values: list[float] = []
+    activation_values: list[float] = []
+    ohmic_values: list[float] = []
+    additional_values: list[float] = []
     for point in final_cycle:
         voltage = point.diagnostics.voltage
         if voltage is None:
             raise RuntimeError("missing voltage diagnostic in polarization cycle")
         voltage_values.append(voltage.cell_voltage_v)
+        reversible_values.append(voltage.reversible_v)
+        activation_values.append(voltage.activation_loss_v)
+        ohmic_values.append(voltage.membrane_ohmic_loss_v)
+        additional_values.append(voltage.additional_resolved_loss_v)
 
     voltages = np.asarray(voltage_values, dtype=float)
     temperatures = np.asarray(
@@ -246,6 +258,10 @@ def simulate_periodic_polarization_point(
         cycle_state_error=error,
         cycle_state_error_component=error_component,
         mean_cell_voltage_v=mean_voltage,
+        mean_reversible_voltage_v=float(np.mean(reversible_values)),
+        mean_activation_loss_v=float(np.mean(activation_values)),
+        mean_membrane_ohmic_loss_v=float(np.mean(ohmic_values)),
+        mean_additional_resolved_loss_v=float(np.mean(additional_values)),
         min_cell_voltage_v=float(np.min(voltages)),
         max_cell_voltage_v=float(np.max(voltages)),
         mean_stack_temperature_k=mean_temperature,
