@@ -19067,3 +19067,69 @@ La cible reste :
 Le prochain run devra permettre de déterminer si le mérite continue à décroître
 jusqu'au seuil, ou s'il atteint un plateau numérique nécessitant alors une
 révision du scaling résiduel ou du critère d'arrêt.
+
+
+*** Résultat du prolongement Newton (0037b35)
+
+Le prolongement de 40 à 120 itérations n'atteint pas le seuil 1e-8.
+
+Le line search progresse jusqu'à l'itération 45, puis se bloque.
+
+Entre les itérations 40 et 44, le mérite continue à décroître :
+
+  2.4183e-4
+  -> 2.4075e-4
+  -> 2.1247e-4
+  -> 2.0203e-4
+  -> 1.5092e-4.
+
+À l'itération 45, le seul pas acceptable est extrêmement petit :
+
+  alpha = 4.8828125e-4 = 2^-11
+  backtracks = 11
+
+et il ne réduit le mérite que de :
+
+  1.509224717e-4
+  -> 1.509222417e-4.
+
+Le pas suivant n'est plus acceptable dans la limite de backtracking.
+
+L'état reste néanmoins physique et très proche du nominal :
+
+  j = 2144.70 A/m2
+  erreur courant = -0.246 %
+  min(c_O2) = 6.91472 mol/m3
+  min(q_hat) = 0.77370
+  max résidu inverse-BV = 8.33e-5 V
+  erreur round-trip BV max = 1.54e-3.
+
+Ce comportement indique un plateau du mérite ou une mauvaise pondération d'une
+des équations, plutôt qu'une divergence.
+
+*** Étape 26 — identifier le résidu dominant
+
+Avant de modifier le solveur ou la stratégie de globalisation, le diagnostic
+est enrichi avec les dix composantes normalisées du mérite :
+
+- oxygen ;
+- solid_potential ;
+- membrane_potential ;
+- inverse_bv ;
+- bc_c_inlet ;
+- bc_c_flux ;
+- bc_phi_s ;
+- bc_phi_s_flux ;
+- bc_phi_m_flux ;
+- bc_phi_m.
+
+Ces composantes sont calculées à partir des mêmes expressions physiques
+explicites que le mérite global.
+
+La cible reste :
+
+  make quick-stationary-inverse-bv-picard-v10
+
+Le prochain run doit identifier quelle équation fixe le plancher proche de
+1.5e-4. La suite dépendra alors de cette composante précise, plutôt que d'un
+changement algorithmique non ciblé.
