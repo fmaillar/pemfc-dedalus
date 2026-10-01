@@ -22728,3 +22728,64 @@ Des tests dédiés vérifient :
 
 Avant toute campagne de polarisation complète, les tests et le quick contrôlé
 doivent être relancés avec cette fermeture.
+
+
+
+*** Étape 25c — validation du régulateur H2 isobare (commit 5e6fb5c)
+
+Le quick contrôlé a été relancé après suppression complète de la dépendance du
+régulateur H2 au pas numérique.
+
+Les résultats restent pratiquement inchangés.
+
+I = 15 A :
+
+  Q_air avant/après = 235.9275 slpm
+  lambda_air avant/après = 94.75
+  cycles avant/après = 7
+  cycle_state_error:
+    7.05009e-4 -> 7.05159e-4
+
+  V_cycle,mean:
+    0.783920375 -> 0.783995674 V
+    Delta = +7.53e-5 V
+
+  T_cycle,mean:
+    307.562062 -> 307.559739 K
+    Delta = -2.32e-3 K
+
+  lambda_mem,mean:
+    2.758083 -> 2.758223.
+
+I = 26.04 A :
+
+  Q_air avant/après = 395.52156 slpm
+  lambda_air avant/après = 91.50
+  cycles avant/après = 10
+  cycle_state_error:
+    7.70777e-4 -> 7.71070e-4
+
+  V_cycle,mean:
+    0.709683668 -> 0.709727780 V
+    Delta = +4.41e-5 V
+
+  T_cycle,mean:
+    312.758967 -> 312.757365 K
+    Delta = -1.60e-3 K
+
+  lambda_mem,mean:
+    2.444926 -> 2.445029.
+
+Conclusion :
+
+- le débit cathodique sélectionné est identique ;
+- le nombre de cycles requis est identique ;
+- les variations de température sont de l'ordre de 1e-3 K ;
+- les variations de tension sont inférieures à 0.1 mV.
+
+L'ancienne fermeture H2 dépendante du pas ne pilotait donc pas artificiellement
+les résultats du quick, mais sa suppression reste nécessaire pour rendre le RHS
+mathématiquement propre et la convergence en dt interprétable.
+
+La campagne complète de polarisation peut maintenant être lancée avec le
+régulateur isobare continu.
