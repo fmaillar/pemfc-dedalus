@@ -119,6 +119,68 @@ def hydrogen_moles_for_target_pressure(
     return max(total_target_mol - nitrogen_mol - water_vapour_mol, 0.0)
 
 
+
+def isobaric_regulator_hydrogen_inlet_mol_s(
+    *,
+    target_total_pressure_pa: float,
+    current_a: float,
+    nitrogen_source_mol_s: float,
+    water_source_mol_s: float,
+    volume_m3: float,
+    temperature_k: float,
+    temperature_rate_k_s: float,
+    gas_constant_j_mol_k: float = 8.31446261815324,
+    faraday_c_mol: float = 96485.33212,
+) -> float:
+    """Return one-way H2 inlet required by the isobaric anode constraint.
+
+    At fixed target pressure and gas volume, the total gas inventory satisfies
+
+        n_target = P V / (R T)
+
+    and therefore
+
+        dn_target/dt = -(n_target / T) dT/dt.
+
+    The regulator supplies the non-negative H2 flow needed to satisfy that
+    total-mole balance after accounting for Faradaic H2 consumption, N2
+    crossover, and membrane-water exchange. No numerical time step enters this
+    closure.
+    """
+    if target_total_pressure_pa <= 0.0:
+        raise ValueError("target_total_pressure_pa must be positive")
+    if current_a < 0.0:
+        raise ValueError("current_a must be non-negative")
+    if nitrogen_source_mol_s < 0.0:
+        raise ValueError("nitrogen_source_mol_s must be non-negative")
+    if volume_m3 <= 0.0:
+        raise ValueError("volume_m3 must be positive")
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+    if gas_constant_j_mol_k <= 0.0:
+        raise ValueError("gas_constant_j_mol_k must be positive")
+
+    target_total_mol = (
+        target_total_pressure_pa
+        * volume_m3
+        / (gas_constant_j_mol_k * temperature_k)
+    )
+    target_total_rate = (
+        -target_total_mol * temperature_rate_k_s / temperature_k
+    )
+    hydrogen_consumption = faraday_rates_per_cell(
+        current_a,
+        faraday_c_mol,
+    ).hydrogen_consumption_mol_s
+    required = (
+        target_total_rate
+        + hydrogen_consumption
+        - nitrogen_source_mol_s
+        - water_source_mol_s
+    )
+    return max(required, 0.0)
+
+
 def regulator_hydrogen_inlet_mol_s(
     *,
     state: AnodeGasState,
