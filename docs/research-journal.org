@@ -12001,3 +12001,110 @@ Décision :
   puis make quick-thermal-v08 ;
 
   analyser l'ordre de grandeur avant d'introduire toute dynamique thermique.
+
+
+*** Résultats du quick thermique nominal
+
+Le premier quick V0.8 passe le gate complet :
+
+  pytest :
+    158 passed
+
+  Ruff :
+    All checks passed
+
+  mypy :
+    Success: no issues found in 93 source files.
+
+Au point nominal :
+
+  I = 26.04 A
+  V_cell = 0.768 V
+  T_in = 20.00 °C
+  T_opt = 39.8112 °C.
+
+La chaleur calculée est :
+
+  Q_dot = 126.294 W.
+
+Le plancher d'air actuel vaut :
+
+  Q_air,floor = 216.132 slpm.
+
+Avec le bilan sensible idéal :
+
+  Q_dot =
+    m_dot c_p (T_out - T_in)
+
+ce débit conduirait à :
+
+  T_out,ideal = 48.975 °C.
+
+Le débit idéal permettant de maintenir :
+
+  T_out <= T_opt
+
+est :
+
+  Q_air,required = 316.104 slpm.
+
+Rapport :
+
+  Q_air,required / Q_air,floor
+  = 1.46255.
+
+*** Interprétation
+
+Le résultat ne signifie pas qu'un débit Ballard mesuré de 216 slpm est
+insuffisant.
+
+La valeur :
+
+  216.132 slpm
+
+est seulement le plancher provisoire construit dans le modèle à partir de la
+stoechiométrie d'air élevée :
+
+  lambda_air = 50.
+
+Le diagnostic montre donc que ce plancher stoechiométrique ne suffit pas, à lui
+seul, à représenter le besoin thermique au point nominal si toute la chaleur est
+évacuée par chauffage sensible de l'air et si l'on impose :
+
+  T_out <= T_opt.
+
+Le rapport de 1.46 fournit un premier ordre de grandeur du supplément de débit
+requis par la contrainte thermique.
+
+Cette étape valide aussi l'utilité de séparer explicitement :
+
+  besoin d'air pour O2
+
+et :
+
+  besoin d'air pour refroidissement.
+
+*** Décision après quick nominal
+
+Ne pas introduire encore de capacité thermique ni de coefficient convectif.
+
+La prochaine étape cartographie le bilan stationnaire sur :
+
+  courant
+  x
+  température d'air d'entrée.
+
+La tension cellule doit être interpolée à partir de la courbe BOL typique
+Ballard plutôt que maintenue à 0.768 V.
+
+Pour chaque état, calculer :
+
+- V_cell(I) ;
+- Q_dot(I) ;
+- T_opt(I) ;
+- débit d'air stoechiométrique/plancher ;
+- débit d'air idéal requis thermiquement ;
+- ratio thermique/plancher ;
+- faisabilité lorsque T_in >= T_opt.
+
+Cette cartographie doit précéder toute dynamique thermique.
