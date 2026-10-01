@@ -22249,3 +22249,161 @@ La cible Makefile est :
 
 Cette étape ne recalcule pas la dynamique ; elle exploite uniquement les
 résultats déjà convergés.
+
+
+
+** V11 étape 25 — polarisation en régime périodique de purge
+
+Avec une anode dead-end et une purge déclenchée par charge, le système à
+courant constant ne possède pas un état stationnaire strict pour tous ses états.
+
+Le régime asymptotique pertinent est un cycle limite périodique entre deux
+purges.
+
+La courbe de polarisation V11 est donc définie à partir du dernier cycle de
+purge convergé, et non d'un instant stationnaire artificiel.
+
+*** Convergence cycle-à-cycle
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_polarization.py
+
+compare les états immédiatement après deux purges successives.
+
+L'erreur de cycle utilise une norme max mise à l'échelle sur les huit états V11 :
+
+- T_stack ;
+- lambda_mem ;
+- n_H2,a ;
+- n_N2,a ;
+- n_H2O,a ;
+- n_O2,c ;
+- n_N2,c ;
+- n_H2O,total,c.
+
+Le calcul avance cycle par cycle et s'arrête dès que :
+
+  cycle_state_error <= 1e-4
+
+après au moins trois cycles.
+
+Le nombre maximal de cycles est configurable.
+
+Cette approche évite de simuler inutilement tous les cycles lorsque le cycle
+limite est déjà atteint.
+
+*** Grandeurs de polarisation
+
+Pour chaque courant imposé, le dernier cycle convergé fournit :
+
+- tension cellule moyenne ;
+- tension cellule minimale ;
+- tension cellule maximale ;
+- température stack moyenne ;
+- lambda membrane moyen ;
+- inventaire N2 anode moyen ;
+- puissance stack moyenne ;
+- période de purge ;
+- débit air imposé ;
+- nombre de cycles nécessaires ;
+- erreur résiduelle cycle-à-cycle.
+
+La tension moyenne du cycle est la grandeur utilisée pour la courbe de
+polarisation principale.
+
+Les bornes min/max documentent l'ondulation induite par l'accumulation de N2 et
+la purge.
+
+*** Ventilation
+
+La ventilation n'est pas ajustée à la courbe Ballard.
+
+Elle utilise directement :
+
+  UserStackConfiguration.coolant_air_target_slpm(I)
+
+qui correspond actuellement à la stoechiométrie air "no-loss" 50 du manuel.
+
+Cette fermeture donne notamment :
+
+  I = 26.04 A
+  Q_air ~= 216.1 slpm.
+
+Ainsi, la courbe de polarisation n'introduit pas une nouvelle loi empirique de
+ventilation.
+
+*** Parallélisme
+
+Les différents points de courant sont indépendants.
+
+Le script :
+
+  scripts/run_v11_polarization_periodic.py
+
+les calcule en parallèle avec ProcessPoolExecutor.
+
+Valeurs par défaut :
+
+  I = 5, 10, 15, 20, 26.04, 30 A
+  dt = 0.01 s
+  jobs = 8
+  max_cycles = 12
+  convergence_tolerance = 1e-4.
+
+Chaque worker avance son propre courant cycle par cycle.
+
+Le parallélisme est donc physique et sûr : aucun état temporel d'une même
+trajectoire n'est parallélisé.
+
+*** Validation contre la courbe BOL Ballard
+
+Le script ajoute, pour chaque courant, la tension typique BOL interpolée du
+manuel Ballard.
+
+Cette courbe est utilisée uniquement comme validation externe :
+
+  model_minus_manual_v = V_V11 - V_Ballard,BOL.
+
+Elle n'entre jamais dans les fermetures V11 et ne sert pas à ajuster les
+paramètres.
+
+Le chargement Pt et l'ECSA restent ceux explicitement fournis par le scénario
+de référence :
+
+  0.4 mg Pt/cm2
+  50 m2/g_Pt
+
+qui sont des hypothèses de sensibilité génériques, pas des valeurs identifiées
+du FCgen-1020ACS.
+
+Par conséquent, un écart absolu avec la courbe BOL est attendu et ne doit pas
+être interprété comme une erreur du modèle tant que ces paramètres restent
+non résolus.
+
+*** Cibles Makefile
+
+Test court :
+
+  make quick-polarization-periodic-v11
+
+avec deux courants :
+
+  15 A
+  26.04 A
+
+et :
+
+  dt = 0.02 s
+  max_cycles = 4.
+
+Campagne complète :
+
+  make polarization-periodic-v11
+
+avec six courants en parallèle.
+
+Sorties :
+
+  results/v11-polarization-periodic.csv
+  results/v11-polarization-periodic.json.
