@@ -12420,3 +12420,103 @@ Cette loi permettra de séparer explicitement :
 
 La prochaine étape est donc un diagnostic de cette loi de commande sur
 l'enveloppe courant x température d'entrée.
+
+
+*** Étape 3 — loi minimale de commande du débit d'air
+
+L'enveloppe stationnaire montre que la contrainte thermique peut devenir plus
+forte que la contrainte d'alimentation en oxygène.
+
+Une loi de commande système minimale est ajoutée :
+
+  Q_air,target =
+    max(
+      Q_air,stoich_floor,
+      Q_air,thermal
+    )
+
+si :
+
+  T_in < T_opt.
+
+Lorsque :
+
+  T_in >= T_opt
+
+la cible optimale n'est pas atteignable avec de l'air ambiant seul.
+
+Le contrôleur retourne alors explicitement :
+
+  status = target_unreachable
+
+et :
+
+  active_constraint = ambient_temperature.
+
+Aucun débit artificiellement infini n'est produit.
+
+*** Infrastructure de commande
+
+Le module :
+
+  src/pemfc_dedalus/thermal.py
+
+contient maintenant :
+
+  open_cathode_airflow_target(...)
+
+qui retourne :
+
+- status ;
+- active_constraint ;
+- target_air_flow_slpm ;
+- stoichiometric_floor_slpm ;
+- thermal_required_slpm.
+
+Trois contraintes sont distinguées :
+
+  stoichiometric_floor
+  thermal
+  ambient_temperature.
+
+Des tests vérifient :
+
+- sélection du plancher stoechiométrique lorsqu'il domine ;
+- sélection du débit thermique lorsqu'il domine ;
+- signalement d'une cible impossible lorsque T_in >= T_opt.
+
+Un driver est ajouté :
+
+  scripts/run_v08_open_cathode_airflow_control.py
+
+avec la cible :
+
+  make airflow-control-v08.
+
+Le diagnostic utilise la même grille :
+
+  I =
+    7.3
+    14.5
+    26.04 A
+
+et :
+
+  T_in =
+    10
+    20
+    30 °C.
+
+Sorties :
+
+  results/v08-open-cathode-airflow-control.json
+  results/v08-open-cathode-airflow-control.csv
+
+Décision :
+
+  exécuter make test ;
+
+  puis make airflow-control-v08 ;
+
+  vérifier que le changement de contrainte dominante est cohérent avant toute
+  dynamique thermique.
