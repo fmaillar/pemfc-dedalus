@@ -77,3 +77,24 @@ def test_crossover_rate_is_flux_times_v11_active_area() -> None:
     )
 
     assert result.rate_mol_s == pytest.approx(result.flux_mol_m2_s * 0.0145)
+
+
+
+def test_catalano_activity_anchor_gives_reported_hydration_factor() -> None:
+    from pemfc_dedalus.membrane import membrane_water_content_from_activity
+
+    ref = CatalanoNitrogenReference()
+    lambda_anchor = float(
+        membrane_water_content_from_activity(ref.anchor_water_activity)
+    )
+    result = catalano_nitrogen_crossover(
+        membrane_mean_water_content=lambda_anchor,
+        temperature_k=ref.reference_temperature_k,
+        cathode_nitrogen_partial_pressure_pa=80_000.0,
+        anode_nitrogen_partial_pressure_pa=0.0,
+        reference=ref,
+    )
+
+    assert result.hydration_multiplier == pytest.approx(
+        ref.anchor_permeability_factor
+    )
