@@ -11,8 +11,8 @@ immediately becomes vapour.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 from .v11_galvanostatic import faraday_rates_per_cell
 
