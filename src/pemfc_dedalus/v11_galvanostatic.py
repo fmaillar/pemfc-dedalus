@@ -306,3 +306,72 @@ def membrane_ohmic_loss_v(
         * membrane_thickness_m
         / proton_conductivity_s_m
     )
+
+
+
+@dataclass(frozen=True)
+class CellVoltageBreakdown:
+    """Resolved per-cell voltage terms [V]."""
+
+    reversible_v: float
+    activation_loss_v: float
+    membrane_ohmic_loss_v: float
+    other_resolved_loss_v: float
+    cell_voltage_v: float
+
+
+def resolved_cell_voltage_v(
+    *,
+    reversible_v: float,
+    activation_loss_v: float,
+    membrane_ohmic_loss_v: float,
+    other_resolved_loss_v: float = 0.0,
+) -> CellVoltageBreakdown:
+    """Compose a cell voltage from explicitly resolved physical terms.
+
+    This function intentionally does not invent unresolved losses. Any additional
+    physical loss must be supplied explicitly.
+    """
+    if reversible_v <= 0.0:
+        raise ValueError("reversible_v must be positive")
+    for name, value in (
+        ("activation_loss_v", activation_loss_v),
+        ("membrane_ohmic_loss_v", membrane_ohmic_loss_v),
+        ("other_resolved_loss_v", other_resolved_loss_v),
+    ):
+        if value < 0.0:
+            raise ValueError(f"{name} must be non-negative")
+
+    cell_voltage = (
+        reversible_v
+        - activation_loss_v
+        - membrane_ohmic_loss_v
+        - other_resolved_loss_v
+    )
+    return CellVoltageBreakdown(
+        reversible_v=reversible_v,
+        activation_loss_v=activation_loss_v,
+        membrane_ohmic_loss_v=membrane_ohmic_loss_v,
+        other_resolved_loss_v=other_resolved_loss_v,
+        cell_voltage_v=cell_voltage,
+    )
+
+
+def stack_terminal_voltage_v(
+    *,
+    cell_voltage_v: float,
+    n_cells: int,
+    current_a: float,
+    bus_plate_resistance_ohm: float,
+) -> float:
+    """Return terminal stack voltage including the measured bus-plate loss."""
+    if n_cells <= 0:
+        raise ValueError("n_cells must be positive")
+    if current_a < 0.0:
+        raise ValueError("current_a must be non-negative")
+    if bus_plate_resistance_ohm < 0.0:
+        raise ValueError("bus_plate_resistance_ohm must be non-negative")
+    return (
+        n_cells * cell_voltage_v
+        - current_a * bus_plate_resistance_ohm
+    )
