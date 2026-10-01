@@ -9,7 +9,6 @@ from typing import Any
 
 from pemfc_dedalus.parameters import CathodeParameters
 
-
 INPUT = Path("results/quick-v09-quasi3d-current-map.json")
 OUTPUT_JSON = Path("results/quick-v10-current-closure.json")
 OUTPUT_CSV = Path("results/quick-v10-current-closure.csv")
