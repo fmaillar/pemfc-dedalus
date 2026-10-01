@@ -943,3 +943,12 @@ quick-polarization-convergence-v10:
 	  --grids 8,8,32 12,12,40 \
 	  --stop-times 1e-3 2e-3 \
 	  --max-dt 2e-6
+
+
+quick-polarization-time-convergence-v10:
+	$(TIME) $(PYTHON) -m scripts.run_v10_polarization_time_convergence \
+	  --jobs $(JOBS) \
+	  --currents-a 7.3 26.04 \
+	  --stop-times 1e-3 2e-3 4e-3 8e-3 \
+	  --inlet-temperature-c 20 --ntu 3 \
+	  --nx 8 --ny 8 --nz 32 --max-dt 2e-6

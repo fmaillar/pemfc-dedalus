@@ -17038,3 +17038,104 @@ robustes.
 Sinon, la résolution galvanostatique devra être relancée avec une configuration
 numérique plus convergée avant d'étendre ou d'interpréter la courbe V(I).
 
+
+*** Résultats de la convergence galvanostatique initiale
+
+Les tensions issues de la première fermeture ont été réévaluées aux courants :
+
+  I = 7.3 A
+  I = 26.04 A.
+
+À 7.3 A et :
+
+  V = 0.850625 V
+
+on obtient :
+
+  8 x 8 x 32, 1e-3 s :
+    erreur = +0.065 %
+
+  8 x 8 x 32, 2e-3 s :
+    erreur = -2.594 %
+
+  12 x 12 x 40, 1e-3 s :
+    erreur = -1.132 %
+
+  12 x 12 x 40, 2e-3 s :
+    erreur = -3.712 %.
+
+À 26.04 A et :
+
+  V = 0.768166 V
+
+on obtient :
+
+  8 x 8 x 32, 1e-3 s :
+    erreur = +0.390 %
+
+  8 x 8 x 32, 2e-3 s :
+    erreur = -2.559 %
+
+  12 x 12 x 40, 1e-3 s :
+    erreur = -0.793 %
+
+  12 x 12 x 40, 2e-3 s :
+    erreur = -3.560 %.
+
+*** Interprétation
+
+La fermeture obtenue à 1e-3 s n'est pas encore convergée en courant absolu.
+
+L'allongement du pseudo-temps à 2e-3 s produit une baisse supplémentaire du
+courant moyen de l'ordre de plusieurs pourcents.
+
+La sensibilité de grille est plus faible mais reste visible, proche de 1 % à
+1e-3 s.
+
+La priorité est donc le pseudo-temps, avant le raffinement spatial.
+
+*** Étape 6 — convergence en pseudo-temps étendue
+
+La prochaine campagne fixe la grille :
+
+  8 x 8 x 32
+
+et conserve les tensions actuelles aux deux courants extrêmes.
+
+Les pseudo-temps testés sont :
+
+  1e-3
+  2e-3
+  4e-3
+  8e-3 s.
+
+Les trois tranches xi sont résolues pour chaque combinaison, en parallèle avec :
+
+  jobs = 8.
+
+Les métriques suivies sont :
+
+- j_bar ;
+- erreur relative à j_target ;
+- variation relative entre pseudo-temps successifs ;
+- tendance vers un plateau.
+
+Nouvelle cible :
+
+  make quick-polarization-time-convergence-v10
+
+Sorties :
+
+  results/quick-v10-polarization-time-convergence.json
+  results/quick-v10-polarization-time-convergence.csv
+
+*** Critère de décision
+
+Un pseudo-temps sera considéré suffisamment convergé si la variation de j_bar
+entre deux durées successives tombe sous environ :
+
+  0.5 %.
+
+Si 8e-3 s ne suffit pas, il faudra abandonner le simple critère de durée fixe et
+introduire un vrai critère de convergence stationnaire sur les observables.
+
