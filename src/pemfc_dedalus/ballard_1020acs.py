@@ -69,7 +69,16 @@ class Ballard1020ACSTechnologyReference:
     purge_duration_max_s: float = 0.5
     lab_purge_duration_s: float = 0.2
     purge_rate_min_slpm_per_cell: float = 2.4
+    startup_purge_rate_slpm_per_cell: float = 6.0
     h2_utilization_with_standard_purge: float = 0.93
+
+    # Section 6.3.2 states that 20 mL/cell is equivalent to two anode
+    # volumes. Therefore the internal anode gas volume is 10 mL/cell.
+    anode_gas_volume_per_cell_m3: float = 10e-6
+
+    # Section 5.4: estimated stack anode pressure drop [mbar] is
+    # 31.21 times the H2 flow rate per cell [slpm].
+    anode_pressure_drop_mbar_per_slpm_per_cell: float = 31.21
 
     def bol_typical_cell_voltage_v(self, current_a: float) -> float:
         """Interpolate the manual BOL typical cell-voltage curve."""
@@ -105,6 +114,15 @@ class Ballard1020ACSTechnologyReference:
     @staticmethod
     def stoichiometric_air_slpm_per_cell(current_a: float) -> float:
         return 0.0166 * current_a
+
+    def anode_pressure_drop_mbar(self, h2_flow_slpm_per_cell: float) -> float:
+        """Return Ballard's estimated anode pressure drop [mbar]."""
+        if h2_flow_slpm_per_cell < 0.0:
+            raise ValueError("h2_flow_slpm_per_cell must be non-negative")
+        return (
+            self.anode_pressure_drop_mbar_per_slpm_per_cell
+            * h2_flow_slpm_per_cell
+        )
 
 
 @dataclass(frozen=True)
@@ -158,6 +176,18 @@ class UserStackConfiguration:
     def purge_volume_m3(self) -> float:
         tech = Ballard1020ACSTechnologyReference()
         return self.n_cells * tech.purge_volume_per_cell_m3
+
+    def anode_gas_volume_m3(self) -> float:
+        tech = Ballard1020ACSTechnologyReference()
+        return self.n_cells * tech.anode_gas_volume_per_cell_m3
+
+    def runtime_purge_rate_min_slpm(self) -> float:
+        tech = Ballard1020ACSTechnologyReference()
+        return self.n_cells * tech.purge_rate_min_slpm_per_cell
+
+    def startup_purge_rate_slpm(self) -> float:
+        tech = Ballard1020ACSTechnologyReference()
+        return self.n_cells * tech.startup_purge_rate_slpm_per_cell
 
     def reacted_h2_slpm(self, current_a: float) -> float:
         tech = Ballard1020ACSTechnologyReference()
