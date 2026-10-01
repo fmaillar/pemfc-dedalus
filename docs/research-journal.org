@@ -16788,3 +16788,111 @@ appliquera la même fermeture aux trois courants :
 
 afin de construire une courbe V(I) cohérente avec le courant imposé.
 
+
+*** Résultats de la bissection nominale
+
+La recherche galvanostatique converge en :
+
+  4 itérations.
+
+La solution obtenue est :
+
+  V_galv = 0.768125 V
+
+avec :
+
+  j_bar = 2159.90 A/m2
+
+pour une cible :
+
+  j_target = 2150 A/m2.
+
+L'erreur relative finale vaut :
+
+  +0.460 %.
+
+La tension BOL de référence est :
+
+  V_BOL = 0.768166 V.
+
+Le décalage est donc :
+
+  Delta V = -0.041 mV.
+
+*** Interprétation
+
+Au point nominal, la loi V_BOL(I) est quasiment auto-cohérente avec la fermeture
+galvanostatique.
+
+Ce résultat ne contredit pas le screening initial : les écarts importants sont
+concentrés aux charges plus faibles.
+
+Pour construire V(I), il faut néanmoins améliorer le couplage thermique de la
+recherche de racine.
+
+Lorsqu'une tension d'essai V est différente de V_BOL(I), la puissance thermique :
+
+  Q_dot = Q_dot(I, V)
+
+change également.
+
+À faible charge, où le décalage de tension attendu est plus important, il faut
+donc recalculer à chaque évaluation :
+
+- la chaleur rejetée ;
+- le débit d'air cible ;
+- le profil T_air(xi) ;
+- le profil c_O2(xi) ;
+- les trois tranches électrochimiques.
+
+*** Étape 4 — courbe galvanostatique V(I) thermo-couplée
+
+Les courants testés sont :
+
+  7.3
+  14.5
+  26.04 A.
+
+Pour chaque courant :
+
+1. la recherche part de V_BOL(I) ;
+
+2. un bracket est construit automatiquement par pas de :
+
+  0.03 V
+
+dans la direction nécessaire ;
+
+3. chaque tension candidate recalcule le champ thermo-gazeux ;
+
+4. la tension commune est résolue par bissection avec :
+
+  erreur relative courant <= 0.5 %.
+
+Les trois tranches restent :
+
+  xi = 0
+  xi = 0.5
+  xi = 1.
+
+Nouvelle cible :
+
+  make quick-polarization-v10
+
+Sorties :
+
+  results/quick-v10-polarization.json
+  results/quick-v10-polarization.csv
+
+*** Critère de décision
+
+La campagne doit vérifier :
+
+- convergence de la fermeture galvanostatique aux trois courants ;
+- décroissance de V avec I ;
+- comparaison directe de V_galv(I) à V_BOL(I) ;
+- absence de rupture anormale du couplage thermique.
+
+Si ces conditions sont satisfaites, V1.0 disposera d'une première courbe de
+polarisation cohérente avec le courant imposé.
+

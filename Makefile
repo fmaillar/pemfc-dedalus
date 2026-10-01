@@ -921,3 +921,14 @@ quick-voltage-bisection-v10:
 	  --relative-tolerance 5e-3 --max-iterations 8 \
 	  --nx 8 --ny 8 --nz 32 \
 	  --stop-time 1e-3 --max-dt 2e-6
+
+
+quick-polarization-v10:
+	$(TIME) $(PYTHON) -m scripts.run_v10_polarization \
+	  --currents-a 7.3 14.5 26.04 \
+	  --inlet-temperature-c 20 \
+	  --ntu 3 \
+	  --bracket-step-v 0.03 --max-bracket-steps 6 \
+	  --relative-tolerance 5e-3 --max-iterations 8 \
+	  --nx 8 --ny 8 --nz 32 \
+	  --stop-time 1e-3 --max-dt 2e-6
