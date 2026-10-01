@@ -851,3 +851,13 @@ quick-quasi3d-electrochem-v09:
 	  --slice-xi 0 0.5 1 \
 	  --nx 8 --ny 8 --nz 32 \
 	  --stop-time 5e-4 --max-dt 2e-6
+
+
+quick-quasi3d-convergence-v09:
+	$(TIME) $(PYTHON) -m scripts.run_v09_quasi3d_convergence \
+	  --current-a 26.04 \
+	  --inlet-temperature-c 20 \
+	  --ntu 3 \
+	  --stop-times 5e-4 1e-3 \
+	  --grids 8,8,32 12,12,40 \
+	  --max-dt 2e-6

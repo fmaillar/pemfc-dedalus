@@ -15775,3 +15775,136 @@ la refonte streamwise non périodique.
 Si la réponse électrochimique amortit fortement le forçage gazeux, V0.9 pourra
 conserver l'approche par tranches comme correction de premier ordre.
 
+
+*** Résultats des tranches quasi-3D électrochimiques
+
+Le cas ciblé :
+
+  I = 26.04 A
+  T_air,in = 20 degC
+  NTU = 3
+
+a été exécuté sur trois tranches :
+
+  xi = 0
+  xi = 0.5
+  xi = 1.
+
+Les concentrations O2 imposées à la frontière gaz sont :
+
+  xi = 0 :
+    c_feed = 8.70889 mol/m3
+
+  xi = 0.5 :
+    c_feed = 8.22992 mol/m3
+
+  xi = 1 :
+    c_feed = 8.09475 mol/m3.
+
+Le courant de réaction intégré vaut :
+
+  xi = 0 :
+    4.67915e-3
+
+  xi = 0.5 :
+    4.42632e-3
+
+  xi = 1 :
+    4.35487e-3.
+
+Le rapport au courant de la tranche d'entrée est donc :
+
+  xi = 0 :
+    1.0000
+
+  xi = 0.5 :
+    0.94597
+
+  xi = 1 :
+    0.93070.
+
+La variation relative entrée-sortie atteint :
+
+  6.930 %.
+
+La densité ORR volumique moyenne suit la même tendance :
+
+  1.10357e7 A/m3
+  ->
+  1.02709e7 A/m3.
+
+La surtension moyenne varie très peu :
+
+  -0.412281 V
+  ->
+  -0.412261 V.
+
+*** Interprétation
+
+Le forçage gazeux thermo-couplé se transmet bien à la réponse électrochimique.
+
+L'amortissement par diffusion / conduction réduit l'amplitude par rapport au
+span direct du facteur cinétique, mais la réponse reste de l'ordre de plusieurs
+pourcents.
+
+La non-uniformité streamwise ne peut donc plus être traitée comme une simple
+correction négligeable.
+
+Cependant, le quick a été exécuté avec :
+
+  grille = 8 x 8 x 32
+  pseudo-temps = 5e-4 s.
+
+Avant d'étendre la campagne à plusieurs NTU et températures d'entrée, il faut
+vérifier que le span ORR de 6.93 % est robuste vis-à-vis de ces paramètres
+numériques.
+
+*** Étape 9 — convergence quasi-3D entrée/sortie
+
+La prochaine étape se limite aux deux tranches extrêmes :
+
+  xi = 0
+  xi = 1
+
+pour le même régime :
+
+  I = 26.04 A
+  T_air,in = 20 degC
+  NTU = 3.
+
+Deux grilles sont comparées :
+
+  8 x 8 x 32
+  12 x 12 x 40.
+
+Deux pseudo-temps sont comparés :
+
+  5e-4 s
+  1e-3 s.
+
+Les métriques suivies sont :
+
+- courant ORR intégré par tranche ;
+- ratio sortie / entrée ;
+- span relatif entrée-sortie ;
+- variation du span avec la grille ;
+- variation du span avec le pseudo-temps.
+
+Nouvelle cible :
+
+  make quick-quasi3d-convergence-v09
+
+Sorties :
+
+  results/quick-v09-quasi3d-convergence.json
+  results/quick-v09-quasi3d-convergence.csv
+
+*** Critère de décision
+
+Si le span ORR varie de moins d'environ 1 point de pourcentage entre les
+configurations numériques testées, le résultat sera considéré suffisamment
+robuste pour élargir la campagne physique.
+
+Sinon, V0.9 restera sur une phase de convergence numérique avant toute
+interprétation physique supplémentaire.
+
