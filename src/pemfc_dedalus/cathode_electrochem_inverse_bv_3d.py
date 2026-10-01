@@ -28,6 +28,19 @@ class InverseBVPicardStep(TypedDict):
     relative_q_change: float
 
 
+class InverseBVResidualComponents(TypedDict):
+    oxygen: float
+    solid_potential: float
+    membrane_potential: float
+    inverse_bv: float
+    bc_c_inlet: float
+    bc_c_flux: float
+    bc_phi_s: float
+    bc_phi_s_flux: float
+    bc_phi_m_flux: float
+    bc_phi_m: float
+
+
 class InverseBVResult(TypedDict):
     converged: bool
     newton_iterations: int
@@ -57,6 +70,7 @@ class InverseBVResult(TypedDict):
     picard_iterations: int
     picard_relaxation: float
     picard_history: list[InverseBVPicardStep]
+    residual_components: InverseBVResidualComponents
 
 
 def symmetric_bv_current(
@@ -424,17 +438,34 @@ def solve_stationary_inverse_bv(
         1.0,
     )
 
-    def residual_merit() -> float:
-        normalized: list[float] = []
+    residual_names = (
+        "oxygen",
+        "solid_potential",
+        "membrane_potential",
+        "inverse_bv",
+        "bc_c_inlet",
+        "bc_c_flux",
+        "bc_phi_s",
+        "bc_phi_s_flux",
+        "bc_phi_m_flux",
+        "bc_phi_m",
+    )
+
+    def normalized_residuals() -> list[float]:
+        values: list[float] = []
         for expression, scale in zip(
             residual_expressions,
             residual_scales,
             strict=True,
         ):
             residual_field = expression.evaluate()
-            normalized.append(
+            values.append(
                 float(residual_field.allreduce_data_norm("c", 2)) / scale
             )
+        return values
+
+    def residual_merit() -> float:
+        normalized = normalized_residuals()
         return float(np.sqrt(sum(value * value for value in normalized)))
 
     def snapshot_state() -> list[np.ndarray]:
@@ -587,6 +618,11 @@ def solve_stationary_inverse_bv(
     forward_scale = np.maximum(np.abs(q_values), q_reference * 1e-12)
     forward_relative_error = np.abs(forward_values - q_values) / forward_scale
 
+    residual_component_values = normalized_residuals()
+    residual_components = dict(
+        zip(residual_names, residual_component_values, strict=True)
+    )
+
     total_reaction_current = float(d3.Integrate(j_orr).evaluate()["g"].ravel()[0])
     mean_eta = float(d3.Average(eta).evaluate()["g"].ravel()[0])
     mean_c_o2 = float(d3.Average(c).evaluate()["g"].ravel()[0])
@@ -620,4 +656,5 @@ def solve_stationary_inverse_bv(
         "picard_iterations": len(picard_history),
         "picard_relaxation": picard_relaxation,
         "picard_history": picard_history,
+        "residual_components": residual_components,
     }
