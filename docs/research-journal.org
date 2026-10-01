@@ -20169,3 +20169,39 @@ Cette étape ne ferme toujours pas le modèle prédictif complet : l'activation
 nécessite encore une aire active réelle et des paramètres cinétiques sourcés.
 L'absence de ces paramètres reste explicite plutôt que compensée par une
 perte ajustée.
+
+
+** V11 étape 5 — aire active FCgen-1020ACS résolue par littérature
+
+Une recherche ciblée dans la littérature consacrée au FCgen-1020ACS a permis
+de résoudre l'aire électrochimique active sans calibration.
+
+Deux sources indépendantes spécifiques au 1020ACS donnent :
+
+  A_cell = 0.0145 m2/cell = 145 cm2/cell.
+
+Cette valeur est désormais utilisée comme paramètre géométrique V11.
+
+À I = 26.04 A :
+
+  j = 26.04 / 0.0145
+    ~= 1795.86 A/m2.
+
+Conséquence importante :
+
+  le niveau historique V10 de 2150 A/m2 n'est pas transféré dans V11.
+
+Ce niveau impliquait une aire d'environ 0.01211 m2 et constituait une référence
+de fermeture V10, pas une mesure de l'aire active du FCgen-1020ACS.
+
+La même étude bibliographique fournit plusieurs paramètres matériau/géométrie
+non ajustés utilisables ultérieurement (épaisseurs membrane/GDL/CL, porosités,
+densité membrane, etc.), mais marque explicitement les paramètres cinétiques
+cathodiques j0, gamma et alpha comme nécessitant une identification
+expérimentale pour le système étudié.
+
+V11 conserve donc la règle :
+
+- aire active : résolue ;
+- paramètres cinétiques spécifiques stack : toujours non résolus ;
+- aucune identification sur courbe Ballard ne sera utilisée pour fermer j0.
