@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "model": "v09-dedalus-streamwise-coupled-verification",
+  "points": 64,
+  "max_abs_temperature_error_k": 2.2737367544323206e-13,
+  "max_abs_oxygen_mole_fraction_error": 8.84003231726993e-10,
+  "summaries": [
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_oxygen_flow_error_mol_s": 6.505213034913027e-19,
+      "max_abs_oxygen_mole_fraction_error": 5.455549900723611e-10,
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_oxygen_mole_fraction": 0.20688110742277174,
+      "outlet_temperature_c": 29.876006408430896
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_oxygen_flow_error_mol_s": 1.3010426069826053e-18,
+      "max_abs_oxygen_mole_fraction_error": 1.3406709076235757e-10,
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_oxygen_mole_fraction": 0.208200689462754,
+      "outlet_temperature_c": 29.877512314949854
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 30.0,
+      "status": "target_unreachable"
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_oxygen_flow_error_mol_s": 8.673617379884035e-19,
+      "max_abs_oxygen_mole_fraction_error": 6.765992210944205e-10,
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_oxygen_mole_fraction": 0.20658401907969776,
+      "outlet_temperature_c": 33.69143175450324
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_oxygen_flow_error_mol_s": 1.3010426069826053e-18,
+      "max_abs_oxygen_mole_fraction_error": 2.2497317897496316e-10,
+      "max_abs_temperature_error_k": 2.2737367544323206e-13,
+      "outlet_oxygen_mole_fraction": 0.20781727003628814,
+      "outlet_temperature_c": 33.692937661022086
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_oxygen_flow_error_mol_s": 5.204170427930421e-18,
+      "max_abs_oxygen_mole_fraction_error": 1.630143242614679e-11,
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_oxygen_mole_fraction": 0.20904669312050178,
+      "outlet_temperature_c": 33.69444356754116
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "status": "reachable",
+      "active_constraint": "stoichiometric_floor",
+      "max_abs_oxygen_flow_error_mol_s": 1.3010426069826053e-18,
+      "max_abs_oxygen_mole_fraction_error": 8.84003231726993e-10,
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_oxygen_mole_fraction": 0.20616777315864163,
+      "outlet_temperature_c": 38.96067661638568
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_oxygen_flow_error_mol_s": 1.734723475976807e-18,
+      "max_abs_oxygen_mole_fraction_error": 4.119133645286155e-10,
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_oxygen_mole_fraction": 0.2072238909848481,
+      "outlet_temperature_c": 39.80821661847705
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_oxygen_flow_error_mol_s": 3.469446951953614e-18,
+      "max_abs_oxygen_mole_fraction_error": 1.0058903709975198e-10,
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_oxygen_mole_fraction": 0.20837442699949507,
+      "outlet_temperature_c": 39.80972252499606
+    }
+  ]
+}
