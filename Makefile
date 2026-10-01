@@ -1042,3 +1042,21 @@ quick-grid-stationary-inverse-bv-picard-v10:
 	  V10_NX=8 V10_NY=8 V10_NZ=32 \
 	  V10_OUTPUT=results/quick-v10-stationary-inverse-bv-picard-8x8x32.json \
 	  $(TIME) $(PYTHON) -m scripts.run_v10_stationary_inverse_bv_picard
+
+
+
+.PHONY: quick-reference-dynamic-v11 reference-dynamic-v11
+
+quick-reference-dynamic-v11:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_reference_dynamic \
+	  --jobs $(JOBS) \
+	  --dt-values 0.02 0.01 \
+	  --stop-time 10 \
+	  --sample-every 1
+
+reference-dynamic-v11:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_reference_dynamic \
+	  --jobs $(JOBS) \
+	  --dt-values 0.04 0.02 0.01 0.005 \
+	  --stop-time 480 \
+	  --sample-every 1
