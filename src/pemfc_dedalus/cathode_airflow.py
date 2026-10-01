@@ -213,6 +213,16 @@ def ideal_gas_species_concentration_mol_m3(
     *,
     mole_fraction: float,
     pressure_pa: float,
+    temperature_k: np.ndarray,
+    gas_constant_j_mol_k: float,
+) -> np.ndarray: ...
+
+
+@overload
+def ideal_gas_species_concentration_mol_m3(
+    *,
+    mole_fraction: float,
+    pressure_pa: float,
     temperature_k: float,
     gas_constant_j_mol_k: float,
 ) -> float: ...
