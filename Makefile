@@ -151,7 +151,7 @@ help:
 install:
 	$(PYTHON) -m pip install -e '.[test]'
 
-test check: unit lint typecheck
+test check: lint unit typecheck
 
 test-full: unit-full lint typecheck
 
