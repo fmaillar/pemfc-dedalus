@@ -389,7 +389,7 @@ def solve_stationary_inverse_bv(
                 picard_converged = True
                 break
 
-            damping = min(1.0, max(picard_relaxation, 0.5))
+            damping = 1.0
             accepted = False
             used_backtracks = 0
             trial_residual = np.inf
