@@ -134,6 +134,9 @@ def main() -> None:
         f"error={100.0 * relative_current_error:+.3f}%",
         flush=True,
     )
+    print("normalized residual components:", flush=True)
+    for name, value in result["residual_components"].items():
+        print(f"  {name}={value:.6e}", flush=True)
     for newton_step in result["globalization_history"]:
         print(
             f"iter={newton_step['iteration']} "
