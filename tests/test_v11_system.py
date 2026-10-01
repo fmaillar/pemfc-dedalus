@@ -36,7 +36,6 @@ def test_coupled_rhs_preserves_global_water_balance() -> None:
         cathode_total_pressure_pa=101325.0,
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.01,
-        nitrogen_crossover_mol_s=1.0e-8,
         dt_regulator_s=0.01,
     )
 
@@ -152,6 +151,11 @@ def test_predictive_rhs_closes_cell_voltage_from_dynamic_state() -> None:
     )
 
     assert diagnostics.voltage is not None
+    assert diagnostics.nitrogen_crossover is not None
+    assert diagnostics.nitrogen_crossover.rate_mol_s > 0.0
+    assert derivative.anode_nitrogen_mol_s == pytest.approx(
+        diagnostics.nitrogen_crossover.rate_mol_s
+    )
     assert diagnostics.cathode_outlet_molar_flow_per_cell_mol_s > 0.0
     assert diagnostics.voltage.cell_voltage_v > 0.0
     assert diagnostics.voltage.cell_voltage_v < diagnostics.voltage.reversible_v
