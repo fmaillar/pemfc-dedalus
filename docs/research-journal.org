@@ -20934,3 +20934,81 @@ Les tests vérifient :
 Les valeurs génériques Pt/ECSA utilisées dans les tests servent seulement à
 tester les relations et les unités. Elles ne constituent pas des paramètres
 FCgen-1020ACS.
+
+
+
+** V11 étape 18 — fermeture de tension branchée au coeur dynamique
+
+La fermeture de tension prédictive de l'étape 17 est maintenant raccordée au
+coeur dynamique V11 sans introduire de calibration Ballard supplémentaire.
+
+La fonction existante :
+
+  coupled_v11_rhs(...)
+
+reste disponible comme noyau bas niveau avec V_cell explicite. Elle permet de
+tester séparément les bilans matière, eau et thermique et de conserver une
+interface utile pour les diagnostics.
+
+Une nouvelle fonction :
+
+  coupled_v11_predictive_rhs(...)
+
+calcule désormais V_cell directement à partir de l'état dynamique.
+
+Les grandeurs électrochimiques sont reconstruites sans paramètre ajusté :
+
+- la partition vapeur/liquide cathode est obtenue par équilibre de saturation ;
+- p_O2 est dérivée de l'inventaire cathode et de la pression totale imposée ;
+- la pression totale anode est dérivée de l'inventaire H2/N2/H2O, du volume
+  constructeur et de la température ;
+- p_H2 est ensuite obtenue par fraction molaire ;
+- l'activité d'eau utilisée par Nernst est dérivée de la vapeur cathodique ;
+- la teneur moyenne en eau membrane provient directement de l'état dynamique.
+
+Ces grandeurs alimentent :
+
+  predict_cell_voltage_v(...)
+
+qui retourne :
+
+  E_rev
+  eta_ORR
+  eta_membrane
+  eta_additional,resolved
+  V_cell.
+
+La tension prédite est ensuite injectée dans le bilan thermique Ballard :
+
+  Q_gen = n_cells I (1.253 - V_cell).
+
+Le diagnostic couplé contient maintenant également l'objet complet
+V11VoltagePrediction.
+
+Les deux paramètres catalyst-layer toujours non résolus restent obligatoires :
+
+  cathode_platinum_loading_mg_cm2_geo
+  cathode_ecsa_m2_pt_g_pt.
+
+Aucune valeur FCgen-1020ACS par défaut n'est introduite. Les valeurs génériques
+utilisées dans les tests servent uniquement à vérifier le raccord numérique et
+les unités.
+
+Les trois fermetures physiques encore externes au coeur prédictif sont donc :
+
+- température de sortie d'air cathode ;
+- débit de crossover N2 ;
+- débit molaire de sortie cathode.
+
+Le test d'intégration vérifie que :
+
+- une tension positive inférieure à E_rev est effectivement calculée sous
+  charge ;
+- cette même tension est utilisée par le bilan de chaleur constructeur ;
+- le RHS thermique renvoyé est cohérent avec le diagnostic thermique ;
+- le bilan global d'eau reste conservatif après raccord de la tension.
+
+La prochaine étape logique est de fermer l'une des trois quantités restantes
+sans coefficient ajusté. La priorité est le débit de sortie cathode, car il
+peut être obtenu par fermeture molaire/pression du contrôle-volume avant de
+revenir au transfert thermique air-stack, qui reste le verrou le plus délicat.
