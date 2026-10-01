@@ -20255,3 +20255,60 @@ Des tests vérifient :
 - j ~= 1795.86 A/m2 à 26.04 A ;
 - positivité de sigma, ASR et perte ohmique ;
 - diminution de la perte ohmique quand la membrane s'hydrate.
+
+
+** V11 étape 7 — bilan dynamique cathode conservatif
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_cathode.py
+
+introduit un contrôle-volume gaz cathode par cellule avec états :
+
+  n_O2
+  n_N2
+  n_H2O,v.
+
+Le débit d'air imposé au stack est divisé par le nombre de cellules afin
+d'obtenir le débit par canal cathode représentatif.
+
+Les équations suivent strictement :
+
+  accumulation
+    = entrée
+      - sortie
+      - consommation électrochimique
+      + source gaz explicite.
+
+La consommation d'oxygène est fixée exactement par Faraday :
+
+  n_dot_O2,rxn = I/(4F).
+
+Le flux d'eau vers la phase gazeuse reste un terme explicite
+water_source_to_gas_mol_s.
+
+Cette décision est volontaire : V11 n'impose pas encore que toute l'eau
+électrochimiquement produite devienne immédiatement vapeur. La fermeture
+physique eau vapeur / membrane / liquide sera ajoutée lorsque les mécanismes
+de transport et de changement de phase seront introduits.
+
+Une fermeture auxiliaire de sortie à inventaire total constant est également
+fournie :
+
+  n_dot_out
+    = n_dot_in
+      - n_dot_O2,rxn
+      + n_dot_H2O,gas.
+
+Elle correspond au cas réduit isotherme/isobare à volume gaz constant.
+
+Les tests vérifient :
+
+- conversion slpm -> mol/s par gaz parfait ;
+- fermeture exacte de l'inventaire total ;
+- conservation molaire du RHS ;
+- état stationnaire à courant nul lorsque la composition entrée = état ;
+- consommation d'O2 à courant positif sans débit d'air.
+
+Aucun volume cathode, coefficient de mélange ou constante de temps empirique
+n'est introduit à ce stade.
