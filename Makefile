@@ -991,5 +991,6 @@ quick-stationary-globalized-v10:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_globalized
 
 
+.PHONY: quick-stationary-inverse-bv-v10
 quick-stationary-inverse-bv-v10:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_inverse_bv
