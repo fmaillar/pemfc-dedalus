@@ -14,8 +14,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .v11_galvanostatic import (
-    reversible_cell_voltage_liquid_water_v,
     resolved_cell_voltage_v,
+    reversible_cell_voltage_liquid_water_v,
 )
 from .v11_materials import V11MEAReference
 from .v11_orr import ORRKineticState, neyerlin_orr_activation_state
