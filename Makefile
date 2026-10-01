@@ -841,3 +841,13 @@ quick-electrochem-slices-v09:
 	  --currents-a 7.3 14.5 26.04 \
 	  --inlet-temperatures-c 10 20 30 \
 	  --points 64
+
+
+quick-quasi3d-electrochem-v09:
+	$(TIME) $(PYTHON) -m scripts.run_v09_quasi3d_electrochem_slices \
+	  --current-a 26.04 \
+	  --inlet-temperature-c 20 \
+	  --ntu 3 \
+	  --slice-xi 0 0.5 1 \
+	  --nx 8 --ny 8 --nz 32 \
+	  --stop-time 5e-4 --max-dt 2e-6

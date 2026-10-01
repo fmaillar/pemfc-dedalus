@@ -15646,3 +15646,132 @@ imposée et exécutera des tranches quasi-3D indépendantes.
 Si la variation reste faible malgré celle de c_O2, la refonte streamwise du
 solveur pourra être différée.
 
+
+*** Résultats de la projection électrochimique par tranches
+
+Le screening du facteur cinétique direct montre une variation streamwise
+maximale de :
+
+  0.12047
+
+soit :
+
+  12.05 points de pourcentage.
+
+Dans la baseline actuelle :
+
+  gamma_O2 = 1
+
+donc cette variation est directement celle du facteur multiplicatif O2 du
+terme Butler-Volmer.
+
+Au point :
+
+  I = 26.04 A
+  T_air,in = 10 degC
+  NTU = 5
+
+le facteur passe approximativement de :
+
+  1.105 à l'entrée
+
+à :
+
+  0.985 à la sortie.
+
+À :
+
+  I = 26.04 A
+  T_air,in = 20 degC
+  NTU = 3
+
+il passe de :
+
+  1.068
+
+à :
+
+  0.992.
+
+La perturbation gazeuse thermo-couplée est donc assez grande pour justifier un
+test dans le solveur électrochimique complet.
+
+*** Décision après projection électrochimique
+
+L'axe x du solveur 3D reste périodique. Une condition monotone entrée-sortie ne
+sera pas injectée artificiellement dans cette géométrie.
+
+La prochaine étape utilise trois solveurs 3D indépendants représentant des
+tranches locales du canal.
+
+Le solveur électrochimique est modifié pour distinguer :
+
+  c_ref
+
+utilisée comme concentration de référence de Butler-Volmer, et :
+
+  c_feed
+
+utilisée comme concentration O2 imposée à la frontière gaz.
+
+Cette distinction est nécessaire pour ne pas annuler artificiellement la
+variation locale dans :
+
+  c / c_ref.
+
+*** Étape 8 — tranches quasi-3D électrochimiques
+
+Premier cas ciblé :
+
+  I = 26.04 A
+  T_air,in = 20 degC
+  NTU = 3
+
+avec :
+
+  xi =
+    0
+    0.5
+    1.
+
+Chaque tranche utilise le même modèle cathodique 3D, mais avec sa propre valeur
+locale de :
+
+  c_feed = c_O2(xi).
+
+Le quick utilise une grille réduite :
+
+  8 x 8 x 32
+
+et un pseudo-temps :
+
+  5e-4 s
+
+pour mesurer la réponse avant une campagne plus coûteuse.
+
+Nouvelle cible :
+
+  make quick-quasi3d-electrochem-v09
+
+Sorties :
+
+  results/quick-v09-quasi3d-electrochem-slices.json
+  results/quick-v09-quasi3d-electrochem-slices.csv
+
+Les observables comparées seront :
+
+- concentration O2 moyenne ;
+- densité volumique ORR moyenne ;
+- courant de réaction intégré ;
+- surtension moyenne ;
+- courant relatif à la tranche d'entrée.
+
+*** Critère de décision
+
+Si le courant ORR intégré varie de plusieurs pourcents entre les trois tranches,
+la prochaine étape élargira la campagne en NTU / régime thermique et préparera
+la refonte streamwise non périodique.
+
+Si la réponse électrochimique amortit fortement le forçage gazeux, V0.9 pourra
+conserver l'approche par tranches comme correction de premier ordre.
+

@@ -40,6 +40,7 @@ def build_solver(
     stop_time: float,
     output_dir: Path,
     scalar_dt: float | None = None,
+    oxygen_feed_concentration: float | None = None,
 ):
     coords = d3.CartesianCoordinates("x", "y", "z")
     dist = d3.Distributor(coords, dtype=np.float64)
@@ -104,9 +105,17 @@ def build_solver(
     # Open-cathode air-feed boundary.  The smooth x/y modulation represents
     # nonuniform external airflow / rib exposure while retaining periodic bases.
     c_ref = params.oxygen_inlet_concentration
+    c_feed = (
+        c_ref
+        if oxygen_feed_concentration is None
+        else oxygen_feed_concentration
+    )
+    if c_feed <= 0.0:
+        raise ValueError("oxygen_feed_concentration must be positive")
+
     inlet = dist.Field(name="c_inlet", bases=(xbasis, ybasis))
     x2, y2 = dist.local_grids(xbasis, ybasis)
-    inlet["g"] = c_ref * (
+    inlet["g"] = c_feed * (
         0.92
         + 0.08
         * np.cos(2.0 * np.pi * y2 / params.length_y)
@@ -114,7 +123,7 @@ def build_solver(
     )
 
     # Initial guesses.
-    c["g"] = c_ref
+    c["g"] = c_feed
     phi_s["g"] = params.cathode_solid_potential
     phi_m["g"] = params.membrane_proton_potential
 
@@ -262,6 +271,7 @@ def run(
     max_dt: float = 2.0e-6,
     output_dir: str | Path = "output-electrochem",
     scalar_dt: float | None = None,
+    oxygen_feed_concentration: float | None = None,
 ) -> None:
     params = CathodeParameters()
     solver = build_solver(
@@ -272,11 +282,17 @@ def run(
         stop_time=stop_time,
         output_dir=Path(output_dir),
         scalar_dt=scalar_dt,
+        oxygen_feed_concentration=oxygen_feed_concentration,
     )
 
     logger.info("Starting V0.2 3D open-cathode electrochemistry model")
     logger.info("grid=%dx%dx%d", nx, ny, nz)
-    logger.info("open cathode: c_O2,air = %.6g mol/m^3", params.oxygen_inlet_concentration)
+    actual_feed = (
+        params.oxygen_inlet_concentration
+        if oxygen_feed_concentration is None
+        else oxygen_feed_concentration
+    )
+    logger.info("open cathode: c_O2,air = %.6g mol/m^3", actual_feed)
     logger.info(
         "temperatures: inlet air=%.2f C, stack/MEA=%.2f C",
         params.oxidant_inlet_temperature - 273.15,
@@ -334,6 +350,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-dt", type=float, default=2.0e-6)
     parser.add_argument("--output-dir", default="output-electrochem")
     parser.add_argument(
+        "--oxygen-feed-concentration",
+        type=float,
+        default=None,
+        help="override local open-cathode O2 feed concentration [mol/m^3]",
+    )
+    parser.add_argument(
         "--scalar-dt",
         type=float,
         default=None,
@@ -353,6 +375,7 @@ def main() -> None:
         max_dt=args.max_dt,
         output_dir=args.output_dir,
         scalar_dt=args.scalar_dt,
+        oxygen_feed_concentration=args.oxygen_feed_concentration,
     )
 
 
