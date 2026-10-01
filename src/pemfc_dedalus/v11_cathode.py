@@ -80,6 +80,109 @@ def standard_litre_per_minute_to_mol_s(
     )
 
 
+def water_saturation_pressure_derivative_pa_k(
+    temperature_k: float,
+) -> float:
+    """Return d(p_sat)/dT for the Buck liquid-water correlation."""
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+    temperature_c = temperature_k - 273.15
+    a = 18.678 - temperature_c / 234.5
+    b = temperature_c / (257.14 + temperature_c)
+    dlog_p_dtemperature = (
+        -b / 234.5
+        + a * 257.14 / (257.14 + temperature_c) ** 2
+    )
+    saturation_pressure = 611.21 * __import__("math").exp(a * b)
+    return saturation_pressure * dlog_p_dtemperature
+
+
+def cathode_isobaric_outlet_mol_s(
+    *,
+    state: CathodeGasState,
+    liquid_water_mol: float,
+    inlet_air_mol_s: float,
+    inlet_water_mole_fraction: float,
+    current_a: float,
+    water_source_to_gas_mol_s: float,
+    temperature_k: float,
+    temperature_rate_k_s: float,
+    total_pressure_pa: float,
+    faraday_c_mol: float = 96485.33212,
+) -> float:
+    """Return outlet flow enforcing constant cathode pressure and volume.
+
+    For an ideal-gas control volume at fixed pressure and fixed geometry,
+
+        dn_g/dt = -n_g/T * dT/dt.
+
+    In the unsaturated regime all cathode water is gaseous.  With liquid water
+    present, vapour is constrained by saturation and the liquid phase buffers
+    net water addition/removal; the saturation-pressure derivative is then
+    included explicitly.
+    """
+    if liquid_water_mol < 0.0:
+        raise ValueError("liquid_water_mol must be non-negative")
+    if inlet_air_mol_s < 0.0:
+        raise ValueError("inlet_air_mol_s must be non-negative")
+    if not 0.0 <= inlet_water_mole_fraction <= 1.0:
+        raise ValueError("inlet_water_mole_fraction must be in [0, 1]")
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+    if total_pressure_pa <= 0.0:
+        raise ValueError("total_pressure_pa must be positive")
+
+    faraday = faraday_rates_per_cell(current_a, faraday_c_mol)
+    target_gas_accumulation = (
+        -state.total_mol * temperature_rate_k_s / temperature_k
+    )
+
+    if liquid_water_mol <= 0.0:
+        outlet = (
+            inlet_air_mol_s
+            - faraday.oxygen_consumption_mol_s
+            + water_source_to_gas_mol_s
+            - target_gas_accumulation
+        )
+    else:
+        from .anode import water_saturation_pressure_pa
+
+        saturation_pressure = water_saturation_pressure_pa(temperature_k)
+        if saturation_pressure >= total_pressure_pa:
+            raise ValueError(
+                "saturation pressure must remain below total cathode pressure"
+            )
+        dry_mol = state.oxygen_mol + state.nitrogen_mol
+        dry_inlet_mol_s = inlet_air_mol_s * (
+            1.0 - inlet_water_mole_fraction
+        )
+        dry_fraction = 1.0 - saturation_pressure / total_pressure_pa
+        dp_sat_dtemperature = water_saturation_pressure_derivative_pa_k(
+            temperature_k
+        )
+        dq_dtemperature = (
+            total_pressure_pa
+            * dp_sat_dtemperature
+            / (total_pressure_pa - saturation_pressure) ** 2
+        )
+        saturation_expansion_mol_s = (
+            dry_mol * dq_dtemperature * temperature_rate_k_s
+        )
+        outlet = (
+            (
+                dry_inlet_mol_s
+                - faraday.oxygen_consumption_mol_s
+            )
+            / dry_fraction
+            + saturation_expansion_mol_s
+            - target_gas_accumulation
+        )
+
+    if outlet < 0.0:
+        raise ValueError("isobaric outlet flow would be negative")
+    return outlet
+
+
 def cathode_constant_inventory_outlet_mol_s(
     *,
     inlet_air_mol_s: float,
