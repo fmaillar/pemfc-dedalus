@@ -382,7 +382,7 @@ def trajectory_point_to_row(point: V11TrajectoryPoint) -> dict[str, float | int 
         "cathode_liquid_water_mol": diagnostics.cathode_phase.liquid_mol,
         "cell_voltage_v": voltage.cell_voltage_v,
         "reversible_voltage_v": voltage.reversible_v,
-        "orr_activation_loss_v": voltage.orr_activation_loss_v,
+        "orr_activation_loss_v": voltage.activation_loss_v,
         "membrane_ohmic_loss_v": voltage.membrane_ohmic_loss_v,
         "additional_resolved_loss_v": voltage.additional_resolved_loss_v,
         "heat_generation_w": diagnostics.thermal.heat_generation_w,
