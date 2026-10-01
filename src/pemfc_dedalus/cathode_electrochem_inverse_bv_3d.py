@@ -29,6 +29,7 @@ class InverseBVPicardStep(TypedDict):
     fixed_point_residual: float
     damping: float
     backtracks: int
+    accelerated: bool
 
 
 class InverseBVResidualComponents(TypedDict):
@@ -121,6 +122,7 @@ def solve_stationary_inverse_bv(
     picard_relaxation: float = 0.25,
     picard_tolerance: float = 0.0,
     newton_fallback: bool = True,
+    anderson_depth: int = 4,
 ) -> InverseBVResult:
     """Solve the stationary cathode with q as an algebraic inverse-BV unknown."""
     if not 0.0 < newton_damping <= 1.0:
@@ -139,6 +141,8 @@ def solve_stationary_inverse_bv(
         raise ValueError("picard_relaxation must be in (0, 1]")
     if picard_tolerance < 0.0:
         raise ValueError("picard_tolerance must be non-negative")
+    if anderson_depth < 0:
+        raise ValueError("anderson_depth must be non-negative")
 
     beta_a = params.beta_anodic
     beta_c = params.beta_cathodic
@@ -379,14 +383,28 @@ def solve_stationary_inverse_bv(
             return q_bv_projected, c_picard
 
         q_bv_hat, c_picard = picard_map()
+        x_history: list[np.ndarray] = []
+        g_history: list[np.ndarray] = []
+        f_history: list[np.ndarray] = []
+
         for picard_iteration in range(1, picard_iterations + 1):
             q_hat.change_scales(1)
             old_q_hat = np.asarray(q_hat["g"]).copy()
+            fixed_point_defect = q_bv_hat - old_q_hat
             q_scale = np.maximum(np.abs(old_q_hat), 1e-12)
             fixed_point_residual = float(
-                np.max(np.abs(q_bv_hat - old_q_hat) / q_scale)
+                np.max(np.abs(fixed_point_defect) / q_scale)
             )
             picard_fixed_point_residual = fixed_point_residual
+
+            x_history.append(old_q_hat.copy())
+            g_history.append(q_bv_hat.copy())
+            f_history.append(fixed_point_defect.copy())
+            keep = anderson_depth + 1
+            if keep > 0:
+                x_history = x_history[-keep:]
+                g_history = g_history[-keep:]
+                f_history = f_history[-keep:]
 
             if (
                 not np.all(np.isfinite(q_bv_hat))
@@ -401,6 +419,37 @@ def solve_stationary_inverse_bv(
                 picard_converged = True
                 break
 
+            accelerated = False
+            direction = fixed_point_defect
+
+            if anderson_depth > 0 and len(f_history) >= 2:
+                residual_differences = np.column_stack(
+                    [
+                        (f_history[index + 1] - f_history[index]).ravel()
+                        for index in range(len(f_history) - 1)
+                    ]
+                )
+                map_differences = np.column_stack(
+                    [
+                        (g_history[index + 1] - g_history[index]).ravel()
+                        for index in range(len(g_history) - 1)
+                    ]
+                )
+                coefficients, *_ = np.linalg.lstsq(
+                    residual_differences,
+                    fixed_point_defect.ravel(),
+                    rcond=None,
+                )
+                anderson_q_hat = (
+                    q_bv_hat.ravel() - map_differences @ coefficients
+                ).reshape(q_bv_hat.shape)
+                if (
+                    np.all(np.isfinite(anderson_q_hat))
+                    and float(np.min(anderson_q_hat)) > 0.0
+                ):
+                    direction = anderson_q_hat - old_q_hat
+                    accelerated = True
+
             damping = 1.0
             accepted = False
             used_backtracks = 0
@@ -408,30 +457,40 @@ def solve_stationary_inverse_bv(
             trial_q_bv = q_bv_hat
             trial_c = c_picard
 
-            for backtrack in range(max_backtracks):
-                trial_q_hat = old_q_hat + damping * (q_bv_hat - old_q_hat)
-                if float(np.min(trial_q_hat)) <= 0.0:
-                    damping *= 0.5
-                    continue
+            for attempt in range(2):
+                for backtrack in range(max_backtracks):
+                    trial_q_hat = old_q_hat + damping * direction
+                    if float(np.min(trial_q_hat)) <= 0.0:
+                        damping *= 0.5
+                        continue
 
-                q_hat["g"] = trial_q_hat
-                q_hat.change_layout("c")
-                q_hat.change_scales(1)
-                trial_q_bv, trial_c = picard_map()
-                trial_scale = np.maximum(np.abs(trial_q_hat), 1e-12)
-                trial_residual = float(
-                    np.max(np.abs(trial_q_bv - trial_q_hat) / trial_scale)
-                )
-                if (
-                    np.all(np.isfinite(trial_q_bv))
-                    and float(np.min(trial_c)) > 0.0
-                    and float(np.min(trial_q_bv)) > 0.0
-                    and trial_residual < fixed_point_residual
-                ):
-                    accepted = True
-                    used_backtracks = backtrack
+                    q_hat["g"] = trial_q_hat
+                    q_hat.change_layout("c")
+                    q_hat.change_scales(1)
+                    trial_q_bv, trial_c = picard_map()
+                    trial_scale = np.maximum(np.abs(trial_q_hat), 1e-12)
+                    trial_residual = float(
+                        np.max(
+                            np.abs(trial_q_bv - trial_q_hat) / trial_scale
+                        )
+                    )
+                    if (
+                        np.all(np.isfinite(trial_q_bv))
+                        and float(np.min(trial_c)) > 0.0
+                        and float(np.min(trial_q_bv)) > 0.0
+                        and trial_residual < fixed_point_residual
+                    ):
+                        accepted = True
+                        used_backtracks = backtrack
+                        break
+                    damping *= 0.5
+
+                if accepted or not accelerated:
                     break
-                damping *= 0.5
+
+                accelerated = False
+                direction = fixed_point_defect
+                damping = 1.0
 
             if not accepted:
                 q_hat["g"] = old_q_hat
@@ -453,6 +512,7 @@ def solve_stationary_inverse_bv(
                     "fixed_point_residual": trial_residual,
                     "damping": damping,
                     "backtracks": used_backtracks,
+                    "accelerated": accelerated,
                 }
             )
             q_bv_hat = trial_q_bv
