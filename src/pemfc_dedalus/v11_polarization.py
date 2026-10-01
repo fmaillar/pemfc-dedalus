@@ -111,7 +111,7 @@ def simulate_periodic_polarization_point(
         raise ValueError("convergence_tolerance must be positive")
 
     stack = UserStackConfiguration()
-    airflow = stack.coolant_air_target_slpm(current_a)
+    airflow = stack.cathode_air_target_slpm(current_a)
     purge_period = stack.purge_period_s(current_a)
     scenario = reference_dynamic_scenario()
     effective_inputs = scenario.inputs if inputs is None else inputs
