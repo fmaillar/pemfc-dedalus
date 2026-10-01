@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "model": "v11-purge-periodic-polarization",
+  "dt_s": 0.02,
+  "sample_every_s": 1.0,
+  "max_cycles": 4,
+  "convergence_tolerance": 0.0001,
+  "parallel_workers": 2,
+  "note": "Manual BOL voltages are validation-only. V11 cathode Pt loading and ECSA remain explicit generic sensitivity assumptions.",
+  "points": [
+    {
+      "current_a": 15.0,
+      "stack_air_flow_slpm": 124.50000000000001,
+      "purge_period_s": 153.33333333333334,
+      "cycles_completed": 4,
+      "converged": false,
+      "cycle_state_error": 0.03990801255461516,
+      "mean_cell_voltage_v": 0.7880170368228543,
+      "min_cell_voltage_v": 0.7875782963150957,
+      "max_cell_voltage_v": 0.788391237470804,
+      "mean_stack_temperature_k": 315.26354173220875,
+      "mean_membrane_water_content": 2.556820988733588,
+      "mean_anode_nitrogen_mol": 1.0428413191752353e-06,
+      "mean_stack_power_w": 118.20255552342815,
+      "status": "ok",
+      "error": "",
+      "manual_bol_cell_voltage_v": 0.7986206896551724,
+      "model_minus_manual_v": -0.010603652832318122
+    },
+    {
+      "current_a": 26.04,
+      "stack_air_flow_slpm": 216.132,
+      "purge_period_s": 88.32565284178187,
+      "cycles_completed": 4,
+      "converged": false,
+      "cycle_state_error": 0.06207560754559322,
+      "mean_cell_voltage_v": 0.716017523644099,
+      "min_cell_voltage_v": 0.7132319351188509,
+      "max_cell_voltage_v": 0.7187527190617835,
+      "mean_stack_temperature_k": 318.5536180003228,
+      "mean_membrane_water_content": 2.372962760682188,
+      "mean_anode_nitrogen_mol": 6.373397968854564e-07,
+      "mean_stack_power_w": 186.45096315692336,
+      "status": "ok",
+      "error": "",
+      "manual_bol_cell_voltage_v": 0.7681655172413794,
+      "model_minus_manual_v": -0.052147993597280395
+    }
+  ]
+}
