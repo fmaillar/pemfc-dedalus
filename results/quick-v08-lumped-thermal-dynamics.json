@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "model": "v08-lumped-thermal-dynamics",
+  "source_csv": "results/quick-v08-thermal-dynamic-coupling.csv",
+  "source_json": "results/quick-v08-thermal-dynamic-coupling.json",
+  "thermal_mass_j_k": 1000.0,
+  "initial_stack_temperature_c": 20.0,
+  "inlet_temperature_c": 20.0,
+  "final_stack_temperature_c": 35.54053114819288,
+  "min_stack_temperature_c": 20.0,
+  "max_stack_temperature_c": 35.54053114819288,
+  "final_current_a": 28.48392124641344,
+  "final_target_temperature_c": 41.106478260599125,
+  "duration_s": 200.0
+}
