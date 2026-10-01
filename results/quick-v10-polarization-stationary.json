@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "model": "v10-polarization-stationary-diagnostic",
+  "grid": [
+    8,
+    8,
+    32
+  ],
+  "stop_time": 0.008,
+  "scalar_dt": 0.0001,
+  "window_points": 6,
+  "relative_tolerance": 0.005,
+  "cases": [
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "stable_window": {
+        "start_time_s": 0.002300000000000005,
+        "end_time_s": 0.002799999999999963,
+        "mean_current_density_a_m2": 582.1887204781019,
+        "relative_span": 0.004853882725629805,
+        "window_points": 6
+      },
+      "post_skip_min_current_density_a_m2": 569.7791833337789,
+      "post_skip_max_current_density_a_m2": 586.1151736315547,
+      "final_current_density_a_m2": 569.7791833337789
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "stable_window": {
+        "start_time_s": 0.0024999999999999883,
+        "end_time_s": 0.0029999999999999463,
+        "mean_current_density_a_m2": 2071.0100765448183,
+        "relative_span": 0.004889545007556883,
+        "window_points": 6
+      },
+      "post_skip_min_current_density_a_m2": 2033.8856761304253,
+      "post_skip_max_current_density_a_m2": 2801.2362567163345,
+      "final_current_density_a_m2": 2801.2362567163345
+    }
+  ]
+}
