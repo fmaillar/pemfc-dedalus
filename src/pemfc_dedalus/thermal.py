@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import numpy as np
+
 
 def slpm_to_m3_s(flow_slpm: float) -> float:
     """Convert standard litres per minute to cubic metres per second."""
@@ -207,3 +209,82 @@ def advance_lumped_stack_temperature_k(
         / thermal_mass_j_k
         * dt_s
     )
+
+
+def lumped_thermal_time_constant_s(
+    *,
+    thermal_mass_j_k: float,
+    air_flow_slpm: float,
+    air_density_kg_m3: float = 1.204,
+    air_specific_heat_j_kg_k: float = 1005.0,
+) -> float:
+    """Return the ideal lumped thermal time constant C_th/(m_dot c_p)."""
+    if thermal_mass_j_k <= 0.0:
+        raise ValueError("thermal_mass_j_k must be positive")
+    if air_specific_heat_j_kg_k <= 0.0:
+        raise ValueError("air_specific_heat_j_kg_k must be positive")
+
+    mass_flow = air_mass_flow_kg_s(
+        air_flow_slpm,
+        air_density_kg_m3=air_density_kg_m3,
+    )
+    if mass_flow <= 0.0:
+        raise ValueError("air_flow_slpm must be positive")
+    return thermal_mass_j_k / (
+        mass_flow * air_specific_heat_j_kg_k
+    )
+
+
+def lumped_equilibrium_temperature_k(
+    *,
+    heat_rejection_w: float,
+    inlet_temperature_k: float,
+    air_flow_slpm: float,
+    air_density_kg_m3: float = 1.204,
+    air_specific_heat_j_kg_k: float = 1005.0,
+) -> float:
+    """Return the ideal steady stack temperature for a fixed air flow."""
+    return outlet_temperature_k(
+        heat_rejection_w=heat_rejection_w,
+        inlet_temperature_k=inlet_temperature_k,
+        air_flow_slpm=air_flow_slpm,
+        air_density_kg_m3=air_density_kg_m3,
+        air_specific_heat_j_kg_k=air_specific_heat_j_kg_k,
+    )
+
+
+def lumped_temperature_analytic_k(
+    *,
+    time_s: float,
+    initial_stack_temperature_k: float,
+    heat_rejection_w: float,
+    inlet_temperature_k: float,
+    air_flow_slpm: float,
+    thermal_mass_j_k: float,
+    air_density_kg_m3: float = 1.204,
+    air_specific_heat_j_kg_k: float = 1005.0,
+) -> float:
+    """Return the analytic ideal lumped temperature for constant conditions."""
+    if time_s < 0.0:
+        raise ValueError("time_s must be non-negative")
+    if initial_stack_temperature_k < inlet_temperature_k:
+        raise ValueError(
+            "analytic form assumes initial stack temperature >= inlet temperature"
+        )
+
+    equilibrium = lumped_equilibrium_temperature_k(
+        heat_rejection_w=heat_rejection_w,
+        inlet_temperature_k=inlet_temperature_k,
+        air_flow_slpm=air_flow_slpm,
+        air_density_kg_m3=air_density_kg_m3,
+        air_specific_heat_j_kg_k=air_specific_heat_j_kg_k,
+    )
+    tau = lumped_thermal_time_constant_s(
+        thermal_mass_j_k=thermal_mass_j_k,
+        air_flow_slpm=air_flow_slpm,
+        air_density_kg_m3=air_density_kg_m3,
+        air_specific_heat_j_kg_k=air_specific_heat_j_kg_k,
+    )
+    return equilibrium + (
+        initial_stack_temperature_k - equilibrium
+    ) * np.exp(-time_s / tau)
