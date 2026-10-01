@@ -278,6 +278,7 @@ def solve_stationary(
         reaction_scale["g"] = scale
         stage_iterations = 0
         perturbation_norm = np.inf
+        perturbation_norm_history: list[float] = []
 
         stage_damping = newton_damping
 
