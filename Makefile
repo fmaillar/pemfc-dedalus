@@ -989,3 +989,7 @@ quick-stationary-component-norms-v10:
 
 quick-stationary-globalized-v10:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_globalized
+
+
+quick-stationary-inverse-bv-v10:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_inverse_bv
