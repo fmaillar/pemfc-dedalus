@@ -80,11 +80,25 @@ justification.
 
 Required to convert imposed stack current I into current density j = I/A.
 
-The representative Dedalus domain area is not automatically the real Ballard
-active cell area. The product manual gives the external stack dimensions, but
-not the electrochemically active MEA area.
+The product manual itself gives only external stack dimensions, but two
+independent literature sources specific to the FCgen-1020ACS report:
 
-Status: UNRESOLVED.
+  A_cell = 0.0145 m2/cell = 145 cm2/cell.
+
+This value is therefore accepted for V11 as a literature-sourced geometric
+parameter, not a fitted quantity.
+
+At I = 26.04 A:
+
+  j = I / A_cell
+    = 26.04 / 0.0145
+    ~= 1795.86 A/m2.
+
+The historical V10 reference value 2150 A/m2 must not be carried into V11 as a
+physical current-density target because it corresponds to a smaller implied
+area (~0.01211 m2) and was not the reported 1020ACS active area.
+
+Status: RESOLVED FROM LITERATURE.
 
 ** Exchange-current density / catalyst kinetic parameters
 
@@ -266,3 +280,40 @@ assumptions:
 - detailed contact resistances inside the cell.
 
 These remain unresolved or require independent literature/material data.
+
+
+* Literature cross-check: reduced-order FCgen-1020ACS model
+
+A 2025 Concordia MASc thesis devoted to a reduced-order dynamic model of the
+Ballard FCgen-1020ACS provides a useful provenance audit.
+
+It reports as non-fitted parameters:
+
+- active area A_cell = 1.45e-2 m2;
+- stack heat capacity = 100 J/K per cell;
+- dry membrane density = 1980 kg/m3;
+- membrane equivalent molar mass = 1.1 kg/mol;
+- ionomer volume fraction in CL = 0.3;
+- membrane ionomer volume fraction = 1;
+- CL thickness = 1e-5 m;
+- GDL thickness = 2e-4 m;
+- membrane thickness = 8e-5 m;
+- GDL porosity = 0.76;
+- CL porosity = 0.4;
+- intrinsic permeability ~1e-12 m2 (GDL), ~1e-13 m2 (CL);
+- contact angle = 110 deg.
+
+These values are literature-based rather than Ballard-manual measurements and
+must retain that provenance distinction.
+
+The same thesis explicitly marks the cathode exchange-current parameter,
+cathode concentration exponent and cathode transfer coefficient as parameters
+that require fitting to experimental data for that specific system.
+
+Therefore V11 SHALL NOT adopt those fitted kinetic parameters as predictive
+defaults merely because they appear in that model.
+
+The thesis also gives literature reference values (Neyerlin et al.) for ORR
+kinetics, but explicitly notes that electrode-material differences require
+adjustment for the actual stack. Those values may be used for sensitivity or
+bounds only until stack-specific catalyst information is independently sourced.
