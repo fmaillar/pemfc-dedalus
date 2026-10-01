@@ -362,6 +362,7 @@ def solve_stationary_inverse_bv(
                 * np.sinh(-beta * eta_picard)
                 / q_reference
             )
+            q_hat.change_scales(1)
             return q_bv_hat, c_picard
 
         q_bv_hat, c_picard = picard_map()
