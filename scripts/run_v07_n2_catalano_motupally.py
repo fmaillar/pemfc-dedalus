@@ -439,7 +439,7 @@ def run_simulation_task(task: dict[str, Any]) -> dict[str, Any]:
     if model_kind == "constant_d":
         permeance_model = make_v06_transport_permeance_model(
             dry_reference_si=dry_reference_si,
-            stack_temperature_k=stack_temperature_k,
+            stack_temperature_k=p.stack_temperature,
             gas_constant_j_mol_k=p.gas_constant,
             faraday_c_mol=p.faraday,
             fixed_charge_mol_m3=fixed_charge,
