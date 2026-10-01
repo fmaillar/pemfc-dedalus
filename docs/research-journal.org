@@ -13626,3 +13626,66 @@ Décision :
 
   seulement ensuite décider si le lookup Motupally doit être étendu en
   température.
+
+
+*** Gate rouge — variable de température prescrite
+
+La première exécution du quick de rétroaction thermique ciblée est arrêtée par
+le gate logiciel.
+
+Résultat :
+
+  8 tests échouent
+  162 passent.
+
+Erreur commune :
+
+  NameError:
+    name 'step_temperature_k' is not defined
+
+dans :
+
+  scripts/run_v07_anode_nitrogen.py.
+
+*** Cause
+
+L'extension du simulateur V0.7 pour accepter :
+
+  temperature_model_k(t)
+
+a été introduite par remplacement mécanique.
+
+Deux erreurs de plomberie ont été créées :
+
+1. la variable locale a été nommée accidentellement :
+
+     step_step_temperature_k
+
+   alors que le reste de la boucle utilisait :
+
+     step_temperature_k ;
+
+2. plusieurs appels de fonctions ont reçu un nom d'argument invalide :
+
+     step_temperature_k=...
+
+   au lieu de conserver leur signature historique :
+
+     temperature_k=step_temperature_k.
+
+Aucune équation physique n'est en cause.
+
+*** Correctif
+
+La variable locale est désormais uniformément :
+
+  step_temperature_k.
+
+Les appels aux fonctions existantes conservent :
+
+  temperature_k=step_temperature_k.
+
+Le comportement V0.7 sans modèle de température reste inchangé.
+
+Le gate doit être relancé avant toute campagne ou tout push de nouveaux
+résultats.
