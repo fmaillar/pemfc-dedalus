@@ -14556,3 +14556,128 @@ et la fonction interpole sur :
 Le comportement scientifique attendu est inchangé.
 
 Le gate complet doit être relancé avant exécution du point fixe.
+
+
+*** Résultats du couplage bidirectionnel thermo-N2
+
+Le calcul du point fixe thermique bidirectionnel a été exécuté après validation
+du gate logiciel complet :
+
+  pytest :
+    172 passed
+
+  Ruff :
+    All checks passed
+
+  mypy :
+    Success: no issues found in 104 source files.
+
+Le point fixe converge en deux itérations avec le critère :
+
+  max_t |T^(k+1) - T^(k)| <= 0.01 K.
+
+Itération 1 :
+
+  max Delta T :
+    0.021187 K
+
+  RMS Delta T :
+    0.013980 K
+
+  température finale :
+    35.56172 degC
+
+  courant moyen :
+    28.556263 A
+
+  flux N2 moyen :
+    9.35875e-7 mol/m2/s
+
+  période moyenne de purge :
+    80.57 s.
+
+Itération 2 :
+
+  max Delta T :
+    1.65e-5 K
+
+  RMS Delta T :
+    7.06e-6 K
+
+  température finale :
+    35.56170 degC
+
+  courant moyen :
+    28.556236 A
+
+  flux N2 moyen :
+    9.36682e-7 mol/m2/s
+
+  période moyenne de purge :
+    80.57 s.
+
+La correction totale maximale de la trajectoire thermique par rapport à la
+trajectoire prescrite initiale est :
+
+  0.021171 K
+
+avec une correction RMS de :
+
+  0.013974 K.
+
+La température finale évolue de :
+
+  35.54053 degC
+  ->
+  35.56170 degC.
+
+La fermeture bidirectionnelle modifie donc très faiblement la trajectoire
+thermique et les observables système.
+
+
+*** Interprétation du point fixe thermique
+
+Le couplage :
+
+  T
+  -> propriétés gaz et crossover N2
+  -> courant
+  -> chaleur rejetée
+  -> débit d'air
+  -> T
+
+est faiblement rétroactif dans le régime nominal étudié.
+
+Le point fixe est pratiquement atteint après une seule correction thermique,
+et la seconde itération ne modifie la température que de quelques dizaines de
+microkelvins.
+
+La variation du courant est négligeable et l'horloge de purge est inchangée.
+
+L'approximation unidirectionnelle utilisée pendant le développement de V0.8
+est donc validée quantitativement.
+
+
+*** Gel de la baseline V0.8
+
+La baseline V0.8 retenue est :
+
+- dynamique thermique lumped du stack ;
+- masse thermique Ballard ;
+- chaleur rejetée fonction du courant et de la courbe BOL ;
+- commande du débit d'air avec contrainte thermique et plancher
+  stoechiométrique ;
+- états gazeux calculés à T(t) ;
+- pression de vapeur saturante p_sat(T) ;
+- pression partielle cathodique N2 dépendante de T ;
+- dépendance Arrhenius explicite de la perméabilité N2 ;
+- lookup Motupally RH x j à la température baseline V0.7.
+
+Le lookup Motupally RH x j x T reste une validation de sensibilité.
+
+La fermeture bidirectionnelle montre qu'une résolution thermique fortement
+couplée à chaque pas temporel n'est pas nécessaire dans le régime nominal
+étudié.
+
+V0.8 est considérée comme validée et gelée.
+
