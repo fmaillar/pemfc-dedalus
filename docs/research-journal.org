@@ -19367,3 +19367,57 @@ Le critère décisif du prochain run reste :
   forte diminution de pre_newton_residual_merit,
 
 en particulier de la composante oxygen.
+
+
+*** Révision de stratégie — priorité efficacité, simplicité, concision
+
+La reconstruction complète du LBVP à chaque itération Picard n'est pas retenue
+comme architecture finale.
+
+Deux observations motivent cette révision.
+
+Premièrement, pour q_hat fixé, les équations de transport et de potentiel sont
+linéaires. Le même opérateur linéaire peut donc être factorisé une seule fois et
+réutilisé à chaque itération Picard, tandis que le membre de droite dépendant de
+q_hat est réévalué.
+
+Deuxièmement, le mérite résiduel explicite était calculé directement sur le
+champ évalué à l'échelle déaliasée. Or Dedalus résout le problème spectral
+tronqué avec méthode tau : la solution est exacte pour le problème polynomial
+modifié dans l'espace résolu, pas pour le résidu fort évalué à une résolution
+supérieure.
+
+Ainsi, un résidu fort déaliasé peut présenter un plancher non nul même lorsque
+le problème discret est correctement résolu.
+
+*** Étape 31 — solveur minimal et rapide
+
+La boucle Picard revient donc à l'architecture suivante :
+
+  construction LBVP une fois
+  -> factorisation une fois
+  -> mise à jour de q_hat
+  -> solve()
+  -> recalcul Butler-Volmer
+  -> sous-relaxation
+  -> répétition.
+
+Après convergence Picard, un dernier solve() est effectué avec le q_hat final.
+
+Le calcul du mérite est corrigé : chaque résidu explicite est projeté à
+l'échelle spectrale résolue avec change_scales(1) avant le calcul de sa norme.
+
+Cette modification teste le véritable résidu du problème discret au lieu du
+résidu fort déaliasé.
+
+Anderson acceleration n'est pas encore ajouté. Il ne sera introduit que si le
+Picard correctement diagnostiqué reste trop lent ou non contractant. Cela
+respecte l'ordre de priorité :
+
+1. méthode qui fonctionne ;
+2. architecture conceptuellement simple ;
+3. quantité de code minimale.
+
+La cible reste :
+
+  make quick-stationary-inverse-bv-picard-v10
