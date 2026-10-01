@@ -97,9 +97,6 @@ def cathode_constant_inventory_outlet_mol_s(
     """
     if inlet_air_mol_s < 0.0:
         raise ValueError("inlet_air_mol_s must be non-negative")
-    if water_source_to_gas_mol_s < 0.0:
-        raise ValueError("water_source_to_gas_mol_s must be non-negative")
-
     rates = faraday_rates_per_cell(current_a, faraday_c_mol)
     outlet = (
         inlet_air_mol_s
@@ -134,8 +131,6 @@ def cathode_gas_rhs_per_cell(
         raise ValueError("stack_air_flow_slpm must be non-negative")
     if outlet_molar_flow_per_cell_mol_s < 0.0:
         raise ValueError("outlet_molar_flow_per_cell_mol_s must be non-negative")
-    if water_source_to_gas_mol_s < 0.0:
-        raise ValueError("water_source_to_gas_mol_s must be non-negative")
     if not 0.0 <= inlet_oxygen_mole_fraction <= 1.0:
         raise ValueError("inlet_oxygen_mole_fraction must be in [0, 1]")
     if not 0.0 <= inlet_water_mole_fraction <= 1.0:
