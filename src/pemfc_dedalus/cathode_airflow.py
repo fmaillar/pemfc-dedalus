@@ -6,7 +6,6 @@ from dataclasses import dataclass
 
 import numpy as np
 
-
 STANDARD_MOLAR_VOLUME_M3_MOL = 22.414e-3
 
 
