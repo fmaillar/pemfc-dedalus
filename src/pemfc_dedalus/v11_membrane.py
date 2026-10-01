@@ -108,3 +108,106 @@ def membrane_water_transport(
         net_flux_mol_m2_s=net_flux,
         net_rate_mol_s=net_flux * reference.active_cell_area_m2,
     )
+
+
+
+@dataclass(frozen=True)
+class MembraneWaterInventory:
+    """Per-cell lumped membrane water inventory."""
+
+    fixed_site_mol: float
+    water_mol: float
+    mean_water_content: float
+
+
+@dataclass(frozen=True)
+class MembraneHydrationDerivative:
+    """Mean membrane hydration derivative from interfacial water exchange."""
+
+    anode_interface_rate_mol_s: float
+    cathode_interface_rate_mol_s: float
+    net_storage_rate_mol_s: float
+    mean_water_content_rate_s: float
+
+
+def membrane_fixed_site_moles_per_cell(
+    *,
+    mea: V11MEAReference | None = None,
+) -> float:
+    """Return fixed-acid-site moles in one cell membrane.
+
+    N_sites = (rho_dry / EW) * A_cell * L_mem.
+    """
+    reference = V11MEAReference() if mea is None else mea
+    fixed_charge = membrane_fixed_charge_concentration(
+        reference.membrane_dry_density_kg_m3,
+        reference.membrane_equivalent_weight_kg_mol,
+    )
+    membrane_volume = (
+        reference.active_cell_area_m2 * reference.membrane_thickness_m
+    )
+    return fixed_charge * membrane_volume
+
+
+def membrane_water_inventory(
+    *,
+    mean_water_content: float,
+    mea: V11MEAReference | None = None,
+) -> MembraneWaterInventory:
+    """Return membrane water inventory for a lumped mean lambda state."""
+    if mean_water_content < 0.0:
+        raise ValueError("mean_water_content must be non-negative")
+
+    fixed_sites = membrane_fixed_site_moles_per_cell(mea=mea)
+    return MembraneWaterInventory(
+        fixed_site_mol=fixed_sites,
+        water_mol=mean_water_content * fixed_sites,
+        mean_water_content=mean_water_content,
+    )
+
+
+def mean_water_content_from_inventory(
+    *,
+    water_mol: float,
+    mea: V11MEAReference | None = None,
+) -> float:
+    """Convert membrane water inventory [mol] to mean lambda."""
+    if water_mol < 0.0:
+        raise ValueError("water_mol must be non-negative")
+
+    fixed_sites = membrane_fixed_site_moles_per_cell(mea=mea)
+    return water_mol / fixed_sites
+
+
+def membrane_hydration_rhs(
+    *,
+    anode_interface_flux_into_membrane_mol_m2_s: float,
+    cathode_interface_flux_into_membrane_mol_m2_s: float,
+    mea: V11MEAReference | None = None,
+) -> MembraneHydrationDerivative:
+    """Return d(lambda_mean)/dt from interfacial water exchange.
+
+    Both interface flux arguments are positive when water enters the membrane
+    from the adjacent phase. Through-plane EOD and back diffusion do not appear
+    in this total-inventory balance because they redistribute water internally;
+    only net exchange through the two external membrane interfaces changes the
+    total membrane water content.
+    """
+    reference = V11MEAReference() if mea is None else mea
+    anode_rate = (
+        anode_interface_flux_into_membrane_mol_m2_s
+        * reference.active_cell_area_m2
+    )
+    cathode_rate = (
+        cathode_interface_flux_into_membrane_mol_m2_s
+        * reference.active_cell_area_m2
+    )
+    net_rate = anode_rate + cathode_rate
+    fixed_sites = membrane_fixed_site_moles_per_cell(mea=reference)
+
+    return MembraneHydrationDerivative(
+        anode_interface_rate_mol_s=anode_rate,
+        cathode_interface_rate_mol_s=cathode_rate,
+        net_storage_rate_mol_s=net_rate,
+        mean_water_content_rate_s=net_rate / fixed_sites,
+    )
