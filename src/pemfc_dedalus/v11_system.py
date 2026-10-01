@@ -229,8 +229,8 @@ def coupled_v11_rhs(
         cathode_outlet_molar_flow_per_cell_mol_s * cathode_water_fraction
     )
 
-    # cathode_gas_rhs receives only the membrane contribution here. Faraday
-    # water production is added separately to the total-water state below.
+    faraday_water = current_a / (2.0 * faraday_c_mol)
+
     cathode = cathode_gas_rhs_per_cell(
         state=cathode_gas,
         stack_air_flow_slpm=stack_air_flow_slpm,
@@ -238,9 +238,8 @@ def coupled_v11_rhs(
         current_a=current_a,
         inlet_oxygen_mole_fraction=inlet_oxygen_mole_fraction,
         inlet_water_mole_fraction=inlet_water_mole_fraction,
-        water_source_to_gas_mol_s=max(
-            -membrane.cathode_interface_rate_mol_s,
-            0.0,
+        water_source_to_gas_mol_s=(
+            faraday_water - membrane.cathode_interface_rate_mol_s
         ),
         outlet_molar_flow_per_cell_mol_s=(
             cathode_outlet_molar_flow_per_cell_mol_s
@@ -248,9 +247,8 @@ def coupled_v11_rhs(
         faraday_c_mol=faraday_c_mol,
     )
 
-    # Use the O2/N2 derivatives from the gas subsystem. Water is evolved as a
-    # total cathode inventory so equilibrium phase partition remains algebraic.
-    faraday_water = current_a / (2.0 * faraday_c_mol)
+    # Water is evolved as a total cathode inventory so equilibrium phase
+    # partition remains algebraic.
     cathode_total_water_rate = (
         faraday_water
         + cathode_water_inlet
