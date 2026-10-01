@@ -21564,3 +21564,237 @@ L'étape 22, runner dynamique générique, reste volontairement séparée. L'ét
 23 fournit maintenant la mécanique d'événement nécessaire pour que ce runner
 puisse ensuite intégrer exactement jusqu'à une purge, appliquer le saut d'état,
 puis reprendre l'intégration.
+
+
+
+** V11 étape 22 — runner dynamique générique
+
+Le coeur prédictif V11 dispose maintenant d'un runner temporel générique.
+
+L'objectif de cette étape n'est pas encore de définir un protocole expérimental
+particulier, mais de fournir l'infrastructure permettant d'imposer :
+
+- I(t) ;
+- débit d'air stack(t) ;
+- purges automatiques Ballard ;
+- purges manuelles à des instants prescrits ;
+
+et d'enregistrer l'évolution complète de l'état V11.
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_runner.py
+
+définit trois objets principaux.
+
+*** Commandes par morceaux constantes
+
+V11ControlSegment contient :
+
+  start_time_s
+  current_a
+  stack_air_flow_slpm
+
+Une expérience est décrite par une suite ordonnée de segments.
+
+Le premier segment doit commencer à t = 0.
+
+Les discontinuités de courant et de ventilation sont traitées comme de vraies
+frontières temporelles : un pas d'intégration n'est jamais autorisé à traverser
+une discontinuité de commande.
+
+*** Entrées physiques constantes
+
+V11RunnerInputs regroupe :
+
+- température d'air d'entrée ;
+- pression totale cathode ;
+- fraction molaire O2 entrée ;
+- fraction molaire H2O entrée ;
+- chargement Pt cathode ;
+- ECSA cathode ;
+- éventuelle perte additionnelle explicitement résolue.
+
+Les deux derniers paramètres catalytiques restent explicites car leur valeur
+FCgen-1020ACS n'est toujours pas résolue par une source suffisamment solide.
+
+*** Intégration hybride continue/discrète
+
+La fonction :
+
+  run_v11_dynamic(...)
+
+intègre le système continu :
+
+  dx/dt = f(x, I, débit_air)
+
+et découpe automatiquement chaque pas au plus proche parmi :
+
+- dt nominal ;
+- fin de simulation ;
+- prochain changement de commande ;
+- prochaine purge automatique ;
+- prochaine purge manuelle ;
+- prochain instant d'échantillonnage.
+
+Une purge automatique utilise l'horloge V11 étape 23 :
+
+  integral I dt = 2300 A.s.
+
+Une purge manuelle peut être prescrite par :
+
+  manual_purge_times_s = (...).
+
+Dans les deux cas, l'événement discret :
+
+  apply_v11_purge_event(...)
+
+est appliqué exactement au temps de l'événement, puis l'intégration reprend à
+partir du nouvel état.
+
+Le compteur A.s est remis à zéro après toute purge, y compris manuelle.
+
+Le runner accepte également :
+
+  initial_purge_clock
+
+afin de reprendre une expérience ou de démarrer près d'un seuil de purge.
+
+*** Intégrateur numérique initial
+
+Cette première version utilise explicitement Euler avant :
+
+  x_{n+1} = x_n + dt f(x_n).
+
+Ce choix est intentionnel pour disposer d'un runner transparent avant
+d'introduire un solveur adaptatif ou implicite.
+
+Aucune variable physique n'est silencieusement bornée ou tronquée.
+
+Si Euler produit :
+
+- T <= 0 ;
+- lambda < 0 ;
+- inventaire gazeux/eau < 0 ;
+
+le runner lève une erreur demandant de réduire dt.
+
+Cela permettra de mesurer proprement la stabilité temporelle du modèle V11 au
+lieu de masquer un problème numérique.
+
+*** Sortie trajectoire
+
+Chaque point contient :
+
+- temps ;
+- courant ;
+- débit d'air ;
+- compteur de purge ;
+- indicateur d'événement purge ;
+- état V11 complet ;
+- diagnostics algébriques complets.
+
+Une fonction :
+
+  trajectory_to_rows(...)
+
+aplatit les données pour CSV/JSON.
+
+Les colonnes comprennent notamment :
+
+- V_cell ;
+- E_rev ;
+- perte ORR ;
+- perte ohmique membrane ;
+- T_stack ;
+- dT/dt ;
+- T_air,out ;
+- lambda_mem ;
+- n_H2,a ;
+- n_N2,a ;
+- n_H2O,a ;
+- n_O2,c ;
+- n_N2,c ;
+- eau cathode totale/vapeur/liquide ;
+- activités eau anode/cathode ;
+- crossover N2 ;
+- débit H2 régulateur ;
+- débit sortie cathode ;
+- Q_gen ;
+- Q_air ;
+- NTU et efficacité thermique ;
+- résidu global de conservation d'eau.
+
+*** Runner CLI
+
+Un point d'entrée :
+
+  scripts/run_v11_dynamic.py
+
+lit un fichier JSON de scénario.
+
+Structure attendue :
+
+  {
+    "initial_state": {...},
+    "inputs": {...},
+    "controls": [
+      {
+        "start_time_s": 0.0,
+        "current_a": ...,
+        "stack_air_flow_slpm": ...
+      },
+      ...
+    ],
+    "stop_time_s": ...,
+    "dt_s": ...,
+    "sample_every_s": ...,
+    "automatic_purge": true,
+    "manual_purge_times_s": [...],
+    "initial_charge_since_purge_as": ...
+  }
+
+Le script écrit :
+
+  results/v11-dynamic.csv
+  results/v11-dynamic.json
+
+par défaut.
+
+Le CSV est la trajectoire exploitable pour les courbes temporelles.
+
+Le JSON résume l'exécution :
+
+- nombre de points ;
+- durée atteinte ;
+- nombre de purges ;
+- tension finale ;
+- température finale ;
+- hydratation membrane finale.
+
+*** Tests
+
+Les tests vérifient :
+
+- découpage exact au changement de courant/ventilation ;
+- purge automatique exactement au seuil 2300 A.s ;
+- reprise avec un compteur de purge non nul ;
+- purge manuelle ;
+- remise à zéro du compteur après purge ;
+- présence des observables majeures dans la sérialisation.
+
+*** État après étape 22 + étape 23
+
+V11 possède maintenant les trois couches nécessaires à une vraie expérience
+temporelle :
+
+1. coeur physique prédictif ;
+2. gestion des événements purge ;
+3. runner de commandes temporelles.
+
+La prochaine étape logique n'est plus d'ajouter une fermeture physique.
+
+L'étape 24 pourra définir un premier protocole dynamique de référence, choisir
+des conditions initiales physiquement cohérentes, lancer une trajectoire
+courant/ventilation/purge, puis effectuer une étude de convergence en dt avant
+d'interpréter les courbes.
