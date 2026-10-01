@@ -21409,3 +21409,158 @@ externe parmi :
 Les seuls paramètres encore explicitement non spécifiques au FCgen-1020ACS sont
 le chargement Pt cathode et l'ECSA, déjà identifiés comme verrou de provenance
 du modèle de tension.
+
+
+
+** V11 étape 23 — purge dynamique à événement et horloge 2300 A.s
+
+La purge anode est maintenant représentée comme un événement discret du système
+dynamique, et non comme un terme continu artificiellement lissé dans le RHS.
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_purge.py
+
+introduit deux composantes distinctes.
+
+*** Horloge de purge pilotée par la charge
+
+L'état de commande est :
+
+  Q_purge = integral I dt
+
+depuis la dernière purge.
+
+La règle constructeur Ballard est :
+
+  Q_purge,trigger = 2300 A.s.
+
+À courant constant :
+
+  t_purge = 2300 / I.
+
+Au point nominal I = 26.04 A :
+
+  t_purge ~= 88.33 s.
+
+La fonction :
+
+  time_to_ballard_purge_s(...)
+
+retourne le temps exact restant avant le seuil.
+
+La fonction :
+
+  advance_ballard_purge_clock(...)
+
+avance le compteur sur un pas numérique et retourne, si le seuil est franchi,
+la position temporelle exacte de l'événement à l'intérieur du pas.
+
+Le pas doit alors être découpé au niveau de cette discontinuité. La fonction
+refuse volontairement un pas assez grand pour contenir plus d'une purge.
+
+Cela prépare un intégrateur événementiel sans masquer les discontinuités de
+l'état.
+
+À I = 0, l'horloge de charge s'arrête.
+
+*** Événement de purge manuel ou automatique
+
+La fonction :
+
+  apply_v11_purge_event(...)
+
+peut être appelée :
+
+- par l'horloge automatique Ballard ;
+- explicitement pour une purge imposée par l'utilisateur.
+
+Par défaut, le volume échangé est celui du constructeur :
+
+  V_purge = 20 mL/cell.
+
+Le volume anode V11 issu du manuel est :
+
+  V_anode = 10 mL/cell.
+
+Le rapport vaut donc :
+
+  V_purge / V_anode = 2.
+
+Sous l'hypothèse de mélange parfaitement homogène déjà adoptée en V11 :
+
+  f_removed
+    = 1 - exp(-V_purge/V_anode)
+    = 1 - exp(-2)
+    ~= 0.8647.
+
+Le même facteur est appliqué aux inventaires présents juste avant l'événement :
+
+- H2 ;
+- N2 ;
+- H2O vapeur.
+
+La purge retire donc en particulier environ 86.5 % du N2 présent dans le
+volume anode à chaque événement de deux volumes.
+
+*** Refill H2 pendant la purge
+
+Une purge physique n'est pas une mise sous vide du volume anode.
+
+Après le déplacement du mélange, le régulateur H2 est donc représenté comme
+réalimentant instantanément le volume jusqu'à la pression nominale Ballard :
+
+  P_anode,target
+    = P_amb + 0.36 bar.
+
+Le refill est strictement unidirectionnel :
+
+  n_H2,final
+    = max(n_H2,post-purge, n_H2,target).
+
+Aucun H2 n'est retiré artificiellement si un état est déjà au-dessus de la
+consigne.
+
+Le diagnostic d'événement fournit :
+
+- fraction purgée ;
+- H2 retiré ;
+- N2 retiré ;
+- H2O vapeur retirée ;
+- quantité de H2 de refill ;
+- volume échangé ;
+- pression cible.
+
+*** Continuité des autres états
+
+Une purge ne modifie instantanément que le contrôle-volume gazeux anode.
+
+Restent continus pendant l'événement :
+
+- T_stack ;
+- lambda_mem ;
+- inventaires cathode O2/N2/H2O ;
+- état thermique ;
+- état membrane.
+
+Cette séparation est importante pour l'intégration hybride continue/discrète.
+
+*** Tests
+
+Les tests couvrent :
+
+- période nominale 2300/I ;
+- arrêt de l'horloge à courant nul ;
+- localisation exacte d'un seuil à l'intérieur d'un pas ;
+- remise à zéro/reprise du compteur après purge ;
+- fraction 1-exp(-2) pour la purge Ballard de 20 mL/cell ;
+- possibilité d'imposer manuellement un autre volume de purge ;
+- continuité des états non-anode ;
+- refill H2 positif ;
+- récupération de la pression nominale après purge dans un état sous la
+  consigne.
+
+L'étape 22, runner dynamique générique, reste volontairement séparée. L'étape
+23 fournit maintenant la mécanique d'événement nécessaire pour que ce runner
+puisse ensuite intégrer exactement jusqu'à une purge, appliquer le saut d'état,
+puis reprendre l'intégration.
