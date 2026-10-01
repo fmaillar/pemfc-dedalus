@@ -15997,3 +15997,142 @@ conserver explicitement cette dépendance thermo-streamwise dans sa baseline.
 Si la carte reste étroite autour de quelques pourcents, l'étape suivante pourra
 tester la sensibilité au courant avec un jeu réduit de cas représentatifs.
 
+
+*** Résultats de la carte thermique quasi-3D nominale
+
+À :
+
+  I = 26.04 A
+
+le span ORR entrée-sortie varie fortement avec la température d'entrée et NTU.
+
+Pour :
+
+  T_air,in = 10 degC
+
+on obtient :
+
+  NTU = 1 :
+    span ORR = 7.563 %
+
+  NTU = 3 :
+    span ORR = 10.316 %
+
+  NTU = 5 :
+    span ORR = 10.673 %.
+
+Pour :
+
+  T_air,in = 20 degC
+
+on obtient :
+
+  NTU = 1 :
+    span ORR = 5.027 %
+
+  NTU = 3 :
+    span ORR = 6.904 %
+
+  NTU = 5 :
+    span ORR = 7.151 %.
+
+Pour :
+
+  T_air,in = 30 degC
+
+on obtient :
+
+  NTU = 1 :
+    span ORR = 2.477 %
+
+  NTU = 3 :
+    span ORR = 3.429 %
+
+  NTU = 5 :
+    span ORR = 3.556 %.
+
+Le domaine total exploré est donc :
+
+  2.48 % <= span ORR <= 10.67 %.
+
+*** Interprétation de la carte thermique
+
+La non-uniformité électrochimique dépend fortement du gradient thermique
+streamwise.
+
+L'effet augmente lorsque l'air entrant est froid et lorsque NTU augmente, car
+l'air se rapproche plus rapidement de la température de pile et la
+concentration O2 décroît davantage le long du canal.
+
+La dépendance à NTU se sature entre :
+
+  NTU = 3
+
+et :
+
+  NTU = 5.
+
+La baseline V0.9 doit donc conserver explicitement au minimum :
+
+- T_air,in ;
+- NTU ;
+- c_O2(x) thermo-couplé.
+
+*** Prochaine question : dépendance au courant
+
+Une comparaison entre 7.3, 14.5 et 26.04 A ne peut pas réutiliser
+l'électrochimie figée du point nominal.
+
+Pour chaque courant, le solveur doit aussi mettre à jour :
+
+  T_stack = T_opt(I)
+
+et :
+
+  phi_s,bc = V_BOL(I),
+
+ce qui met à jour implicitement les coefficients Butler-Volmer dépendant de la
+température.
+
+*** Étape 11 — carte quasi-3D en courant
+
+La prochaine campagne fixe :
+
+  T_air,in = 20 degC
+  NTU = 3
+
+et teste :
+
+  I =
+    7.3
+    14.5
+    26.04 A.
+
+Pour chaque courant :
+
+- T_stack suit T_opt(I) ;
+- le potentiel solide cathodique suit V_BOL(I) ;
+- le champ thermo-streamwise est recalculé ;
+- les tranches xi = 0 et xi = 1 sont résolues séparément.
+
+Le solveur électrochimique accepte désormais un objet CathodeParameters
+explicitement fourni afin que l'état de fonctionnement ne reste pas figé au
+point nominal.
+
+Nouvelle cible :
+
+  make quick-quasi3d-current-map-v09
+
+Sorties :
+
+  results/quick-v09-quasi3d-current-map.json
+  results/quick-v09-quasi3d-current-map.csv
+
+*** Critère de décision
+
+Si le span ORR croît nettement avec le courant, la baseline V0.9 devra inclure
+une carte dépendant simultanément de I, T_air,in et NTU.
+
+Si la dépendance en courant est faible par rapport à l'effet thermique, la
+campagne finale pourra rester réduite à quelques régimes représentatifs.
+

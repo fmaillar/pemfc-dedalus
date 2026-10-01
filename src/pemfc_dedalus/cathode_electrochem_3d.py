@@ -264,6 +264,7 @@ def build_solver(
 
 def run(
     *,
+    params: CathodeParameters | None = None,
     nx: int = 16,
     ny: int = 16,
     nz: int = 48,
@@ -273,9 +274,9 @@ def run(
     scalar_dt: float | None = None,
     oxygen_feed_concentration: float | None = None,
 ) -> None:
-    params = CathodeParameters()
+    model_params = CathodeParameters() if params is None else params
     solver = build_solver(
-        params,
+        model_params,
         nx=nx,
         ny=ny,
         nz=nz,
@@ -288,33 +289,33 @@ def run(
     logger.info("Starting V0.2 3D open-cathode electrochemistry model")
     logger.info("grid=%dx%dx%d", nx, ny, nz)
     actual_feed = (
-        params.oxygen_inlet_concentration
+        model_params.oxygen_inlet_concentration
         if oxygen_feed_concentration is None
         else oxygen_feed_concentration
     )
     logger.info("open cathode: c_O2,air = %.6g mol/m^3", actual_feed)
     logger.info(
         "temperatures: inlet air=%.2f C, stack/MEA=%.2f C",
-        params.oxidant_inlet_temperature - 273.15,
-        params.stack_temperature - 273.15,
+        model_params.oxidant_inlet_temperature - 273.15,
+        model_params.stack_temperature - 273.15,
     )
     logger.info(
         "target stack: %d cells, %.0f W nominal, I=%.2f A, Topt=%.2f C",
-        params.stack.n_cells,
-        params.stack.rated_power_w,
-        params.stack_current_a,
-        params.target_stack_temperature_c,
+        model_params.stack.n_cells,
+        model_params.stack.rated_power_w,
+        model_params.stack_current_a,
+        model_params.target_stack_temperature_c,
     )
     logger.info(
         "manual-derived air target floor=%.1f slpm, purge period=%.1f s, purge volume=%.0f mL",
-        params.target_air_flow_slpm,
-        params.purge_period_s,
-        params.purge_volume_m3 * 1e6,
+        model_params.target_air_flow_slpm,
+        model_params.purge_period_s,
+        model_params.purge_volume_m3 * 1e6,
     )
     logger.info(
         "electrical BCs: phi_s(air/GDL)=%.3f V, phi_m(membrane)=%.3f V",
-        params.cathode_solid_potential,
-        params.membrane_proton_potential,
+        model_params.cathode_solid_potential,
+        model_params.membrane_proton_potential,
     )
 
     try:
