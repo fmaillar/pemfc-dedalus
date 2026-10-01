@@ -115,7 +115,10 @@ def main() -> None:
     for picard_step in result["picard_history"]:
         print(
             f"picard_iter={picard_step['iteration']} "
+            f"fp_res={picard_step['fixed_point_residual']:.3e} "
             f"dq_rel={picard_step['relative_q_change']:.3e} "
+            f"alpha={picard_step['damping']:.6g} "
+            f"backtracks={picard_step['backtracks']} "
             f"cO2_min={picard_step['min_c_o2_mol_m3']:.6g} "
             f"qhat=[{picard_step['min_q_hat']:.6g},"
             f"{picard_step['max_q_hat']:.6g}]",
@@ -123,6 +126,8 @@ def main() -> None:
         )
     print(
         f"converged={result['converged']} "
+        f"picard_converged={result['picard_converged']} "
+        f"fp_res={result['picard_fixed_point_residual']:.3e} "
         f"newton={result['newton_iterations']} "
         f"residual={result['residual_merit']:.3e}",
         flush=True,
