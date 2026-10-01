@@ -13179,3 +13179,108 @@ forme chaînée :
 
 afin qu'aucune campagne ni aucun push de résultats ne se poursuive après un gate
 rouge.
+
+
+*** Validation finale du modèle lumped idéal
+
+La séquence chaînée :
+
+  git pull --ff-only &&
+  make test &&
+  make validate-lumped-thermal-v08 &&
+  make push-results
+
+est passée entièrement au vert.
+
+Gate logiciel :
+
+  pytest :
+    170 passed
+
+  Ruff :
+    All checks passed
+
+  mypy :
+    Success: no issues found in 98 source files.
+
+La campagne de validation analytique est reproduite à l'identique.
+
+Erreur maximale :
+
+  0.02416 K
+
+pour :
+
+  dt = 2 s.
+
+La décroissance de l'erreur est compatible avec Euler explicite d'ordre 1.
+
+Exemple à T_in = 20 °C, offset initial nul :
+
+  dt = 2.00 s :
+    erreur = +0.0105 K
+
+  dt = 1.00 s :
+    erreur = +0.0053 K
+
+  dt = 0.50 s :
+    erreur = +0.0026 K
+
+  dt = 0.25 s :
+    erreur = +0.0013 K.
+
+Les constantes de temps thermiques calculées sont :
+
+  T_in = 10 °C :
+    tau = 229.4 s
+
+  T_in = 20 °C :
+    tau = 156.9 s
+
+  T_in = 30 °C :
+    tau = 77.7 s.
+
+Ces valeurs sont cohérentes avec l'augmentation du débit d'air lorsque la marge
+thermique diminue.
+
+*** Décision
+
+Le modèle thermique lumped idéal est validé numériquement et devient la baseline
+thermique V0.8.
+
+Baseline thermique V0.8 :
+
+  C_th =
+    100 J/K/cellule
+
+  C_th,stack =
+    1000 J/K pour 10 cellules
+
+  dynamique :
+    C_th dT/dt =
+      Q_stack - Q_air
+
+  refroidissement idéal :
+    Q_air =
+      m_dot c_p max(T_stack - T_in, 0)
+
+  débit cible :
+    max(
+      plancher stoechiométrique,
+      besoin thermique
+    ).
+
+Aucun coefficient convectif ajustable n'est introduit.
+
+La prochaine étape est le couplage en retour de T vers les sous-modèles déjà
+explicitement dépendants de la température.
+
+Priorité :
+
+- diffusivité Motupally D_water(lambda,T) ;
+- perméabilité N2 Catalano via Arrhenius ;
+- saturation de vapeur d'eau ;
+- pression et états gaz parfaits.
+
+L'électrochimie complète n'est pas encore modifiée dans cette première étape
+de rétroaction thermique.
