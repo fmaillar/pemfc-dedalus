@@ -295,9 +295,13 @@ def solve_ballard_airflow_operating_point(
         convergence_tolerance=cycle_convergence_tolerance,
         stack_air_flow_slpm=low_flow,
     )
+    if not low_point.converged:
+        raise RuntimeError(
+            "minimum-airflow purge cycle did not converge before airflow control"
+        )
     low_error = low_point.mean_stack_temperature_k - target_temperature
 
-    if low_error <= temperature_tolerance_k:
+    if abs(low_error) <= temperature_tolerance_k:
         return V11AirflowControlledPolarizationPoint(
             polarization=low_point,
             target_temperature_k=target_temperature,
@@ -306,6 +310,16 @@ def solve_ballard_airflow_operating_point(
             selected_air_flow_slpm=low_flow,
             iterations=0,
             thermal_target_bracketed=True,
+        )
+    if low_error < -temperature_tolerance_k:
+        return V11AirflowControlledPolarizationPoint(
+            polarization=low_point,
+            target_temperature_k=target_temperature,
+            temperature_error_k=low_error,
+            minimum_air_flow_slpm=low_flow,
+            selected_air_flow_slpm=low_flow,
+            iterations=0,
+            thermal_target_bracketed=False,
         )
 
     high_point = simulate_periodic_polarization_point(
@@ -316,6 +330,10 @@ def solve_ballard_airflow_operating_point(
         convergence_tolerance=cycle_convergence_tolerance,
         stack_air_flow_slpm=high_flow,
     )
+    if not high_point.converged:
+        raise RuntimeError(
+            "maximum-airflow purge cycle did not converge before airflow control"
+        )
     high_error = high_point.mean_stack_temperature_k - target_temperature
     if high_error > temperature_tolerance_k:
         return V11AirflowControlledPolarizationPoint(
@@ -341,6 +359,10 @@ def solve_ballard_airflow_operating_point(
             convergence_tolerance=cycle_convergence_tolerance,
             stack_air_flow_slpm=mid_flow,
         )
+        if not mid_point.converged:
+            raise RuntimeError(
+                "candidate-airflow purge cycle did not converge before airflow control"
+            )
         mid_error = mid_point.mean_stack_temperature_k - target_temperature
         selected = mid_point
         selected_flow = mid_flow
