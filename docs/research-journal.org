@@ -18627,3 +18627,135 @@ afin de conserver la convergence la plus rapide.
 Si aucune valeur ne converge, l'étape suivante sera un vrai backtracking sur
 la formulation inverse-BV, avec critère de mérite recalculé à chaque essai de
 pas et contrainte explicite c_O2 > 0.
+
+
+*** Résultat du scan de damping inverse Butler-Volmer
+
+Le scan poussé dans :
+
+  results/quick-v10-stationary-inverse-bv-damping-scan.json
+
+confirme qu'aucun damping fixe testé ne donne une convergence stricte au seuil
+1e-7 en 60 itérations.
+
+Les quatre cas donnent :
+
+  alpha = 0.5
+    divergence après un minimum de norme ~= 1.14e-1 ;
+    c_O2 devient négatif ;
+    solution finale non physique.
+
+  alpha = 0.25
+    norme minimale ~= 7.90e-3 à l'itération 42 ;
+    puis reprise de la divergence ;
+    c_O2 reste positif ;
+    j ~= 2144.34 A/m2, soit -0.263 % par rapport à la cible.
+
+  alpha = 0.125
+    norme minimale ~= 3.27e-2 ;
+    état final encore physique ;
+    j ~= 2144.48 A/m2, soit -0.257 % ;
+    résidu inverse-BV max ~= 4.30e-4 V.
+
+  alpha = 0.0625
+    norme minimale ~= 3.16e-2 ;
+    état final physique ;
+    j ~= 2148.37 A/m2, soit -0.0758 % ;
+    résidu inverse-BV max ~= 1.26e-4 V.
+
+La formulation inverse-BV est donc nettement plus régulière que la formulation
+exponentielle directe : plusieurs trajectoires restent longtemps dans une
+région physique très proche du courant nominal.
+
+En revanche, un damping fixe ne suffit pas :
+
+- trop grand, il finit par quitter la branche ;
+- trop petit, il ralentit la convergence puis stagne ;
+- la valeur optimale change au cours de Newton.
+
+Ce comportement justifie un line search adaptatif.
+
+*** Étape 21 — Newton globalisé par backtracking sur inverse-BV
+
+Le solveur inverse-BV reçoit un mode globalisé sans continuation artificielle
+de la réaction.
+
+Le mérite résiduel est construit à partir des dix équations du NLBVP :
+
+- bilan O2 ;
+- conduction électronique ;
+- conduction protonique ;
+- fermeture inverse Butler-Volmer ;
+- six conditions aux limites.
+
+Chaque équation est normalisée par une échelle physique :
+
+- D_ref c_ref / Lz^2 ;
+- sigma_s,ref / Lz^2 ;
+- sigma_m,ref / Lz^2 ;
+- 1 V pour la fermeture inverse-BV ;
+- c_ref ;
+- c_ref / Lz ;
+- 1 V ;
+- 1 V / Lz ;
+- 1 V / Lz ;
+- 1 V.
+
+À chaque itération, la direction Newton est testée avec :
+
+  alpha = 1
+  1/2
+  1/4
+  1/8
+  ...
+
+jusqu'à douze essais.
+
+Un pas est accepté uniquement si :
+
+1. le mérite résiduel diminue ;
+2. le mérite reste fini ;
+3. min(c_O2) > 0 ;
+4. min(q_hat) > 0.
+
+La contrainte q_hat > 0 maintient explicitement le calcul sur la branche
+cathodique ORR visée.
+
+Contrairement à l'ancienne globalisation sur reaction_scale, aucun paramètre
+de continuation externe n'est modifié entre deux états. Le mérite dépend donc
+uniquement de l'état courant du NLBVP et est recalculé après chaque essai de
+pas.
+
+Screening :
+
+  grille = 4 x 4 x 16
+  I = 26.04 A
+  xi = 0.5
+  maximum = 40 itérations
+  tolérance résiduelle = 1e-8
+  maximum backtracks = 12.
+
+Nouvelle cible :
+
+  make quick-stationary-inverse-bv-globalized-v10
+
+Sortie :
+
+  results/quick-v10-stationary-inverse-bv-globalized.json
+
+*** Critère de décision
+
+Si le line search atteint un mérite <= 1e-8 avec c_O2 > 0 et q_hat > 0, la
+formulation inverse-BV globalisée devient le solveur stationnaire de référence
+pour la suite de V1.0.
+
+Le point suivant sera alors de vérifier :
+
+- cohérence du courant au point nominal ;
+- convergence en grille ;
+- robustesse sur plusieurs courants de la courbe de polarisation.
+
+Si le line search s'arrête avant convergence, l'historique des alpha acceptés
+et des backtracks permettra d'identifier si le problème restant vient d'un
+minimum local du mérite ou d'un conditionnement encore insuffisant des
+variables.
