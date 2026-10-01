@@ -141,9 +141,12 @@ def main() -> None:
         f"all_positive_orr={output['all_positive_orr']}",
         flush=True,
     )
+    relative_current_error = (
+        mean_current_density - target_current_density
+    ) / target_current_density
     print(
         f"j_bar={mean_current_density:.2f} A/m2 "
-        f"error={100.0 * output['relative_current_error']:+.3f}%",
+        f"error={100.0 * relative_current_error:+.3f}%",
         flush=True,
     )
     for row in rows:
