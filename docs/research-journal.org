@@ -14185,3 +14185,89 @@ pourcent, le coût supplémentaire du lookup 3D restera faible.
 Si l'effet complet reste inférieur à environ 1 % et que la convergence est
 rapide, l'approximation Arrhenius-only pourra être retenue comme fermeture
 thermique principale, le lookup 3D restant une validation de sensibilité.
+
+
+*** Étape 10 — convergence de l'axe température du lookup Motupally
+
+Le lookup complet RH x j x T ne modifie les observables système que d'environ
+1 % ou moins par rapport à l'approximation Arrhenius-only.
+
+Avant de décider si ce coût supplémentaire doit être conservé dans la baseline
+V0.8, il faut vérifier que la discrétisation en température est convergée.
+
+Étude :
+
+  N_T =
+    3
+    5
+    7
+    9.
+
+Les axes :
+
+  RH = 11 points
+  j = 11 points
+
+restent inchangés.
+
+Chaque résolution utilise la même trajectoire thermique et la même dynamique
+nominale.
+
+La résolution :
+
+  N_T = 9
+
+est utilisée comme référence interne.
+
+Les métriques comparées sont :
+
+- flux N2 moyen ;
+- x_N2,max ;
+- N2 cumulé traversé ;
+- N2 purgé ;
+- période moyenne de purge.
+
+Un analyseur dédié calcule, pour chaque N_T, l'écart relatif à N_T = 9.
+
+Script :
+
+  scripts/analyze_v08_motupally_temperature_convergence.py
+
+Cible :
+
+  make motupally-temperature-convergence-v08
+
+Sorties détaillées :
+
+  results/v08-motupally-temperature-convergence-3.json
+  results/v08-motupally-temperature-convergence-5.json
+  results/v08-motupally-temperature-convergence-7.json
+  results/v08-motupally-temperature-convergence-9.json
+
+et résumés :
+
+  results/v08-motupally-temperature-convergence.json
+  results/v08-motupally-temperature-convergence.csv
+
+*** Critère de décision
+
+Si :
+
+  N_T = 3
+
+ou :
+
+  N_T = 5
+
+reproduit les métriques à mieux que quelques dixièmes de pourcent par rapport à
+N_T = 9, l'axe T est considéré suffisamment convergé.
+
+La décision finale de baseline thermique sera alors prise entre :
+
+- approximation Arrhenius-only, plus simple ;
+- lookup complet RH x j x T, plus cohérent mais plus coûteux.
+
+Le choix doit suivre le principe déjà retenu :
+
+  fermeture simple, stable et quantifiée
+  plutôt que complexité peu influente sur les observables.
