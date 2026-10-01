@@ -33,6 +33,7 @@ from .v11_cathode import (
     CathodeGasDerivative,
     CathodeGasState,
     cathode_gas_rhs_per_cell,
+    cathode_isobaric_outlet_mol_s,
     standard_litre_per_minute_to_mol_s,
 )
 from .v11_membrane import (
@@ -91,6 +92,7 @@ class V11CoupledDiagnostics:
     cathode_water_inlet_mol_s: float
     cathode_water_outlet_mol_s: float
     water_conservation_residual_mol_s: float
+    cathode_outlet_molar_flow_per_cell_mol_s: float
     voltage: V11VoltagePrediction | None = None
 
 
@@ -302,6 +304,9 @@ def coupled_v11_rhs(
         cathode_water_inlet_mol_s=cathode_water_inlet,
         cathode_water_outlet_mol_s=cathode_water_outlet,
         water_conservation_residual_mol_s=water_residual,
+        cathode_outlet_molar_flow_per_cell_mol_s=(
+            cathode_outlet_molar_flow_per_cell_mol_s
+        ),
     )
     return derivative, diagnostics
 
@@ -312,7 +317,6 @@ def coupled_v11_predictive_rhs(
     state: V11DynamicState,
     current_a: float,
     stack_air_flow_slpm: float,
-    cathode_outlet_molar_flow_per_cell_mol_s: float,
     inlet_air_temperature_k: float,
     cathode_air_outlet_temperature_k: float,
     cathode_total_pressure_pa: float,
@@ -330,9 +334,9 @@ def coupled_v11_predictive_rhs(
     """Return the V11 RHS with cell voltage predicted from the dynamic state.
 
     Pt loading and ECSA remain mandatory because no defensible
-    FCgen-1020ACS-specific roughness factor has been established. The remaining
-    unresolved cathode-air outlet temperature, nitrogen crossover and cathode
-    outlet molar flow stay explicit inputs.
+    FCgen-1020ACS-specific roughness factor has been established. Cathode outlet
+    molar flow is closed isobarically from the dynamic gas inventory, while
+    cathode-air outlet temperature and nitrogen crossover remain explicit.
     """
     tech = (
         Ballard1020ACSTechnologyReference()
@@ -389,6 +393,47 @@ def coupled_v11_predictive_rhs(
         ),
         cathode_ecsa_m2_pt_g_pt=cathode_ecsa_m2_pt_g_pt,
         additional_resolved_loss_v=additional_resolved_loss_v,
+    )
+
+    cfg = UserStackConfiguration() if stack is None else stack
+    thermal = stack_temperature_rhs_k_s(
+        n_cells=cfg.n_cells,
+        current_a=current_a,
+        cell_voltage_v=voltage.cell_voltage_v,
+        stack_air_flow_slpm=stack_air_flow_slpm,
+        inlet_temperature_k=inlet_air_temperature_k,
+        outlet_temperature_k=cathode_air_outlet_temperature_k,
+        thermal_mass_j_k_per_cell=tech.thermal_mass_j_k_per_cell,
+    )
+    inlet_per_cell_mol_s = standard_litre_per_minute_to_mol_s(
+        stack_air_flow_slpm / cfg.n_cells
+    )
+    cathode_interface_rate = membrane_hydration_rhs(
+        anode_interface_flux_into_membrane_mol_m2_s=0.0,
+        cathode_interface_flux_into_membrane_mol_m2_s=(
+            ge_interface_water_flux_into_membrane(
+                gas_water_activity=cathode_water_activity,
+                membrane_water_content=state.membrane_mean_water_content,
+                temperature_k=state.stack_temperature_k,
+            ).flux_into_membrane_mol_m2_s
+        ),
+    ).cathode_interface_rate_mol_s
+    water_source_to_gas = (
+        current_a / (2.0 * faraday_c_mol) - cathode_interface_rate
+    )
+    cathode_outlet_molar_flow_per_cell_mol_s = (
+        cathode_isobaric_outlet_mol_s(
+            state=cathode_gas,
+            liquid_water_mol=cathode_phase.liquid_mol,
+            inlet_air_mol_s=inlet_per_cell_mol_s,
+            inlet_water_mole_fraction=inlet_water_mole_fraction,
+            current_a=current_a,
+            water_source_to_gas_mol_s=water_source_to_gas,
+            temperature_k=state.stack_temperature_k,
+            temperature_rate_k_s=thermal.temperature_rate_k_s,
+            total_pressure_pa=cathode_total_pressure_pa,
+            faraday_c_mol=faraday_c_mol,
+        )
     )
 
     derivative, diagnostics = coupled_v11_rhs(
