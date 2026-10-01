@@ -411,7 +411,8 @@ def solve_ballard_airflow_operating_point(
     selected = high_point
     selected_flow = high_flow
     iterations = 0
-    for iterations in range(1, max_airflow_iterations + 1):
+    for _ in range(1, max_airflow_iterations + 1):
+        iterations += 1
         mid_flow = 0.5 * (low_flow + high_flow)
         mid_point = _periodic_candidate(
             current_a=current_a,
