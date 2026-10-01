@@ -142,3 +142,167 @@ def symmetric_butler_volmer_current_density_a_m2(
         * reactant_activity**reaction_order
     )
     return float(2.0 * exchange * np.sinh(beta * activation_loss_v))
+
+
+
+@dataclass(frozen=True)
+class ShomateSpecies:
+    """NIST Shomate thermochemistry coefficients for one temperature range."""
+
+    a: float
+    b: float
+    c: float
+    d: float
+    e: float
+    f: float
+    g: float
+    h: float
+    t_min_k: float
+    t_max_k: float
+
+    def sensible_enthalpy_kj_mol(self, temperature_k: float) -> float:
+        """Return H(T)-H(298.15 K) from the NIST Shomate equation."""
+        if not self.t_min_k <= temperature_k <= self.t_max_k:
+            raise ValueError("temperature_k outside Shomate validity range")
+        t = temperature_k / 1000.0
+        return (
+            self.a * t
+            + self.b * t**2 / 2.0
+            + self.c * t**3 / 3.0
+            + self.d * t**4 / 4.0
+            - self.e / t
+            + self.f
+            - self.h
+        )
+
+    def entropy_j_mol_k(self, temperature_k: float) -> float:
+        """Return standard molar entropy from the NIST Shomate equation."""
+        if not self.t_min_k <= temperature_k <= self.t_max_k:
+            raise ValueError("temperature_k outside Shomate validity range")
+        t = temperature_k / 1000.0
+        return (
+            self.a * np.log(t)
+            + self.b * t
+            + self.c * t**2 / 2.0
+            + self.d * t**3 / 3.0
+            - self.e / (2.0 * t**2)
+            + self.g
+        )
+
+    def standard_enthalpy_kj_mol(self, temperature_k: float) -> float:
+        """Return H°(T) relative to elemental reference states at 298.15 K."""
+        return self.h + self.sensible_enthalpy_kj_mol(temperature_k)
+
+
+_H2_SHOMATE = ShomateSpecies(
+    a=33.066178,
+    b=-11.363417,
+    c=11.432816,
+    d=-2.772874,
+    e=-0.158558,
+    f=-9.980797,
+    g=172.707974,
+    h=0.0,
+    t_min_k=298.0,
+    t_max_k=1000.0,
+)
+
+_O2_SHOMATE = ShomateSpecies(
+    a=31.32234,
+    b=-20.23531,
+    c=57.86644,
+    d=-36.50624,
+    e=-0.007374,
+    f=-8.903471,
+    g=246.7945,
+    h=0.0,
+    t_min_k=100.0,
+    t_max_k=700.0,
+)
+
+_H2O_LIQUID_SHOMATE = ShomateSpecies(
+    a=-203.6060,
+    b=1523.290,
+    c=-3196.413,
+    d=2474.455,
+    e=3.855326,
+    f=-256.5478,
+    g=-488.7163,
+    h=-285.8304,
+    t_min_k=298.0,
+    t_max_k=500.0,
+)
+
+
+def reversible_cell_voltage_liquid_water_v(
+    *,
+    temperature_k: float,
+    hydrogen_partial_pressure_pa: float,
+    oxygen_partial_pressure_pa: float,
+    water_activity: float = 1.0,
+    standard_pressure_pa: float = 1.0e5,
+    faraday_c_mol: float = 96485.33212,
+    gas_constant_j_mol_k: float = 8.31446261815324,
+) -> float:
+    """Return reversible PEMFC voltage from thermodynamics and Nernst.
+
+    The reaction basis is H2 + 1/2 O2 -> H2O(l). Standard-state
+    thermochemistry is evaluated with NIST Shomate coefficients, then corrected
+    for reactant partial pressures and liquid-water activity.
+    """
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+    if hydrogen_partial_pressure_pa <= 0.0:
+        raise ValueError("hydrogen_partial_pressure_pa must be positive")
+    if oxygen_partial_pressure_pa <= 0.0:
+        raise ValueError("oxygen_partial_pressure_pa must be positive")
+    if water_activity <= 0.0:
+        raise ValueError("water_activity must be positive")
+    if standard_pressure_pa <= 0.0:
+        raise ValueError("standard_pressure_pa must be positive")
+
+    delta_h_j_mol = 1000.0 * (
+        _H2O_LIQUID_SHOMATE.standard_enthalpy_kj_mol(temperature_k)
+        - _H2_SHOMATE.standard_enthalpy_kj_mol(temperature_k)
+        - 0.5 * _O2_SHOMATE.standard_enthalpy_kj_mol(temperature_k)
+    )
+    delta_s_j_mol_k = (
+        _H2O_LIQUID_SHOMATE.entropy_j_mol_k(temperature_k)
+        - _H2_SHOMATE.entropy_j_mol_k(temperature_k)
+        - 0.5 * _O2_SHOMATE.entropy_j_mol_k(temperature_k)
+    )
+    delta_g_j_mol = delta_h_j_mol - temperature_k * delta_s_j_mol_k
+    standard_voltage = -delta_g_j_mol / (2.0 * faraday_c_mol)
+
+    reaction_quotient_inverse = (
+        (hydrogen_partial_pressure_pa / standard_pressure_pa)
+        * np.sqrt(oxygen_partial_pressure_pa / standard_pressure_pa)
+        / water_activity
+    )
+    nernst = (
+        gas_constant_j_mol_k
+        * temperature_k
+        / (2.0 * faraday_c_mol)
+        * np.log(reaction_quotient_inverse)
+    )
+    return float(standard_voltage + nernst)
+
+
+def membrane_ohmic_loss_v(
+    *,
+    current_density_a_m2: float,
+    membrane_thickness_m: float,
+    proton_conductivity_s_m: float,
+) -> float:
+    """Return through-plane membrane ohmic loss j*L/sigma."""
+    if current_density_a_m2 < 0.0:
+        raise ValueError("current_density_a_m2 must be non-negative")
+    if membrane_thickness_m <= 0.0:
+        raise ValueError("membrane_thickness_m must be positive")
+    if proton_conductivity_s_m <= 0.0:
+        raise ValueError("proton_conductivity_s_m must be positive")
+    return (
+        current_density_a_m2
+        * membrane_thickness_m
+        / proton_conductivity_s_m
+    )
