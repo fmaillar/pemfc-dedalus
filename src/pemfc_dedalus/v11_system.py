@@ -253,6 +253,7 @@ def coupled_v11_rhs(
         outlet_molar_flow_per_cell_mol_s=(
             cathode_outlet_molar_flow_per_cell_mol_s
         ),
+        nitrogen_sink_mol_s=nitrogen_crossover_mol_s,
         faraday_c_mol=faraday_c_mol,
     )
 
@@ -453,6 +454,7 @@ def coupled_v11_predictive_rhs(
             inlet_water_mole_fraction=inlet_water_mole_fraction,
             current_a=current_a,
             water_source_to_gas_mol_s=water_source_to_gas,
+            nitrogen_sink_mol_s=nitrogen_crossover.rate_mol_s,
             temperature_k=state.stack_temperature_k,
             temperature_rate_k_s=thermal.temperature_rate_k_s,
             total_pressure_pa=cathode_total_pressure_pa,
