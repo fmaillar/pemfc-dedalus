@@ -148,7 +148,7 @@ help:
 install:
 	$(PYTHON) -m pip install -e '.[test]'
 
-test check: unit lint typecheck
+test check: unit lint unit typecheck
 
 unit:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(PYTHON) -m pytest -q \
