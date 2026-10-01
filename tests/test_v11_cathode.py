@@ -230,3 +230,61 @@ def test_buck_saturation_derivative_matches_central_difference() -> None:
     analytic = water_saturation_pressure_derivative_pa_k(temperature)
 
     assert analytic == pytest.approx(numerical, rel=1.0e-8)
+
+
+
+def test_isobaric_outlet_preserves_pressure_with_saturated_vapour() -> None:
+    from pemfc_dedalus.anode import water_saturation_pressure_pa
+
+    temperature = 313.15
+    pressure = 101325.0
+    temperature_rate = 1.5
+    dry_mol = 1.0e-3
+    saturation_pressure = water_saturation_pressure_pa(temperature)
+    water_fraction = saturation_pressure / pressure
+    dry_fraction = 1.0 - water_fraction
+    vapour_mol = water_fraction / dry_fraction * dry_mol
+    state = CathodeGasState(
+        oxygen_mol=0.21 * dry_mol,
+        nitrogen_mol=0.79 * dry_mol,
+        water_vapour_mol=vapour_mol,
+    )
+    inlet = 1.2e-3
+    inlet_water_fraction = 0.02
+    current = 20.0
+
+    outlet = cathode_isobaric_outlet_mol_s(
+        state=state,
+        liquid_water_mol=2.0e-4,
+        inlet_air_mol_s=inlet,
+        inlet_water_mole_fraction=inlet_water_fraction,
+        current_a=current,
+        water_source_to_gas_mol_s=5.0e-5,
+        temperature_k=temperature,
+        temperature_rate_k_s=temperature_rate,
+        total_pressure_pa=pressure,
+    )
+
+    faraday = faraday_rates_per_cell(current)
+    dry_rate = (
+        inlet * (1.0 - inlet_water_fraction)
+        - outlet * dry_fraction
+        - faraday.oxygen_consumption_mol_s
+    )
+    dp_sat_dtemperature = water_saturation_pressure_derivative_pa_k(
+        temperature
+    )
+    dq_dtemperature = (
+        pressure
+        * dp_sat_dtemperature
+        / (pressure - saturation_pressure) ** 2
+    )
+    gas_rate = (
+        dry_rate / dry_fraction
+        + dry_mol * dq_dtemperature * temperature_rate
+    )
+
+    assert gas_rate == pytest.approx(
+        -state.total_mol * temperature_rate / temperature,
+        abs=1.0e-15,
+    )
