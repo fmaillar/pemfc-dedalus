@@ -19860,3 +19860,61 @@ sur les trois grilles.
 Ainsi, aucun Newton caché n'est lancé pendant la grid study. Si Gummel ne
 satisfait pas la tolérance, le résultat est écrit avec converged=false et le
 défaut de point fixe final permet de diagnostiquer directement le maillage.
+
+
+*** Résultats de convergence en maillage sans fallback Newton (0600334)
+
+Les trois grilles montrent que la convergence spatiale n'est pas encore
+acquise :
+
+- 4 x 4 x 16 :
+  converged = true
+  picard_iterations = 13
+  fp_res ~= 8.17e-9
+  j ~= 2144.45 A/m2
+  erreur courant ~= -0.258 %
+
+- 6 x 6 x 24 :
+  converged = false
+  picard_iterations = 1
+  fp_res ~= 4.23e-1
+  j ~= 2369.58 A/m2
+  erreur courant ~= +10.21 %
+
+- 8 x 8 x 32 :
+  converged = false
+  picard_iterations = 4
+  fp_res ~= 5.12e-1
+  j ~= 2314.40 A/m2
+  erreur courant ~= +7.65 %.
+
+Le Gummel brut projeté est donc contractant sur la grille grossière mais ne
+l'est plus sur les grilles plus fines. Le line search seul réduit rapidement
+le pas jusqu'à des valeurs très faibles sans faire décroître suffisamment le
+défaut de point fixe.
+
+*** Étape 38 — accélération d'Anderson safeguardée
+
+Anderson acceleration est appliquée au point fixe projeté :
+
+  F(q) = G(q) - q.
+
+Une mémoire courte (profondeur 4 par défaut) est utilisée.
+
+À partir de l'historique récent, un candidat accéléré est construit par
+moindres carrés sur les différences de défauts et de cartes de point fixe.
+
+La stratégie reste safeguardée :
+
+- le candidat Anderson doit rester fini et strictement positif ;
+- il est soumis au même backtracking monotone sur fp_res ;
+- s'il échoue, la boucle retombe automatiquement sur la direction Picard
+  standard G(q)-q ;
+- Newton reste désactivé dans l'étude de maillage.
+
+Le log indique désormais pour chaque pas :
+
+  anderson=True/False.
+
+L'objectif est de débloquer 6x6x24 et 8x8x32 sans réintroduire le coût du
+Newton complet.
