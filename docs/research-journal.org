@@ -20023,3 +20023,51 @@ tension sont notamment :
 La prochaine étape est le potentiel réversible thermodynamique, puis la perte
 ohmique membrane à partir de lambda et T avec la loi de conductivité déjà
 sourcée.
+
+
+** V11 étape 2 — extraction systématique du manuel Ballard
+
+Le manuel MAN5100319-0B a été fouillé pour remplacer autant que possible les
+hypothèses provisoires par des données constructeur ou des grandeurs directement
+dérivables.
+
+Résultats principaux :
+
+- purge 20 mL/cell = deux volumes d'anode ;
+  donc volume anode dérivé = 10 mL/cell ;
+- stack 10 cellules : volume anode total ~= 100 mL ;
+- purge run-time >= 2.4 slpm/cell, soit >= 24 slpm pour 10 cellules ;
+- purge start-up = 6.0 slpm/cell, soit 60 slpm pour 10 cellules ;
+- purge run-time = 20 mL/cell, intervalle 2300 A.s ;
+- à 26.04 A : période de purge ~= 88.33 s ;
+- perte de charge anode :
+    Delta P [mbar] = 31.21 * débit H2 par cellule [slpm] ;
+- H2 réagi :
+    0.00696 slpm/(A cell) * I * n ;
+  soit ~= 1.8124 slpm à 26.04 A et 10 cellules ;
+- air stoechiométrique :
+    0.0166 slpm/(A cell) * I * n ;
+  soit ~= 4.3226 slpm au même point ;
+- stoechiométrie air steady-state > 20 ;
+  donc débit oxydant minimal > ~= 86.45 slpm à 26.04 A ;
+- résistance totale des bus plates ~= 2.2 mOhm ;
+  soit ~= 57.3 mV de perte à 26.04 A ;
+- chaleur créée :
+    Q = n * I * (1.253 - Vcell) ;
+  soit ~= 126.25 W à 10 cellules, 26.04 A, Vcell ~= 0.76817 V.
+
+Le point le plus important pour V11 est la résolution du volume anode :
+l'ancienne hypothèse V0.7 de 20 mL/cell n'est plus utilisée comme donnée V11.
+Le constructeur fournit indirectement 10 mL/cell.
+
+Les paramètres suivants restent non récupérables proprement dans le manuel :
+
+- aire électrochimique active réelle ;
+- j0 / chargement catalytique / ECSA ;
+- structure fine GDL/MPL/CL ;
+- paramètres matériau détaillés de la membrane ;
+- perméabilité N2 ;
+- résistances de contact internes.
+
+Ils resteront explicitement non résolus jusqu'à obtention d'une source
+indépendante.
