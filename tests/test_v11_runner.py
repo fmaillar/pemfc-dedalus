@@ -111,3 +111,44 @@ def test_runner_serialization_exposes_dynamic_voltage_and_states() -> None:
     assert "nitrogen_crossover_rate_mol_s" in rows[0]
     assert "air_outlet_temperature_k" in rows[0]
     assert "purge_event" in rows[0]
+
+
+
+def test_sample_at_control_boundary_uses_new_command() -> None:
+    trajectory = run_v11_dynamic(
+        initial_state=_state(),
+        controls=(
+            V11ControlSegment(0.0, 5.0, 100.0),
+            V11ControlSegment(0.06, 15.0, 150.0),
+        ),
+        inputs=_inputs(),
+        stop_time_s=0.08,
+        dt_s=0.01,
+        automatic_purge=False,
+        sample_every_s=0.02,
+    )
+
+    boundary = [
+        point
+        for point in trajectory
+        if point.time_s == pytest.approx(0.06)
+    ]
+    assert len(boundary) == 1
+    assert boundary[0].current_a == pytest.approx(15.0)
+    assert boundary[0].stack_air_flow_slpm == pytest.approx(150.0)
+
+
+def test_sample_times_are_snapped_to_requested_grid() -> None:
+    trajectory = run_v11_dynamic(
+        initial_state=_state(),
+        controls=(V11ControlSegment(0.0, 5.0, 100.0),),
+        inputs=_inputs(),
+        stop_time_s=0.06,
+        dt_s=0.01,
+        automatic_purge=False,
+        sample_every_s=0.02,
+    )
+
+    assert [point.time_s for point in trajectory] == pytest.approx(
+        [0.0, 0.02, 0.04, 0.06]
+    )
