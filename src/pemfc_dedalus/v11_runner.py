@@ -284,6 +284,13 @@ def run_v11_dynamic(
             step = min(step, next_sample_s - time_s)
 
         if step <= tolerance:
+            # Resolve control boundaries before sampling when both occur at the
+            # same nominal time. This guarantees that a sample at t_boundary
+            # uses the new command, independent of floating-point drift.
+            if control_boundary <= time_s + tolerance:
+                time_s = min(control_boundary, stop_time_s)
+                continue
+
             automatic_purge_now = automatic_purge and purge_wait <= tolerance
             manual_purge_now = next_manual_purge_s <= time_s + tolerance
             if automatic_purge_now or manual_purge_now:
@@ -297,12 +304,12 @@ def run_v11_dynamic(
                 continue
 
             if sample_every_s is not None and next_sample_s <= time_s + tolerance:
+                time_s = min(next_sample_s, stop_time_s)
                 append_point(purge_event=False, diagnostic_dt_s=dt_s)
                 next_sample_s += sample_every_s
                 continue
 
-            # A control boundary is handled by recomputing the active segment.
-            time_s = min(control_boundary, stop_time_s)
+            time_s = min(stop_time_s, time_s + step)
             continue
 
         derivative, _ = _diagnostics(
@@ -317,6 +324,16 @@ def run_v11_dynamic(
             dt_s=step,
         )
         time_s += step
+        # Snap accumulated floating-point time onto exact scheduled surfaces.
+        for scheduled_time in (
+            control_boundary,
+            next_manual_purge_s,
+            next_sample_s if sample_every_s is not None else float("inf"),
+            stop_time_s,
+        ):
+            if abs(time_s - scheduled_time) <= tolerance:
+                time_s = scheduled_time
+                break
         clock = V11PurgeClock(
             charge_since_purge_as=(
                 clock.charge_since_purge_as + control.current_a * step
