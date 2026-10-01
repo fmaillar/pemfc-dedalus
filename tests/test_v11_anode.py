@@ -12,6 +12,7 @@ from pemfc_dedalus.v11_anode import (
     apply_well_mixed_purge,
     hydrogen_moles_for_target_pressure,
     ideal_gas_total_pressure_pa,
+    isobaric_regulator_hydrogen_inlet_mol_s,
     mixed_purge_fraction,
     regulator_hydrogen_inlet_mol_s,
 )
@@ -128,3 +129,45 @@ def test_well_mixed_purge_preserves_gas_composition() -> None:
         + result.removed_nitrogen_mol
         + result.removed_water_vapour_mol
     ) == pytest.approx(result.purge_fraction * state.total_mol)
+
+
+
+def test_isobaric_regulator_is_independent_of_numerical_timestep() -> None:
+    current_a = 26.04
+    target_pressure = 101325.0 + 0.36e5
+    temperature = 313.15
+    volume = 10e-6
+
+    inlet = isobaric_regulator_hydrogen_inlet_mol_s(
+        target_total_pressure_pa=target_pressure,
+        current_a=current_a,
+        nitrogen_source_mol_s=1.0e-8,
+        water_source_mol_s=-2.0e-8,
+        volume_m3=volume,
+        temperature_k=temperature,
+        temperature_rate_k_s=0.02,
+    )
+
+    target_total_mol = target_pressure * volume / (8.31446261815324 * temperature)
+    target_total_rate = -target_total_mol * 0.02 / temperature
+    expected = (
+        target_total_rate
+        + faraday_rates_per_cell(current_a).hydrogen_consumption_mol_s
+        - 1.0e-8
+        + 2.0e-8
+    )
+    assert inlet == pytest.approx(max(expected, 0.0))
+
+
+def test_isobaric_regulator_never_removes_hydrogen() -> None:
+    inlet = isobaric_regulator_hydrogen_inlet_mol_s(
+        target_total_pressure_pa=101325.0 + 0.36e5,
+        current_a=0.0,
+        nitrogen_source_mol_s=1.0e-4,
+        water_source_mol_s=0.0,
+        volume_m3=10e-6,
+        temperature_k=313.15,
+        temperature_rate_k_s=0.0,
+    )
+
+    assert inlet == pytest.approx(0.0)
