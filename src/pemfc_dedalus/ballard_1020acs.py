@@ -206,16 +206,25 @@ class UserStackConfiguration:
         tech = Ballard1020ACSTechnologyReference()
         return self.n_cells * tech.stoichiometric_air_slpm_per_cell(current_a)
 
+    def cathode_air_target_slpm(
+        self,
+        current_a: float,
+        stoich: float | None = None,
+    ) -> float:
+        """Return the single cathode-air target for oxidant and cooling duties.
+
+        Open-cathode FCgen-1020ACS operation uses one physical air stream for
+        both oxygen supply and stack cooling. The default target uses the
+        manual's no-loss air stoichiometry as a conservative operating point.
+        """
+        tech = Ballard1020ACSTechnologyReference()
+        air_stoich = tech.oxidant_stoich_no_loss if stoich is None else stoich
+        return self.stoichiometric_air_slpm(current_a) * air_stoich
+
     def coolant_air_target_slpm(
         self,
         current_a: float,
         stoich: float | None = None,
     ) -> float:
-        """Minimum oxidant-side air target before the future thermal controller.
-
-        Cooling generally requires much more air than oxygen stoichiometry; for
-        now use the manual's no-loss stoichiometry as a conservative floor.
-        """
-        tech = Ballard1020ACSTechnologyReference()
-        air_stoich = tech.oxidant_stoich_no_loss if stoich is None else stoich
-        return self.stoichiometric_air_slpm(current_a) * air_stoich
+        """Backward-compatible alias for the unified cathode-air target."""
+        return self.cathode_air_target_slpm(current_a, stoich)
