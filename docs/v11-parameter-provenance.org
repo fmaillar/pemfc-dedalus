@@ -317,3 +317,67 @@ The thesis also gives literature reference values (Neyerlin et al.) for ORR
 kinetics, but explicitly notes that electrode-material differences require
 adjustment for the actual stack. Those values may be used for sensitivity or
 bounds only until stack-specific catalyst information is independently sourced.
+
+
+* ORR kinetics: literature closure added
+
+V11 now contains a catalyst-specific ORR kinetic reference based on
+Neyerlin et al. for high-surface-area Pt/C.
+
+Accepted literature parameters, referenced to the reversible-potential
+(zero-overpotential) formulation:
+
+- reference temperature:
+    T_ref = 353 K;
+- reference oxygen partial pressure:
+    p_O2,ref = 101.3 kPa;
+- Pt-area-specific exchange current density:
+    i0,Pt,ref ~= 2.5e-8 A/cm2_Pt;
+- cathodic transfer coefficient:
+    alpha_c ~= 1;
+- oxygen reaction order:
+    gamma ~= 0.54;
+- activation energy:
+    E_a ~= 67 kJ/mol.
+
+The implemented temperature/oxygen dependence is:
+
+  i0,Pt(T,pO2)
+    = i0,Pt,ref
+      * (pO2/p_O2,ref)^gamma
+      * exp[-E_a/R * (1/T - 1/T_ref)].
+
+The cathodic Tafel loss is then evaluated on geometric cell area.
+
+** Critical geometric conversion still unresolved for FCgen-1020ACS
+
+The Neyerlin exchange current is defined per electrochemically active Pt area,
+not per geometric cell area.
+
+The required conversion is:
+
+  roughness factor
+    = A_Pt,electrochemical / A_geo
+    = 10 * L_Pt[mg/cm2_geo] * ECSA[m2_Pt/g_Pt].
+
+Then:
+
+  i0,geo = i0,Pt * roughness factor.
+
+The FCgen-1020ACS product documentation and literature reviewed so far do not
+provide sufficiently defensible stack-specific values for:
+
+- cathode Pt loading L_Pt;
+- catalyst ECSA.
+
+Therefore these quantities remain mandatory explicit inputs. V11 SHALL NOT
+silently use generic values such as 0.4 mgPt/cm2 and 50 m2Pt/gPt as Ballard
+defaults.
+
+Values of that type may appear only in unit-conversion tests or sensitivity
+studies, with their non-Ballard provenance stated explicitly.
+
+Status:
+
+- Pt/C intrinsic ORR kinetics: RESOLVED FROM LITERATURE;
+- FCgen-1020ACS catalyst roughness factor: UNRESOLVED.
