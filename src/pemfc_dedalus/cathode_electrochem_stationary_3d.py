@@ -16,6 +16,7 @@ class ContinuationStage(TypedDict):
     perturbation_norm: float
     converged: bool
     perturbation_norm_history: list[float]
+    min_c_o2_history: list[float]
 
 
 class StationaryResult(TypedDict):
@@ -46,28 +47,13 @@ def solve_stationary(
     oxygen_feed_concentration: float | None = None,
     newton_tolerance: float = 1e-8,
     max_newton_iterations: int = 30,
-    newton_damping: float = 0.25,
-    reaction_scales: tuple[float, ...] = (
-        1e-6,
-        3e-6,
-        1e-5,
-        3e-5,
-        1e-4,
-        3e-4,
-        1e-3,
-        3e-3,
-        1e-2,
-        3e-2,
-        1e-1,
-        3e-1,
-        6e-1,
-        1.0,
-    ),
+    newton_damping: float = 1.0,
+    reaction_scales: tuple[float, ...] = (1e-6,),
 ) -> StationaryResult:
     if not 0.0 < newton_damping <= 1.0:
         raise ValueError("newton_damping must be in (0, 1]")
-    if not reaction_scales or reaction_scales[-1] != 1.0:
-        raise ValueError("reaction_scales must be non-empty and end at 1.0")
+    if not reaction_scales:
+        raise ValueError("reaction_scales must be non-empty")
     if any(scale <= 0.0 or scale > 1.0 for scale in reaction_scales):
         raise ValueError("reaction scales must lie in (0, 1]")
 
@@ -271,6 +257,7 @@ def solve_stationary(
             "perturbation_norm": 0.0,
             "converged": True,
             "perturbation_norm_history": [0.0],
+            "min_c_o2_history": [initial_min_c_o2],
         }
     ]
 
@@ -279,6 +266,7 @@ def solve_stationary(
         stage_iterations = 0
         perturbation_norm = np.inf
         perturbation_norm_history: list[float] = []
+        min_c_o2_history: list[float] = []
 
         stage_damping = newton_damping
 
@@ -294,6 +282,8 @@ def solve_stationary(
                 )
             )
             perturbation_norm_history.append(perturbation_norm)
+            c.change_scales(1)
+            min_c_o2_history.append(float(np.min(np.asarray(c["g"]))))
             stage_iterations += 1
             total_iterations += 1
 
@@ -305,6 +295,7 @@ def solve_stationary(
                 "perturbation_norm": perturbation_norm,
                 "converged": stage_converged,
                 "perturbation_norm_history": perturbation_norm_history,
+                "min_c_o2_history": min_c_o2_history,
             }
         )
         if not stage_converged:
