@@ -4,9 +4,10 @@ The core assembles the V11 cathode, dead-end anode, membrane hydration,
 equilibrium cathode water partition and thermal balance.
 
 The low-level RHS keeps externally supplied closures explicit for diagnostics.
-The predictive RHS resolves cell voltage and cathode outlet molar flow from the
-dynamic state. Cathode air outlet temperature and nitrogen crossover remain
-external because they are not yet independently resolved for the target stack.
+The predictive RHS resolves cell voltage, cathode outlet molar flow and
+nitrogen crossover from the dynamic state. Cathode air outlet temperature
+remains external because it is not yet independently resolved for the target
+stack.
 
 No fitted fallback values are supplied.
 """
@@ -39,6 +40,7 @@ from .v11_membrane import (
     ge_interface_water_flux_into_membrane,
     membrane_hydration_rhs,
 )
+from .v11_nitrogen import V11NitrogenCrossover, catalano_nitrogen_crossover
 from .v11_phase_change import (
     CathodeWaterPhaseState,
     repartition_cathode_water_equilibrium,
@@ -92,6 +94,7 @@ class V11CoupledDiagnostics:
     water_conservation_residual_mol_s: float
     cathode_outlet_molar_flow_per_cell_mol_s: float
     voltage: V11VoltagePrediction | None = None
+    nitrogen_crossover: V11NitrogenCrossover | None = None
 
 
 def _bounded_water_activity(
@@ -117,7 +120,6 @@ def coupled_v11_rhs(
     cathode_total_pressure_pa: float,
     inlet_oxygen_mole_fraction: float,
     inlet_water_mole_fraction: float,
-    nitrogen_crossover_mol_s: float,
     dt_regulator_s: float,
     stack: UserStackConfiguration | None = None,
     technology: Ballard1020ACSTechnologyReference | None = None,
@@ -333,8 +335,9 @@ def coupled_v11_predictive_rhs(
 
     Pt loading and ECSA remain mandatory because no defensible
     FCgen-1020ACS-specific roughness factor has been established. Cathode outlet
-    molar flow is closed isobarically from the dynamic gas inventory, while
-    cathode-air outlet temperature and nitrogen crossover remain explicit.
+    molar flow is closed isobarically and nitrogen crossover is predicted from
+    Catalano Nafion permeability. Cathode-air outlet temperature remains
+    explicit.
     """
     tech = (
         Ballard1020ACSTechnologyReference()
@@ -353,9 +356,11 @@ def coupled_v11_predictive_rhs(
         nitrogen_mol=state.cathode_nitrogen_mol,
         water_vapour_mol=cathode_phase.vapour_mol,
     )
-    cathode_oxygen_fraction, _, cathode_water_fraction = (
-        cathode_gas.mole_fractions()
-    )
+    (
+        cathode_oxygen_fraction,
+        cathode_nitrogen_fraction,
+        cathode_water_fraction,
+    ) = cathode_gas.mole_fractions()
     oxygen_partial_pressure_pa = (
         cathode_oxygen_fraction * cathode_total_pressure_pa
     )
@@ -376,8 +381,20 @@ def coupled_v11_predictive_rhs(
         volume_m3=tech.anode_gas_volume_per_cell_m3,
         temperature_k=state.stack_temperature_k,
     )
-    hydrogen_fraction, _, _ = anode_state.mole_fractions()
+    hydrogen_fraction, anode_nitrogen_fraction, _ = (
+        anode_state.mole_fractions()
+    )
     hydrogen_partial_pressure_pa = hydrogen_fraction * anode_pressure_pa
+    nitrogen_crossover = catalano_nitrogen_crossover(
+        membrane_mean_water_content=state.membrane_mean_water_content,
+        temperature_k=state.stack_temperature_k,
+        cathode_nitrogen_partial_pressure_pa=(
+            cathode_nitrogen_fraction * cathode_total_pressure_pa
+        ),
+        anode_nitrogen_partial_pressure_pa=(
+            anode_nitrogen_fraction * anode_pressure_pa
+        ),
+    )
 
     voltage = predict_cell_voltage_v(
         current_a=current_a,
@@ -447,10 +464,14 @@ def coupled_v11_predictive_rhs(
         cathode_total_pressure_pa=cathode_total_pressure_pa,
         inlet_oxygen_mole_fraction=inlet_oxygen_mole_fraction,
         inlet_water_mole_fraction=inlet_water_mole_fraction,
-        nitrogen_crossover_mol_s=nitrogen_crossover_mol_s,
+        nitrogen_crossover_mol_s=nitrogen_crossover.rate_mol_s,
         dt_regulator_s=dt_regulator_s,
         stack=stack,
         technology=tech,
         faraday_c_mol=faraday_c_mol,
     )
-    return derivative, replace(diagnostics, voltage=voltage)
+    return derivative, replace(
+        diagnostics,
+        voltage=voltage,
+        nitrogen_crossover=nitrogen_crossover,
+    )
