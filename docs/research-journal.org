@@ -20129,3 +20129,43 @@ sous la forme :
 
 en laissant explicitement absents les termes dont les paramètres ne sont pas
 encore sourcés.
+
+
+** V11 étape 4 — composition explicite de la tension
+
+La tension de cellule est désormais assemblée uniquement à partir de termes
+physiquement résolus :
+
+  Vcell
+    = Erev
+      - eta_activation
+      - DeltaV_membrane
+      - DeltaV_other_resolved.
+
+Aucun terme résiduel empirique n'est ajouté automatiquement.
+
+Une structure CellVoltageBreakdown conserve séparément :
+
+- potentiel réversible ;
+- perte d'activation ;
+- perte ohmique membrane ;
+- autres pertes explicitement résolues ;
+- tension de cellule résultante.
+
+La tension terminale stack est ensuite :
+
+  Vstack_terminal
+    = n_cells * Vcell
+      - I * R_bus.
+
+Le terme R_bus peut utiliser la valeur constructeur d'environ 2.2 mOhm
+extraite du manuel Ballard.
+
+À 10 cellules, Vcell = 0.768 V et I = 26.04 A :
+
+  Vstack_terminal ~= 7.6227 V.
+
+Cette étape ne ferme toujours pas le modèle prédictif complet : l'activation
+nécessite encore une aire active réelle et des paramètres cinétiques sourcés.
+L'absence de ces paramètres reste explicite plutôt que compensée par une
+perte ajustée.
