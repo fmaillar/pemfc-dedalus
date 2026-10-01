@@ -1095,10 +1095,11 @@ quick-polarization-airflow-controlled-v11:
 	  --currents-a 15 26.04 \
 	  --dt 0.02 \
 	  --sample-every 1 \
-	  --max-cycles 12 \
-	  --cycle-tolerance 1e-4 \
+	  --max-cycles 20 \
+	  --cycle-tolerance 1e-3 \
 	  --temperature-tolerance-k 0.5 \
-	  --max-airflow-iterations 4
+	  --max-airflow-iterations 4 \
+	  --feasibility-scan-points 6
 
 polarization-airflow-controlled-v11:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_polarization_airflow_controlled \
@@ -1106,7 +1107,8 @@ polarization-airflow-controlled-v11:
 	  --currents-a 5 10 15 20 26.04 30 \
 	  --dt 0.01 \
 	  --sample-every 1 \
-	  --max-cycles 12 \
+	  --max-cycles 30 \
 	  --cycle-tolerance 1e-4 \
 	  --temperature-tolerance-k 0.1 \
-	  --max-airflow-iterations 8
+	  --max-airflow-iterations 8 \
+	  --feasibility-scan-points 10
