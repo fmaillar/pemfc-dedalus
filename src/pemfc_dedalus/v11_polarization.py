@@ -130,7 +130,8 @@ def simulate_periodic_polarization_point(
             inputs=effective_inputs,
             stop_time_s=purge_period,
             dt_s=dt_s,
-            automatic_purge=True,
+            automatic_purge=False,
+            manual_purge_times_s=(purge_period,),
             sample_every_s=sample_every_s,
         )
         purge_points = [point for point in trajectory if point.purge_event]
