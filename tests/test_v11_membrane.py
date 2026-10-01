@@ -6,11 +6,14 @@ import pytest
 
 from pemfc_dedalus.v11_materials import V11MEAReference
 from pemfc_dedalus.v11_membrane import (
+    ge_interface_water_flux_into_membrane,
     mean_water_content_from_inventory,
     membrane_fixed_site_moles_per_cell,
     membrane_hydration_rhs,
+    membrane_hydration_rhs_ge,
     membrane_water_inventory,
     membrane_water_transport,
+    membrane_water_volume_fraction,
 )
 
 
@@ -156,3 +159,69 @@ def test_net_interface_desorption_decreases_mean_hydration() -> None:
 
     assert rhs.net_storage_rate_mol_s < 0.0
     assert rhs.mean_water_content_rate_s < 0.0
+
+
+
+def test_water_volume_fraction_increases_with_hydration() -> None:
+    dry = membrane_water_volume_fraction(water_content=2.0)
+    wet = membrane_water_volume_fraction(water_content=10.0)
+
+    assert 0.0 < dry < wet < 1.0
+
+
+def test_ge_interface_flux_is_zero_at_sorption_equilibrium() -> None:
+    equilibrium = membrane_water_transport(
+        current_a=0.0,
+        anode_water_activity=0.5,
+        cathode_water_activity=0.5,
+        temperature_k=313.15,
+    ).lambda_mean
+
+    flux = ge_interface_water_flux_into_membrane(
+        gas_water_activity=0.5,
+        membrane_water_content=equilibrium,
+        temperature_k=313.15,
+    )
+
+    assert flux.flux_into_membrane_mol_m2_s == pytest.approx(0.0)
+    assert flux.equilibrium_water_content == pytest.approx(equilibrium)
+
+
+def test_ge_interface_selects_absorption_for_wetter_gas() -> None:
+    flux = ge_interface_water_flux_into_membrane(
+        gas_water_activity=0.8,
+        membrane_water_content=2.0,
+        temperature_k=313.15,
+    )
+
+    assert flux.mode == "absorption"
+    assert flux.flux_into_membrane_mol_m2_s > 0.0
+
+
+def test_ge_interface_selects_desorption_for_drier_gas() -> None:
+    flux = ge_interface_water_flux_into_membrane(
+        gas_water_activity=0.1,
+        membrane_water_content=8.0,
+        temperature_k=313.15,
+    )
+
+    assert flux.mode == "desorption"
+    assert flux.flux_into_membrane_mol_m2_s < 0.0
+
+
+def test_ge_closed_hydration_rhs_relaxes_toward_gas_equilibrium() -> None:
+    dry_membrane = membrane_hydration_rhs_ge(
+        mean_water_content=2.0,
+        anode_water_activity=0.5,
+        cathode_water_activity=0.5,
+        temperature_k=313.15,
+    )
+    wet_membrane = membrane_hydration_rhs_ge(
+        mean_water_content=10.0,
+        anode_water_activity=0.5,
+        cathode_water_activity=0.5,
+        temperature_k=313.15,
+    )
+
+    assert dry_membrane.mean_water_content_rate_s > 0.0
+    assert wet_membrane.mean_water_content_rate_s < 0.0
