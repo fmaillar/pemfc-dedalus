@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 
+from pemfc_dedalus.v11_materials import V11MEAReference
 from pemfc_dedalus.v11_membrane import (
     mean_water_content_from_inventory,
     membrane_fixed_site_moles_per_cell,
@@ -11,7 +12,6 @@ from pemfc_dedalus.v11_membrane import (
     membrane_water_inventory,
     membrane_water_transport,
 )
-from pemfc_dedalus.v11_materials import V11MEAReference
 
 
 def test_equal_hydration_eliminates_back_diffusion() -> None:
