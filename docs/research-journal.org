@@ -13284,3 +13284,83 @@ Priorité :
 
 L'électrochimie complète n'est pas encore modifiée dans cette première étape
 de rétroaction thermique.
+
+
+*** Étape 7 — screening du couplage thermique en retour
+
+Le modèle lumped idéal est validé et devient la baseline thermique V0.8.
+
+Avant de réinjecter T(t) dans toute la dynamique V0.7, un screening quantifie
+l'importance réelle des dépendances en température déjà présentes.
+
+Le diagnostic compare la trajectoire thermique V0.8 à la baseline V0.7 fixe :
+
+  T_baseline ≈ 39.81 °C.
+
+Les propriétés examinées sont :
+
+1. diffusivité d'eau Motupally :
+
+   D_water(lambda,T)
+
+   évaluée à :
+
+     lambda = 4
+
+   comme état représentatif ;
+
+2. perméabilité N2 sèche Catalano :
+
+   loi d'Arrhenius
+
+   avec :
+
+     E_a = 49.6 kJ/mol ;
+
+3. pression de vapeur saturante :
+
+   p_sat(T) ;
+
+4. facteur gaz parfait :
+
+   1/T.
+
+Pour chaque échantillon de la trajectoire thermique, le diagnostic calcule le
+rapport à la valeur V0.7 fixe.
+
+Script :
+
+  scripts/analyze_v08_temperature_feedback_screening.py
+
+Cible :
+
+  make screen-temperature-feedback-v08
+
+Sorties :
+
+  results/v08-temperature-feedback-screening.json
+  results/v08-temperature-feedback-screening.csv
+
+*** Objectif
+
+Identifier quelles briques changent suffisamment avec T pour justifier un
+couplage en retour explicite.
+
+Règle de décision :
+
+- variation de quelques pourcents ou moins :
+    couplage secondaire ;
+
+- variation de l'ordre de 10 % ou plus :
+    couplage à intégrer en priorité.
+
+Cette étape évite de réécrire prématurément toute la boucle V0.7.
+
+Décision :
+
+  exécuter la chaîne complète avec && ;
+
+  analyser les amplitudes relatives ;
+
+  ne préparer le vrai couplage dynamique que pour les propriétés dont la
+  sensibilité thermique est significative.
