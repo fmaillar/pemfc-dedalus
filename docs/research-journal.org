@@ -12108,3 +12108,80 @@ Pour chaque état, calculer :
 - faisabilité lorsque T_in >= T_opt.
 
 Cette cartographie doit précéder toute dynamique thermique.
+
+
+*** Étape 2 — enveloppe thermique stationnaire courant x température d'entrée
+
+Le quick nominal montre que le plancher d'air dérivé de la stoechiométrie ne
+suffit pas à garantir :
+
+  T_out <= T_opt
+
+au point nominal dans le bilan sensible idéal.
+
+Avant d'introduire une dynamique thermique, il faut vérifier si ce constat est
+spécifique au point nominal ou structurel.
+
+Une interpolation linéaire de la courbe de polarisation BOL typique Ballard est
+ajoutée :
+
+  V_cell = V_BOL(I).
+
+Cette interpolation utilise directement les points du manuel déjà présents dans
+le modèle.
+
+Un nouveau driver est ajouté :
+
+  scripts/run_v08_open_cathode_thermal_envelope.py
+
+Il balaie par défaut :
+
+  I =
+    7.3
+    14.5
+    26.04 A
+
+et :
+
+  T_in =
+    10
+    20
+    30 °C.
+
+Pour chaque état, le diagnostic calcule :
+
+- tension cellule BOL typique interpolée ;
+- chaleur à rejeter :
+    Q_dot = N I (1.253 - V_cell) ;
+- température optimale :
+    T_opt = 26.01 + 0.53 I ;
+- plancher de débit d'air actuel ;
+- température de sortie idéale au débit plancher ;
+- marge thermique :
+    T_opt - T_in ;
+- débit d'air idéal requis pour :
+    T_out <= T_opt ;
+- ratio :
+    débit requis / débit plancher ;
+- faisabilité lorsque :
+    T_in >= T_opt.
+
+Aucun paramètre thermique dynamique n'est introduit.
+
+Cible :
+
+  make thermal-envelope-v08.
+
+Sorties :
+
+  results/v08-open-cathode-thermal-envelope.json
+  results/v08-open-cathode-thermal-envelope.csv
+
+Décision :
+
+  exécuter make test ;
+
+  puis make thermal-envelope-v08 ;
+
+  analyser l'enveloppe avant toute introduction d'une capacité thermique,
+  d'un coefficient convectif ou d'un champ de température.
