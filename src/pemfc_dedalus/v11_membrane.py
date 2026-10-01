@@ -18,6 +18,7 @@ from .membrane import (
     membrane_fixed_charge_concentration,
     membrane_water_content_from_activity,
     membrane_water_diffusivity_motupally,
+    nafion_water_interfacial_transfer_coefficient_ge,
 )
 from .v11_materials import V11MEAReference
 
@@ -210,4 +211,134 @@ def membrane_hydration_rhs(
         cathode_interface_rate_mol_s=cathode_rate,
         net_storage_rate_mol_s=net_rate,
         mean_water_content_rate_s=net_rate / fixed_sites,
+    )
+
+
+
+@dataclass(frozen=True)
+class MembraneInterfaceWaterFlux:
+    """One gas/membrane interfacial water-transfer state."""
+
+    mode: str
+    equilibrium_water_content: float
+    membrane_water_content: float
+    water_volume_fraction: float
+    transfer_coefficient_m_s: float
+    flux_into_membrane_mol_m2_s: float
+
+
+def membrane_water_volume_fraction(
+    *,
+    water_content: float,
+    mea: V11MEAReference | None = None,
+    water_molar_volume_m3_mol: float = 18.0e-6,
+) -> float:
+    """Return hydrated-ionomer water volume fraction.
+
+    Uses the standard additive-volume form
+
+        f_w = lambda V_w / (lambda V_w + V_m),
+
+    with V_m = EW / rho_dry.
+    """
+    if water_content < 0.0:
+        raise ValueError("water_content must be non-negative")
+    if water_molar_volume_m3_mol <= 0.0:
+        raise ValueError("water_molar_volume_m3_mol must be positive")
+
+    reference = V11MEAReference() if mea is None else mea
+    dry_membrane_molar_volume = (
+        reference.membrane_equivalent_weight_kg_mol
+        / reference.membrane_dry_density_kg_m3
+    )
+    water_volume = water_content * water_molar_volume_m3_mol
+    return water_volume / (water_volume + dry_membrane_molar_volume)
+
+
+def ge_interface_water_flux_into_membrane(
+    *,
+    gas_water_activity: float,
+    membrane_water_content: float,
+    temperature_k: float,
+    mea: V11MEAReference | None = None,
+    water_molar_volume_m3_mol: float = 18.0e-6,
+) -> MembraneInterfaceWaterFlux:
+    """Return Ge interfacial water flux, positive gas -> membrane.
+
+    The equilibrium membrane hydration is obtained from the Springer isotherm.
+    Absorption is selected when lambda_eq > lambda_mem and desorption otherwise.
+    """
+    if not 0.0 <= gas_water_activity <= 1.0:
+        raise ValueError("gas_water_activity must be in [0, 1]")
+    if membrane_water_content < 0.0:
+        raise ValueError("membrane_water_content must be non-negative")
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+
+    reference = V11MEAReference() if mea is None else mea
+    equilibrium = float(
+        membrane_water_content_from_activity(gas_water_activity).item()
+    )
+    water_fraction = membrane_water_volume_fraction(
+        water_content=membrane_water_content,
+        mea=reference,
+        water_molar_volume_m3_mol=water_molar_volume_m3_mol,
+    )
+
+    mode = "absorption" if equilibrium >= membrane_water_content else "desorption"
+    coefficient = float(
+        nafion_water_interfacial_transfer_coefficient_ge(
+            water_fraction,
+            mode=mode,
+            temperature_k=temperature_k,
+        ).item()
+    )
+    fixed_charge = membrane_fixed_charge_concentration(
+        reference.membrane_dry_density_kg_m3,
+        reference.membrane_equivalent_weight_kg_mol,
+    )
+    flux = coefficient * fixed_charge * (
+        equilibrium - membrane_water_content
+    )
+
+    return MembraneInterfaceWaterFlux(
+        mode=mode,
+        equilibrium_water_content=equilibrium,
+        membrane_water_content=membrane_water_content,
+        water_volume_fraction=water_fraction,
+        transfer_coefficient_m_s=coefficient,
+        flux_into_membrane_mol_m2_s=flux,
+    )
+
+
+def membrane_hydration_rhs_ge(
+    *,
+    mean_water_content: float,
+    anode_water_activity: float,
+    cathode_water_activity: float,
+    temperature_k: float,
+    mea: V11MEAReference | None = None,
+) -> MembraneHydrationDerivative:
+    """Close the lumped membrane inventory with Ge interface kinetics."""
+    reference = V11MEAReference() if mea is None else mea
+    anode = ge_interface_water_flux_into_membrane(
+        gas_water_activity=anode_water_activity,
+        membrane_water_content=mean_water_content,
+        temperature_k=temperature_k,
+        mea=reference,
+    )
+    cathode = ge_interface_water_flux_into_membrane(
+        gas_water_activity=cathode_water_activity,
+        membrane_water_content=mean_water_content,
+        temperature_k=temperature_k,
+        mea=reference,
+    )
+    return membrane_hydration_rhs(
+        anode_interface_flux_into_membrane_mol_m2_s=(
+            anode.flux_into_membrane_mol_m2_s
+        ),
+        cathode_interface_flux_into_membrane_mol_m2_s=(
+            cathode.flux_into_membrane_mol_m2_s
+        ),
+        mea=reference,
     )
