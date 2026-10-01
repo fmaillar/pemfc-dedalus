@@ -20491,9 +20491,9 @@ Les tests vérifient :
 - identité exacte du débit EOD :
     n_dot_EOD = n_d * I/F ;
 - augmentation du back-diffusion avec le gradient d'hydratation ;
-- dépendance inverse au carré? non : dépendance inverse linéaire au
-  diamètre d'épaisseur, vérifiée via L_mem double -> flux diffusif moitié.
+- dépendance inverse linéaire à l'épaisseur de membrane, vérifiée par
+  L_mem doublée -> flux diffusif divisé par deux.
 
-La dynamique de l'inventaire moyen de membrane et les échanges interfacials
+La dynamique de l'inventaire moyen de membrane et les échanges interfaciaux
 restent à introduire séparément ; cette étape établit uniquement la fermeture
 through-plane du flux.
