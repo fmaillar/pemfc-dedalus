@@ -147,7 +147,7 @@ help:
 install:
 	$(PYTHON) -m pip install -e '.[test]'
 
-test check: unit lint typecheck
+test check: unit lint unit typecheck
 
 unit:
 	$(PYTHON) -m pytest -q
