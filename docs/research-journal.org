@@ -23068,3 +23068,76 @@ pour identifier la fermeture responsable du déficit haute intensité.
 
 Le solveur périodique et le script de campagne ont été étendus pour enregistrer
 et afficher cette décomposition moyenne.
+
+
+
+*** Étape 25f — décomposition des pertes et audit de résistance membrane
+
+Le quick avec décomposition moyenne des pertes donne :
+
+I = 15 A :
+
+  E_rev = 1.231409 V
+  eta_ORR = 0.375613 V
+  eta_ohm,mem = 0.072894 V
+  eta_additional = 0
+  V_cell = 0.782902 V.
+
+I = 26.04 A :
+
+  E_rev = 1.230914 V
+  eta_ORR = 0.385131 V
+  eta_ohm,mem = 0.139581 V
+  eta_additional = 0
+  V_cell = 0.706202 V.
+
+Entre 15 A et 26.04 A :
+
+  Delta eta_ORR ~= +9.5 mV
+  Delta eta_ohm,mem ~= +66.7 mV.
+
+Le déficit haute intensité est donc principalement associé à la fermeture
+ohmique membrane et à son couplage avec l'hydratation, beaucoup plus qu'à la
+variation de la perte d'activation ORR.
+
+La loi Springer utilisée dans V11 est correctement convertie de S/cm vers S/m.
+La valeur :
+
+  L_mem = 80 um
+
+n'est toutefois pas une donnée Ballard constructeur. Le manuel ne fournit pas
+l'épaisseur de membrane. Cette valeur provient de la thèse Concordia 2025 comme
+paramètre littérature d'un modèle FCgen-1020ACS.
+
+Un simple redimensionnement de L_mem ne suffit pas à expliquer simultanément
+les points :
+
+  à 15 A, l'épaisseur effective implicite serait ~63 um ;
+  à 26.04 A, elle serait ~45 um,
+
+si l'on supposait que seule la perte ohmique membrane doit être ajustée.
+
+Cela indique que le problème potentiel est la combinaison :
+
+  épaisseur membrane
+  + état d'hydratation prédit
+  + conductivité Springer,
+
+plutôt qu'une seule constante géométrique.
+
+Le script de polarisation enregistre désormais des diagnostics non ajustés :
+
+- perte ohmique membrane implicite requise par la BOL ;
+- ASR membrane V11 ;
+- ASR membrane implicite BOL ;
+- épaisseur membrane effective implicite, uniquement lorsqu'elle est
+  physiquement positive.
+
+Ces grandeurs sont uniquement des diagnostics de provenance/modèle. Elles ne
+sont pas utilisées pour calibrer V11.
+
+Le quick utilise désormais des fichiers de sortie séparés afin de ne plus
+écraser la campagne complète :
+
+  results/v11-polarization-airflow-controlled-quick.csv
+  results/v11-polarization-airflow-controlled-quick.json.
