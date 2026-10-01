@@ -222,7 +222,7 @@ def main() -> None:
     for summary in summaries:
         if summary["status"] == "ok":
             candidate_rows = _load_csv(Path(str(summary["csv_path"])))
-            metrics: dict[str, float | None] = convergence_metrics(
+            metrics: dict[str, Any] = convergence_metrics(
                 reference_rows=reference_rows,
                 candidate_rows=candidate_rows,
             )
