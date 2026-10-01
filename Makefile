@@ -1099,7 +1099,9 @@ quick-polarization-airflow-controlled-v11:
 	  --cycle-tolerance 1e-3 \
 	  --temperature-tolerance-k 0.5 \
 	  --max-airflow-iterations 4 \
-	  --feasibility-scan-points 6
+	  --feasibility-scan-points 6 \
+	  --output-csv results/v11-polarization-airflow-controlled-quick.csv \
+	  --output-json results/v11-polarization-airflow-controlled-quick.json
 
 polarization-airflow-controlled-v11:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_polarization_airflow_controlled \
