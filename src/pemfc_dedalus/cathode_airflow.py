@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
+
 STANDARD_MOLAR_VOLUME_M3_MOL = 22.414e-3
 
 
@@ -119,7 +120,6 @@ def streamwise_oxygen_profile(
     )
 
 
-
 @dataclass(frozen=True)
 class StreamwiseThermalProfile:
     """One-dimensional sensible-heating profile for cathode air."""
@@ -195,3 +195,34 @@ def streamwise_air_temperature_profile(
         inlet_air_flow_slpm_per_cell=per_cell_air_flow_slpm,
         heat_rejection_w_per_cell=heat_rejection_w_per_cell,
     )
+
+
+def ideal_gas_species_concentration_mol_m3(
+    *,
+    mole_fraction: float | np.ndarray,
+    pressure_pa: float,
+    temperature_k: float | np.ndarray,
+    gas_constant_j_mol_k: float,
+) -> float | np.ndarray:
+    """Return ideal-gas species concentration y p / (R T)."""
+    if pressure_pa <= 0.0:
+        raise ValueError("pressure_pa must be positive")
+    if gas_constant_j_mol_k <= 0.0:
+        raise ValueError("gas_constant_j_mol_k must be positive")
+
+    mole_fraction_array = np.asarray(mole_fraction, dtype=float)
+    temperature_array = np.asarray(temperature_k, dtype=float)
+
+    if np.any((mole_fraction_array < 0.0) | (mole_fraction_array > 1.0)):
+        raise ValueError("mole_fraction must lie in [0, 1]")
+    if np.any(temperature_array <= 0.0):
+        raise ValueError("temperature_k must be positive")
+
+    concentration = (
+        mole_fraction_array
+        * pressure_pa
+        / (gas_constant_j_mol_k * temperature_array)
+    )
+    if concentration.ndim == 0:
+        return float(concentration)
+    return concentration
