@@ -22,6 +22,7 @@ def _run_current(
     cycle_tolerance: float,
     temperature_tolerance_k: float,
     max_airflow_iterations: int,
+    feasibility_scan_points: int,
 ) -> dict[str, Any]:
     try:
         operating = solve_ballard_airflow_operating_point(
@@ -32,6 +33,7 @@ def _run_current(
             cycle_convergence_tolerance=cycle_tolerance,
             temperature_tolerance_k=temperature_tolerance_k,
             max_airflow_iterations=max_airflow_iterations,
+            feasibility_scan_points=feasibility_scan_points,
         )
         point = operating.polarization
         tech = Ballard1020ACSTechnologyReference()
@@ -71,6 +73,7 @@ def main() -> None:
     parser.add_argument("--cycle-tolerance", type=float, default=1.0e-4)
     parser.add_argument("--temperature-tolerance-k", type=float, default=0.10)
     parser.add_argument("--max-airflow-iterations", type=int, default=8)
+    parser.add_argument("--feasibility-scan-points", type=int, default=8)
     parser.add_argument("--jobs", type=int, default=8)
     parser.add_argument(
         "--output-csv",
@@ -101,6 +104,7 @@ def main() -> None:
                 args.cycle_tolerance,
                 args.temperature_tolerance_k,
                 args.max_airflow_iterations,
+                args.feasibility_scan_points,
             )
             for current_a in args.currents_a
         ]
@@ -136,6 +140,7 @@ def main() -> None:
         "cycle_tolerance": args.cycle_tolerance,
         "temperature_tolerance_k": args.temperature_tolerance_k,
         "max_airflow_iterations": args.max_airflow_iterations,
+        "feasibility_scan_points": args.feasibility_scan_points,
         "parallel_workers": workers,
         "points": rows,
     }
