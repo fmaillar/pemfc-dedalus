@@ -15,7 +15,7 @@ No fitted fallback values are supplied.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from .anode import water_saturation_pressure_pa
 from .ballard_1020acs import (
@@ -45,6 +45,7 @@ from .v11_phase_change import (
     repartition_cathode_water_equilibrium,
 )
 from .v11_thermal import ThermalBalance, stack_temperature_rhs_k_s
+from .v11_voltage import V11VoltagePrediction, predict_cell_voltage_v
 
 
 @dataclass(frozen=True)
@@ -90,6 +91,7 @@ class V11CoupledDiagnostics:
     cathode_water_inlet_mol_s: float
     cathode_water_outlet_mol_s: float
     water_conservation_residual_mol_s: float
+    voltage: V11VoltagePrediction | None = None
 
 
 def _bounded_water_activity(
@@ -302,3 +304,110 @@ def coupled_v11_rhs(
         water_conservation_residual_mol_s=water_residual,
     )
     return derivative, diagnostics
+
+
+
+def coupled_v11_predictive_rhs(
+    *,
+    state: V11DynamicState,
+    current_a: float,
+    stack_air_flow_slpm: float,
+    cathode_outlet_molar_flow_per_cell_mol_s: float,
+    inlet_air_temperature_k: float,
+    cathode_air_outlet_temperature_k: float,
+    cathode_total_pressure_pa: float,
+    inlet_oxygen_mole_fraction: float,
+    inlet_water_mole_fraction: float,
+    nitrogen_crossover_mol_s: float,
+    dt_regulator_s: float,
+    cathode_platinum_loading_mg_cm2_geo: float,
+    cathode_ecsa_m2_pt_g_pt: float,
+    additional_resolved_loss_v: float = 0.0,
+    stack: UserStackConfiguration | None = None,
+    technology: Ballard1020ACSTechnologyReference | None = None,
+    faraday_c_mol: float = 96485.33212,
+) -> tuple[V11DynamicDerivative, V11CoupledDiagnostics]:
+    """Return the V11 RHS with cell voltage predicted from the dynamic state.
+
+    Pt loading and ECSA remain mandatory because no defensible
+    FCgen-1020ACS-specific roughness factor has been established. The remaining
+    unresolved cathode-air outlet temperature, nitrogen crossover and cathode
+    outlet molar flow stay explicit inputs.
+    """
+    tech = (
+        Ballard1020ACSTechnologyReference()
+        if technology is None
+        else technology
+    )
+
+    cathode_phase = repartition_cathode_water_equilibrium(
+        total_water_mol=state.cathode_total_water_mol,
+        dry_gas_mol=state.cathode_oxygen_mol + state.cathode_nitrogen_mol,
+        temperature_k=state.stack_temperature_k,
+        total_pressure_pa=cathode_total_pressure_pa,
+    )
+    cathode_gas = CathodeGasState(
+        oxygen_mol=state.cathode_oxygen_mol,
+        nitrogen_mol=state.cathode_nitrogen_mol,
+        water_vapour_mol=cathode_phase.vapour_mol,
+    )
+    cathode_oxygen_fraction, _, cathode_water_fraction = (
+        cathode_gas.mole_fractions()
+    )
+    oxygen_partial_pressure_pa = (
+        cathode_oxygen_fraction * cathode_total_pressure_pa
+    )
+    cathode_water_activity = _bounded_water_activity(
+        water_partial_pressure_pa=(
+            cathode_water_fraction * cathode_total_pressure_pa
+        ),
+        temperature_k=state.stack_temperature_k,
+    )
+
+    anode_state = AnodeGasState(
+        hydrogen_mol=state.anode_hydrogen_mol,
+        nitrogen_mol=state.anode_nitrogen_mol,
+        water_vapour_mol=state.anode_water_vapour_mol,
+    )
+    anode_pressure_pa = ideal_gas_total_pressure_pa(
+        state=anode_state,
+        volume_m3=tech.anode_gas_volume_per_cell_m3,
+        temperature_k=state.stack_temperature_k,
+    )
+    hydrogen_fraction, _, _ = anode_state.mole_fractions()
+    hydrogen_partial_pressure_pa = hydrogen_fraction * anode_pressure_pa
+
+    voltage = predict_cell_voltage_v(
+        current_a=current_a,
+        temperature_k=state.stack_temperature_k,
+        hydrogen_partial_pressure_pa=hydrogen_partial_pressure_pa,
+        oxygen_partial_pressure_pa=oxygen_partial_pressure_pa,
+        water_activity=cathode_water_activity,
+        membrane_mean_water_content=state.membrane_mean_water_content,
+        cathode_platinum_loading_mg_cm2_geo=(
+            cathode_platinum_loading_mg_cm2_geo
+        ),
+        cathode_ecsa_m2_pt_g_pt=cathode_ecsa_m2_pt_g_pt,
+        additional_resolved_loss_v=additional_resolved_loss_v,
+    )
+
+    derivative, diagnostics = coupled_v11_rhs(
+        state=state,
+        current_a=current_a,
+        stack_air_flow_slpm=stack_air_flow_slpm,
+        cathode_outlet_molar_flow_per_cell_mol_s=(
+            cathode_outlet_molar_flow_per_cell_mol_s
+        ),
+        cell_voltage_v=voltage.cell_voltage_v,
+        inlet_air_temperature_k=inlet_air_temperature_k,
+        cathode_air_outlet_temperature_k=cathode_air_outlet_temperature_k,
+        cathode_total_pressure_pa=cathode_total_pressure_pa,
+        inlet_oxygen_mole_fraction=inlet_oxygen_mole_fraction,
+        inlet_water_mole_fraction=inlet_water_mole_fraction,
+        nitrogen_crossover_mol_s=nitrogen_crossover_mol_s,
+        dt_regulator_s=dt_regulator_s,
+        stack=stack,
+        technology=tech,
+        faraday_c_mol=faraday_c_mol,
+    )
+    return derivative, replace(diagnostics, voltage=voltage)
