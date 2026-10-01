@@ -23305,3 +23305,76 @@ Sorties :
 
   results/v11-membrane-conductivity-sensitivity-quick.csv
   results/v11-membrane-conductivity-sensitivity-quick.json.
+
+
+
+*** Étape 25j — résultats quick de sensibilité conductivité (commit 57c35b2)
+
+Le sweep quick 15 A / 26.04 A avec multiplicateurs de conductivité Springer
+1.0, 1.5 et 2.0 converge pour les six cas.
+
+15 A :
+
+  sigma_x = 1.0:
+    V = 0.782902 V
+    eta_ohm = 72.89 mV
+    Q_air = 284.48 slpm
+    Delta V_BOL = -15.72 mV
+
+  sigma_x = 1.5:
+    V = 0.807043 V
+    eta_ohm = 48.05 mV
+    Q_air = 284.48 slpm
+    Delta V_BOL = +8.42 mV
+
+  sigma_x = 2.0:
+    V = 0.819400 V
+    eta_ohm = 35.95 mV
+    Q_air = 260.21 slpm
+    Delta V_BOL = +20.78 mV.
+
+26.04 A :
+
+  sigma_x = 1.0:
+    V = 0.706202 V
+    eta_ohm = 139.58 mV
+    Q_air = 479.81 slpm
+    Delta V_BOL = -61.96 mV
+
+  sigma_x = 1.5:
+    V = 0.754153 V
+    eta_ohm = 91.44 mV
+    Q_air = 409.57 slpm
+    Delta V_BOL = -14.01 mV
+
+  sigma_x = 2.0:
+    V = 0.777619 V
+    eta_ohm = 67.41 mV
+    Q_air = 395.52 slpm
+    Delta V_BOL = +9.45 mV.
+
+Interprétation :
+
+- la conductivité protonique de la MEA est une incertitude de premier ordre ;
+- la sensibilité est fortement couplée à la thermique : une tension plus élevée
+  réduit q_created et donc le débit Ballard requis pour Topt ;
+- aucun multiplicateur constant ne peut expliquer simultanément 15 A et
+  26.04 A ;
+- le multiplicateur qui annulerait approximativement le résidu BOL se déplace
+  d'environ 1.3 à 15 A vers environ 1.8 à 26 A ;
+- cette variation indique qu'un facteur constant de conductivité Springer ne
+  constitue pas une fermeture physique suffisante.
+
+La BOL reste strictement une validation externe. Aucun facteur n'est retenu ni
+calibré à partir de ces écarts.
+
+La prochaine étape est une enveloppe d'incertitude complète :
+
+  I = 5, 10, 15, 20, 26.04, 30 A
+  sigma_x = 1.0, 1.5, 2.0
+
+avec les tolérances de la campagne complète.
+
+Target :
+
+  make membrane-conductivity-sensitivity-v11
