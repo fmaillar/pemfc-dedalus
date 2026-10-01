@@ -157,6 +157,9 @@ def main() -> None:
                 f"Ttarget={float(row['target_stack_temperature_k']) - 273.15:.3f} C "
                 f"dT={float(row['temperature_error_k']):+.3f} K "
                 f"Vmean={float(row['mean_cell_voltage_v']):.6f} V "
+                f"Erev={float(row['mean_reversible_voltage_v']):.6f} V "
+                f"eta_act={float(row['mean_activation_loss_v']):.6f} V "
+                f"eta_ohm={float(row['mean_membrane_ohmic_loss_v']):.6f} V "
                 f"dVmanual={float(row['model_minus_manual_v']):+.6f} V "
                 f"cycles={int(row['cycles_completed'])} "
                 f"converged={bool(row['converged'])}",
