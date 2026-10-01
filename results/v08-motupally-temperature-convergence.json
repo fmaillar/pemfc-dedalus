@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "model": "v08-motupally-temperature-convergence",
+  "temperature_points": [
+    3,
+    5,
+    7,
+    9
+  ],
+  "reference_temperature_points": 9,
+  "max_absolute_relative_change_non_reference": 0.034612677523894186,
+  "max_absolute_relative_change_by_points": {
+    "3": 0.034612677523894186,
+    "5": 0.006874960838198163,
+    "7": 0.0018500874062921113,
+    "9": 0.0
+  },
+  "rows": [
+    {
+      "temperature_points": 3,
+      "reference_temperature_points": 9,
+      "metric": "mean_n2_crossover_flux_mol_m2_s",
+      "value": 9.569048815154874e-07,
+      "reference_value": 9.248918965555474e-07,
+      "relative_change": 0.034612677523894186,
+      "absolute_relative_change": 0.034612677523894186
+    },
+    {
+      "temperature_points": 3,
+      "reference_temperature_points": 9,
+      "metric": "max_nitrogen_mole_fraction",
+      "value": 0.002675184214151054,
+      "reference_value": 0.0025983740779018496,
+      "relative_change": 0.029560846108512395,
+      "absolute_relative_change": 0.029560846108512395
+    },
+    {
+      "temperature_points": 3,
+      "reference_temperature_points": 9,
+      "metric": "cumulative_n2_crossover_mol",
+      "value": 5.038819376472983e-06,
+      "reference_value": 4.8702470846696275e-06,
+      "relative_change": 0.034612677523894186,
+      "absolute_relative_change": 0.034612677523894186
+    },
+    {
+      "temperature_points": 3,
+      "reference_temperature_points": 9,
+      "metric": "cumulative_n2_purged_mol",
+      "value": 2.4497477177687775e-06,
+      "reference_value": 2.3737442027767977e-06,
+      "relative_change": 0.032018409946223736,
+      "absolute_relative_change": 0.032018409946223736
+    },
+    {
+      "temperature_points": 3,
+      "reference_temperature_points": 9,
+      "metric": "mean_purge_period_s",
+      "value": 80.57,
+      "reference_value": 80.56,
+      "relative_change": 0.00012413108242292914,
+      "absolute_relative_change": 0.00012413108242292914
+    },
+    {
+      "temperature_points": 5,
+      "reference_temperature_points": 9,
+      "metric": "mean_n2_crossover_flux_mol_m2_s",
+      "value": 9.299834082959656e-07,
+      "reference_value": 9.248918965555474e-07,
+      "relative_change": 0.00550498037595526,
+      "absolute_relative_change": 0.00550498037595526
+    },
+    {
+      "temperature_points": 5,
+      "reference_temperature_points": 9,
+      "metric": "max_nitrogen_mole_fraction",
+      "value": 0.002615660738926007,
+      "reference_value": 0.0025983740779018496,
+      "relative_change": 0.006652876185601508,
+      "absolute_relative_change": 0.006652876185601508
+    },
+    {
+      "temperature_points": 5,
+      "reference_temperature_points": 9,
+      "metric": "cumulative_n2_crossover_mol",
+      "value": 4.897057699296787e-06,
+      "reference_value": 4.8702470846696275e-06,
+      "relative_change": 0.00550498037595526,
+      "absolute_relative_change": 0.00550498037595526
+    },
+    {
+      "temperature_points": 5,
+      "reference_temperature_points": 9,
+      "metric": "cumulative_n2_purged_mol",
+      "value": 2.390063601210788e-06,
+      "reference_value": 2.3737442027767977e-06,
+      "relative_change": 0.006874960838198163,
+      "absolute_relative_change": 0.006874960838198163
+    },
+    {
+      "temperature_points": 5,
+      "reference_temperature_points": 9,
+      "metric": "mean_purge_period_s",
+      "value": 80.56,
+      "reference_value": 80.56,
+      "relative_change": 0.0,
+      "absolute_relative_change": 0.0
+    },
+    {
+      "temperature_points": 7,
+      "reference_temperature_points": 9,
+      "metric": "mean_n2_crossover_flux_mol_m2_s",
+      "value": 9.266030274055465e-07,
+      "reference_value": 9.248918965555474e-07,
+      "relative_change": 0.0018500874062921113,
+      "absolute_relative_change": 0.0018500874062921113
+    },
+    {
+      "temperature_points": 7,
+      "reference_temperature_points": 9,
+      "metric": "max_nitrogen_mole_fraction",
+      "value": 0.002601545075702352,
+      "reference_value": 0.0025983740779018496,
+      "relative_change": 0.0012203777075328048,
+      "absolute_relative_change": 0.0012203777075328048
+    },
+    {
+      "temperature_points": 7,
+      "reference_temperature_points": 9,
+      "metric": "cumulative_n2_crossover_mol",
+      "value": 4.879257467466506e-06,
+      "reference_value": 4.8702470846696275e-06,
+      "relative_change": 0.0018500874062921113,
+      "absolute_relative_change": 0.0018500874062921113
+    },
+    {
+      "temperature_points": 7,
+      "reference_temperature_points": 9,
+      "metric": "cumulative_n2_purged_mol",
+      "value": 2.3771472305619285e-06,
+      "reference_value": 2.3737442027767977e-06,
+      "relative_change": 0.001433611836165749,
+      "absolute_relative_change": 0.001433611836165749
+    },
+    {
+      "temperature_points": 7,
+      "reference_temperature_points": 9,
+      "metric": "mean_purge_period_s",
+      "value": 80.56,
+      "reference_value": 80.56,
+      "relative_change": 0.0,
+      "absolute_relative_change": 0.0
+    },
+    {
+      "temperature_points": 9,
+      "reference_temperature_points": 9,
+      "metric": "mean_n2_crossover_flux_mol_m2_s",
+      "value": 9.248918965555474e-07,
+      "reference_value": 9.248918965555474e-07,
+      "relative_change": 0.0,
+      "absolute_relative_change": 0.0
+    },
+    {
+      "temperature_points": 9,
+      "reference_temperature_points": 9,
+      "metric": "max_nitrogen_mole_fraction",
+      "value": 0.0025983740779018496,
+      "reference_value": 0.0025983740779018496,
+      "relative_change": 0.0,
+      "absolute_relative_change": 0.0
+    },
+    {
+      "temperature_points": 9,
+      "reference_temperature_points": 9,
+      "metric": "cumulative_n2_crossover_mol",
+      "value": 4.8702470846696275e-06,
+      "reference_value": 4.8702470846696275e-06,
+      "relative_change": 0.0,
+      "absolute_relative_change": 0.0
+    },
+    {
+      "temperature_points": 9,
+      "reference_temperature_points": 9,
+      "metric": "cumulative_n2_purged_mol",
+      "value": 2.3737442027767977e-06,
+      "reference_value": 2.3737442027767977e-06,
+      "relative_change": 0.0,
+      "absolute_relative_change": 0.0
+    },
+    {
+      "temperature_points": 9,
+      "reference_temperature_points": 9,
+      "metric": "mean_purge_period_s",
+      "value": 80.56,
+      "reference_value": 80.56,
+      "relative_change": 0.0,
+      "absolute_relative_change": 0.0
+    }
+  ]
+}
