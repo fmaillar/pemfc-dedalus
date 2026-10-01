@@ -20728,3 +20728,79 @@ Les tests vérifient :
 
 Cette étape ferme la thermodynamique de phase sans supposer de cinétique
 empirique.
+
+
+** V11 étape 15 — assemblage du coeur dynamique couplé
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_system.py
+
+assemble les sous-modèles V11 déjà établis dans un RHS commun.
+
+L'état réduit contient :
+
+  T_stack
+  lambda_mem
+  n_H2,a
+  n_N2,a
+  n_H2O,v,a
+  n_O2,c
+  n_N2,c
+  n_H2O,total,c.
+
+L'eau cathodique liquide n'est pas intégrée comme état indépendant :
+elle est reconstruite algébriquement à chaque évaluation du RHS via la
+partition thermodynamique vapeur/liquide à saturation.
+
+Le RHS couple :
+
+- consommation H2 et O2 par Faraday ;
+- alimentation H2 par le régulateur anode idéal ;
+- accumulation N2 anode ;
+- échanges eau gaz/membrane par Ge ;
+- dynamique d'hydratation moyenne de membrane ;
+- production électrochimique d'eau ;
+- inventaire total d'eau cathodique ;
+- bilan thermique du stack.
+
+Les activités d'eau aux interfaces sont dérivées des états gazeux et de la
+pression de vapeur saturante, sans paramètre ajusté.
+
+Les fermetures encore non résolues restent des arguments explicites :
+
+- V_cell ;
+- T_air,out cathode ;
+- débit de crossover N2 ;
+- débit molaire de sortie cathode.
+
+Aucune valeur de secours ajustée n'est introduite pour ces quatre quantités.
+
+Le diagnostic du RHS retourne explicitement :
+
+- activités d'eau anode/cathode ;
+- partition vapeur/liquide cathode ;
+- bilan membrane ;
+- bilan anode ;
+- bilan cathode ;
+- bilan thermique ;
+- débit H2 régulateur ;
+- entrées/sorties d'eau cathode ;
+- résidu de conservation globale de l'eau.
+
+Le module cathode a également été corrigé afin que
+water_source_to_gas_mol_s soit un terme signé :
+
+- positif = source vers le gaz ;
+- négatif = puits depuis le gaz vers la membrane.
+
+Cette correction est nécessaire pour conserver correctement les échanges
+gaz/membrane.
+
+Les tests d'intégration vérifient :
+
+- résidu global d'eau nul ;
+- transmission exacte du crossover N2 dans l'inventaire anode ;
+- cohérence de la partition cathodique algébrique ;
+- dépendance thermique explicite à T_air,out ;
+- possibilité d'un flux d'eau cathode négatif vers la membrane.
