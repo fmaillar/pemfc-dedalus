@@ -24,6 +24,26 @@ def simpson_mean(values: list[float]) -> float:
     return (values[0] + 4.0 * values[1] + values[2]) / 6.0
 
 
+def run_slice_task(
+    args: tuple[CathodeParameters, float, float],
+) -> dict[str, Any]:
+    params, xi, oxygen_feed_concentration = args
+    result = solve_stationary(
+        params=params,
+        nx=8,
+        ny=8,
+        nz=32,
+        oxygen_feed_concentration=oxygen_feed_concentration,
+        newton_tolerance=1e-8,
+        max_newton_iterations=30,
+    )
+    return {
+        "slice_xi": xi,
+        "oxygen_feed_concentration_mol_m3": oxygen_feed_concentration,
+        **result,
+    }
+
+
 def main() -> None:
     base = CathodeParameters()
     current_a = 26.04
@@ -74,24 +94,12 @@ def main() -> None:
         for xi in xis
     }
 
-    def run_slice(xi: float) -> dict[str, Any]:
-        result = solve_stationary(
-            params=params,
-            nx=8,
-            ny=8,
-            nz=32,
-            oxygen_feed_concentration=local_feed[xi],
-            newton_tolerance=1e-8,
-            max_newton_iterations=30,
-        )
-        return {
-            "slice_xi": xi,
-            "oxygen_feed_concentration_mol_m3": local_feed[xi],
-            **result,
-        }
-
+    tasks = [
+        (params, xi, local_feed[xi])
+        for xi in xis
+    ]
     with ProcessPoolExecutor(max_workers=3) as executor:
-        rows = list(executor.map(run_slice, xis))
+        rows = list(executor.map(run_slice_task, tasks))
 
     rows.sort(key=lambda row: float(row["slice_xi"]))
     area_m2 = params.length_x * params.length_y
