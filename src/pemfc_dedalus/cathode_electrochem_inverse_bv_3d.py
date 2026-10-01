@@ -312,7 +312,9 @@ def solve_stationary_inverse_bv(
     q_hat.change_scales(1)
 
     c_values = np.asarray(c["g"]).copy()
-    eta_values = np.asarray(eta.evaluate()["g"]).copy()
+    eta_field = eta.evaluate()
+    eta_field.change_scales(1)
+    eta_values = np.asarray(eta_field["g"]).copy()
     q_hat_values = np.asarray(q_hat["g"]).copy()
     q_values = q_reference * q_hat_values
     exchange_values = j0_vol * (c_values / c_ref) ** gamma_o2
