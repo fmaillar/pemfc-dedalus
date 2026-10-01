@@ -98,6 +98,7 @@ def solve_stationary_inverse_bv(
     max_backtracks: int = 10,
     picard_iterations: int = 0,
     picard_relaxation: float = 0.25,
+    picard_tolerance: float = 0.0,
 ) -> InverseBVResult:
     """Solve the stationary cathode with q as an algebraic inverse-BV unknown."""
     if not 0.0 < newton_damping <= 1.0:
@@ -114,6 +115,8 @@ def solve_stationary_inverse_bv(
         raise ValueError("picard_iterations must be non-negative")
     if not 0.0 < picard_relaxation <= 1.0:
         raise ValueError("picard_relaxation must be in (0, 1]")
+    if picard_tolerance < 0.0:
+        raise ValueError("picard_tolerance must be non-negative")
 
     beta_a = params.beta_anodic
     beta_c = params.beta_cathodic
@@ -355,6 +358,12 @@ def solve_stationary_inverse_bv(
                     "relative_q_change": relative_q_change,
                 }
             )
+
+            if (
+                picard_tolerance > 0.0
+                and relative_q_change <= picard_tolerance
+            ):
+                break
 
     problem = d3.NLBVP(
         [
