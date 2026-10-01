@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 
 def slpm_to_m3_s(flow_slpm: float) -> float:
     """Convert standard litres per minute to cubic metres per second."""
@@ -90,3 +92,60 @@ def required_air_flow_slpm(
         * delta_temperature
     )
     return m3_s_to_slpm(volumetric_flow_m3_s)
+
+
+@dataclass(frozen=True)
+class OpenCathodeAirflowTarget:
+    """Result of the parameter-free V0.8 airflow target law."""
+
+    status: str
+    active_constraint: str
+    target_air_flow_slpm: float | None
+    stoichiometric_floor_slpm: float
+    thermal_required_slpm: float | None
+
+
+def open_cathode_airflow_target(
+    *,
+    heat_rejection_w: float,
+    inlet_temperature_k: float,
+    target_stack_temperature_k: float,
+    stoichiometric_floor_slpm: float,
+    air_density_kg_m3: float = 1.204,
+    air_specific_heat_j_kg_k: float = 1005.0,
+) -> OpenCathodeAirflowTarget:
+    """Return the minimum airflow satisfying O2 and ideal thermal constraints."""
+    if stoichiometric_floor_slpm < 0.0:
+        raise ValueError("stoichiometric_floor_slpm must be non-negative")
+
+    if inlet_temperature_k >= target_stack_temperature_k:
+        return OpenCathodeAirflowTarget(
+            status="target_unreachable",
+            active_constraint="ambient_temperature",
+            target_air_flow_slpm=None,
+            stoichiometric_floor_slpm=stoichiometric_floor_slpm,
+            thermal_required_slpm=None,
+        )
+
+    thermal_required = required_air_flow_slpm(
+        heat_rejection_w=heat_rejection_w,
+        inlet_temperature_k=inlet_temperature_k,
+        maximum_outlet_temperature_k=target_stack_temperature_k,
+        air_density_kg_m3=air_density_kg_m3,
+        air_specific_heat_j_kg_k=air_specific_heat_j_kg_k,
+    )
+
+    if thermal_required > stoichiometric_floor_slpm:
+        target = thermal_required
+        active_constraint = "thermal"
+    else:
+        target = stoichiometric_floor_slpm
+        active_constraint = "stoichiometric_floor"
+
+    return OpenCathodeAirflowTarget(
+        status="reachable",
+        active_constraint=active_constraint,
+        target_air_flow_slpm=target,
+        stoichiometric_floor_slpm=stoichiometric_floor_slpm,
+        thermal_required_slpm=thermal_required,
+    )
