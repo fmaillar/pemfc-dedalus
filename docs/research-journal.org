@@ -20205,3 +20205,53 @@ V11 conserve donc la règle :
 - aire active : résolue ;
 - paramètres cinétiques spécifiques stack : toujours non résolus ;
 - aucune identification sur courbe Ballard ne sera utilisée pour fermer j0.
+
+
+** V11 étape 6 — référentiel MEA séparé des paramètres historiques
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_materials.py
+
+regroupe uniquement les propriétés géométriques et matériau admises pour V11.
+
+Objectif : empêcher qu'un paramètre historique de CathodeParameters, parfois
+provisoire ou calibré dans V0--V10, soit utilisé implicitement dans le modèle
+dynamique.
+
+Le référentiel V11 contient actuellement :
+
+- aire active = 0.0145 m2 ;
+- épaisseur membrane = 80 um ;
+- épaisseur GDL = 200 um ;
+- épaisseur CL = 10 um ;
+- porosité GDL = 0.76 ;
+- porosité CL = 0.40 ;
+- densité sèche membrane = 1980 kg/m3 ;
+- masse équivalente membrane = 1.10 kg/mol ;
+- perméabilité intrinsèque GDL = 1e-12 m2 ;
+- perméabilité intrinsèque CL = 1e-13 m2 ;
+- angle de contact eau liquide = 110 deg.
+
+Ces valeurs restent identifiées comme littérature, distinctes des valeurs
+constructeur directement tirées du manuel Ballard.
+
+Le module fournit aussi, sans nouveau coefficient libre :
+
+  j = I / A_cell
+
+  sigma_mem = Springer(lambda, T)
+
+  ASR_mem = L_mem / sigma_mem
+
+  Delta V_mem = j * ASR_mem.
+
+Ainsi la perte ohmique membrane est désormais calculable à partir des états
+physiques lambda et T, sans constante de perte ajustée.
+
+Des tests vérifient :
+
+- les valeurs géométriques ;
+- j ~= 1795.86 A/m2 à 26.04 A ;
+- positivité de sigma, ASR et perte ohmique ;
+- diminution de la perte ohmique quand la membrane s'hydrate.
