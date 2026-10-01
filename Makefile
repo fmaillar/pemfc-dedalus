@@ -981,3 +981,7 @@ quick-stationary-electrochem-v10:
 
 quick-stationary-damping-scan-v10:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_damping_scan
+
+
+quick-stationary-component-norms-v10:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_component_norms
