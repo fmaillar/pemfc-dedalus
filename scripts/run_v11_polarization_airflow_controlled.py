@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import math
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import asdict
 from pathlib import Path
@@ -80,7 +81,7 @@ def _run_current(
                 mea.membrane_thickness_m
                 / (implied_ohmic / current_density)
             )
-            temperature_factor = __import__("math").exp(
+            temperature_factor = math.exp(
                 1268.0
                 * (
                     1.0 / 303.0
