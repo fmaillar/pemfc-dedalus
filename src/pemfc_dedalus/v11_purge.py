@@ -15,7 +15,12 @@ from dataclasses import dataclass, replace
 import math
 
 from .ballard_1020acs import Ballard1020ACSTechnologyReference
-from .v11_anode import AnodeGasState, PurgeResult, apply_well_mixed_purge
+from .v11_anode import (
+    AnodeGasState,
+    PurgeResult,
+    apply_well_mixed_purge,
+    hydrogen_moles_for_target_pressure,
+)
 from .v11_system import V11DynamicState
 
 
@@ -44,6 +49,8 @@ class V11PurgeEvent:
     state: V11DynamicState
     anode: PurgeResult
     exchange_volume_m3: float
+    hydrogen_refill_mol: float
+    target_pressure_pa: float
 
 
 def time_to_ballard_purge_s(
@@ -139,8 +146,9 @@ def apply_v11_purge_event(
     """Apply one well-mixed purge reset to the V11 dynamic state.
 
     By default the exchanged volume is the Ballard run-time purge volume of
-    20 mL/cell. Only anode gas inventories jump; thermal, membrane and cathode
-    states remain continuous.
+    20 mL/cell. The displaced mixed gas is immediately replaced by regulated
+    hydrogen to recover the Ballard nominal anode pressure. Thermal, membrane
+    and cathode states remain continuous.
     """
     tech = (
         Ballard1020ACSTechnologyReference()
@@ -166,9 +174,21 @@ def apply_v11_purge_event(
         anode_gas_volume_m3=tech.anode_gas_volume_per_cell_m3,
     )
 
+    target_pressure_pa = 101325.0 + tech.h2_pressure_opt_barg * 1.0e5
+    refilled_hydrogen = hydrogen_moles_for_target_pressure(
+        target_total_pressure_pa=target_pressure_pa,
+        nitrogen_mol=purge.state.nitrogen_mol,
+        water_vapour_mol=purge.state.water_vapour_mol,
+        volume_m3=tech.anode_gas_volume_per_cell_m3,
+        temperature_k=state.stack_temperature_k,
+    )
+    hydrogen_refill = max(
+        refilled_hydrogen - purge.state.hydrogen_mol,
+        0.0,
+    )
     updated = replace(
         state,
-        anode_hydrogen_mol=purge.state.hydrogen_mol,
+        anode_hydrogen_mol=refilled_hydrogen,
         anode_nitrogen_mol=purge.state.nitrogen_mol,
         anode_water_vapour_mol=purge.state.water_vapour_mol,
     )
@@ -176,4 +196,6 @@ def apply_v11_purge_event(
         state=updated,
         anode=purge,
         exchange_volume_m3=exchange_volume,
+        hydrogen_refill_mol=hydrogen_refill,
+        target_pressure_pa=target_pressure_pa,
     )
