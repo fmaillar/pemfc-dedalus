@@ -25,7 +25,7 @@ from .v11_anode import (
     AnodeGasState,
     anode_gas_rhs_per_cell,
     ideal_gas_total_pressure_pa,
-    regulator_hydrogen_inlet_mol_s,
+    isobaric_regulator_hydrogen_inlet_mol_s,
 )
 from .v11_cathode import (
     CathodeGasDerivative,
@@ -125,7 +125,6 @@ def coupled_v11_rhs(
     inlet_oxygen_mole_fraction: float,
     inlet_water_mole_fraction: float,
     nitrogen_crossover_mol_s: float,
-    dt_regulator_s: float,
     stack: UserStackConfiguration | None = None,
     technology: Ballard1020ACSTechnologyReference | None = None,
     faraday_c_mol: float = 96485.33212,
@@ -150,8 +149,6 @@ def coupled_v11_rhs(
         raise ValueError("cathode_total_pressure_pa must be positive")
     if nitrogen_crossover_mol_s < 0.0:
         raise ValueError("nitrogen_crossover_mol_s must be non-negative")
-    if dt_regulator_s <= 0.0:
-        raise ValueError("dt_regulator_s must be positive")
 
     cathode_phase = repartition_cathode_water_equilibrium(
         total_water_mol=state.cathode_total_water_mol,
@@ -211,15 +208,23 @@ def coupled_v11_rhs(
     target_anode_pressure_pa = (
         101325.0 + tech.h2_pressure_opt_barg * 1.0e5
     )
-    hydrogen_inlet = regulator_hydrogen_inlet_mol_s(
-        state=anode_state,
+    thermal = stack_temperature_rhs_k_s(
+        n_cells=cfg.n_cells,
+        current_a=current_a,
+        cell_voltage_v=cell_voltage_v,
+        stack_air_flow_slpm=stack_air_flow_slpm,
+        inlet_temperature_k=inlet_air_temperature_k,
+        outlet_temperature_k=cathode_air_outlet_temperature_k,
+        thermal_mass_j_k_per_cell=tech.thermal_mass_j_k_per_cell,
+    )
+    hydrogen_inlet = isobaric_regulator_hydrogen_inlet_mol_s(
         target_total_pressure_pa=target_anode_pressure_pa,
         current_a=current_a,
         nitrogen_source_mol_s=nitrogen_crossover_mol_s,
         water_source_mol_s=anode_water_source,
-        dt_s=dt_regulator_s,
         volume_m3=tech.anode_gas_volume_per_cell_m3,
         temperature_k=state.stack_temperature_k,
+        temperature_rate_k_s=thermal.temperature_rate_k_s,
         faraday_c_mol=faraday_c_mol,
     )
     anode = anode_gas_rhs_per_cell(
@@ -327,7 +332,6 @@ def coupled_v11_predictive_rhs(
     cathode_total_pressure_pa: float,
     inlet_oxygen_mole_fraction: float,
     inlet_water_mole_fraction: float,
-    dt_regulator_s: float,
     cathode_platinum_loading_mg_cm2_geo: float,
     cathode_ecsa_m2_pt_g_pt: float,
     additional_resolved_loss_v: float = 0.0,
@@ -476,7 +480,6 @@ def coupled_v11_predictive_rhs(
         inlet_oxygen_mole_fraction=inlet_oxygen_mole_fraction,
         inlet_water_mole_fraction=inlet_water_mole_fraction,
         nitrogen_crossover_mol_s=nitrogen_crossover.rate_mol_s,
-        dt_regulator_s=dt_regulator_s,
         stack=stack,
         technology=tech,
         faraday_c_mol=faraday_c_mol,
