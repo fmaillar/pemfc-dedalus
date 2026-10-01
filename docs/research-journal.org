@@ -21012,3 +21012,109 @@ La prochaine étape logique est de fermer l'une des trois quantités restantes
 sans coefficient ajusté. La priorité est le débit de sortie cathode, car il
 peut être obtenu par fermeture molaire/pression du contrôle-volume avant de
 revenir au transfert thermique air-stack, qui reste le verrou le plus délicat.
+
+
+
+** V11 étape 19 — fermeture isobare du débit de sortie cathode
+
+Le débit molaire de sortie cathode n'est plus un argument libre du coeur
+prédictif V11.
+
+La fermeture précédente disponible dans v11_cathode.py maintenait seulement
+l'inventaire gazeux total constant :
+
+  dn_g/dt = 0.
+
+Cette relation est exacte à température constante, mais elle n'est pas
+suffisante pour le modèle thermique dynamique.
+
+Pour un contrôle-volume cathode à géométrie fixe et pression totale imposée,
+la loi des gaz parfaits donne :
+
+  P V = n_g R T
+
+et donc, à P et V constants :
+
+  dn_g/dt = - n_g/T * dT/dt.
+
+Une nouvelle fermeture :
+
+  cathode_isobaric_outlet_mol_s(...)
+
+calcule le débit de sortie nécessaire pour respecter cette contrainte.
+
+Deux régimes sont distingués.
+
+1. Cathode sous-saturée
+
+Toute l'eau cathodique est gazeuse. Le bilan molaire est :
+
+  dn_g/dt
+    = n_dot_in
+      - n_dot_out
+      - n_dot_O2,rxn
+      + n_dot_H2O,gas.
+
+La fermeture impose directement le taux d'accumulation thermique
+-n_g/T dT/dt.
+
+2. Cathode saturée avec eau liquide
+
+La vapeur n'est plus un inventaire indépendant. Elle est imposée par :
+
+  y_H2O = p_sat(T) / P.
+
+En posant :
+
+  q(T) = p_sat(T) / (P - p_sat(T)),
+
+on a :
+
+  n_H2O,v = q(T) n_dry.
+
+La dérivée de p_sat issue de la corrélation de Buck est maintenant calculée
+analytiquement. Le bilan gazeux inclut donc explicitement le terme :
+
+  n_dry dq/dT dT/dt.
+
+Dans ce régime, l'eau liquide agit comme tampon thermodynamique : une source
+ou un puits d'eau total n'affecte pas directement l'inventaire gazeux tant que
+la phase liquide reste présente.
+
+Cette formulation ne requiert pas le volume géométrique cathode. La dérivée
+isobare découle directement de la relation différentielle des gaz parfaits.
+
+Le coeur :
+
+  coupled_v11_predictive_rhs(...)
+
+calcule maintenant dans l'ordre :
+
+- la partition cathode vapeur/liquide ;
+- p_O2 et p_H2 ;
+- la tension prédictive ;
+- le bilan thermique et dT/dt ;
+- le flux eau cathode/membrane ;
+- le débit de sortie cathode isobare ;
+- puis le RHS couplé complet.
+
+Le débit de sortie calculé est exposé dans V11CoupledDiagnostics.
+
+Les tests vérifient :
+
+- récupération exacte de l'ancienne fermeture à température constante en
+  régime sous-saturé ;
+- augmentation du débit de sortie lors d'un échauffement à pression constante ;
+- dérivée analytique de Buck contre une différence centrée ;
+- fermeture exacte de dP/dt = 0 en régime saturé avec eau liquide ;
+- utilisation de cette fermeture par le coeur prédictif.
+
+Après cette étape, les fermetures physiques encore externes au coeur prédictif
+sont réduites à deux :
+
+- température de sortie d'air cathode ;
+- débit de crossover N2.
+
+La fermeture thermique air-stack reste le verrou principal. Le crossover N2
+peut être raccordé ensuite à la fermeture littérature déjà développée en V07,
+mais il devra être transféré sans réintroduire les calibrations historiques.
