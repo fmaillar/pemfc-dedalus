@@ -22461,3 +22461,106 @@ La polarisation périodique V11 utilise explicitement :
   cathode_air_target_slpm(I)
 
 et transmet ce débit unique au RHS couplé matière + thermique.
+
+
+
+*** Étape 25 — lecture du quick à débit cathodique imposé
+
+Le quick périodique à débit fixé par la stoechiométrie 50 a donné :
+
+  I = 15 A
+    Q_air = 124.5 slpm
+    cycles = 4
+    cycle_state_error = 3.99e-2
+    converged = false
+    V_cycle,mean = 0.78802 V
+    T_cycle,mean = 315.264 K = 42.11 degC
+    lambda_cycle,mean = 2.557
+    V_V11 - V_Ballard,BOL = -10.6 mV
+
+  I = 26.04 A
+    Q_air = 216.132 slpm
+    cycles = 4
+    cycle_state_error = 6.21e-2
+    converged = false
+    V_cycle,mean = 0.71602 V
+    T_cycle,mean = 318.554 K = 45.40 degC
+    lambda_cycle,mean = 2.373
+    V_V11 - V_Ballard,BOL = -52.1 mV.
+
+Le quick valide l'exécution du solveur périodique mais quatre cycles sont
+insuffisants pour déclarer le cycle limite convergé.
+
+Surtout, les températures obtenues sont supérieures aux températures optimales
+Ballard associées aux mêmes courants :
+
+  T_opt(15 A) = 33.96 degC
+  T_opt(26.04 A) ~= 39.81 degC.
+
+Une comparaison directe avec la courbe BOL à débit d'air fixé arbitrairement à
+la stoechiométrie 50 n'est donc pas une validation thermique équivalente des
+conditions constructeur.
+
+*** Étape 25b — débit cathodique unique contrôlé par la cible thermique
+
+Le point essentiel de l'architecture open-cathode est conservé :
+
+  un seul Q_air,cathode
+
+assure simultanément :
+
+- alimentation O2 ;
+- évacuation N2/H2O ;
+- refroidissement convectif.
+
+Le solveur périodique accepte désormais un débit cathodique explicite.
+
+Un second niveau :
+
+  solve_ballard_airflow_operating_point(...)
+
+cherche ce débit unique sous deux contraintes physiques :
+
+1. ne jamais descendre sous la stoechiométrie O2 minimale recommandée Ballard ;
+2. atteindre la température optimale Ballard du courant considéré.
+
+La recherche ne calibre jamais la tension.
+
+La tension BOL reste uniquement une sortie de validation externe.
+
+La recherche est réalisée par dichotomie en débit/stoechiométrie entre :
+
+  lambda_air,min = 20
+
+et, par défaut :
+
+  lambda_air,max = 150.
+
+Chaque évaluation de débit doit d'abord atteindre un cycle de purge convergé.
+Une évaluation non convergée est rejetée afin de ne pas régler le ventilateur
+sur une température transitoire.
+
+Deux cas limites sont explicitement détectés :
+
+- si le débit minimal O2 refroidit déjà trop, la cible thermique est
+  inaccessible sans violer la contrainte d'oxygène ;
+- si le débit maximal autorisé ne refroidit toujours pas assez, la cible
+  thermique n'est pas bracketée.
+
+Le quick contrôlé utilise :
+
+  I = 15, 26.04 A
+  dt = 0.02 s
+  max_cycles = 12
+  cycle_tolerance = 1e-4
+  temperature_tolerance = 0.5 K
+  max_airflow_iterations = 4
+
+avec parallélisme par courant.
+
+Commande :
+
+  make quick-polarization-airflow-controlled-v11
+
+La campagne complète utilisera ensuite six courants, dt = 0.01 s et une
+tolérance thermique de 0.1 K.
