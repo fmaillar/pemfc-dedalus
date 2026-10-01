@@ -8,6 +8,8 @@ from pemfc_dedalus.v11_galvanostatic import (
     current_density_a_m2,
     faraday_rates_per_cell,
     inverse_symmetric_butler_volmer_overpotential_v,
+    membrane_ohmic_loss_v,
+    reversible_cell_voltage_liquid_water_v,
     symmetric_butler_volmer_current_density_a_m2,
 )
 
@@ -89,3 +91,39 @@ def test_current_density_rejects_nonphysical_inputs(
 ) -> None:
     with pytest.raises(ValueError):
         current_density_a_m2(current_a, active_area_m2)
+
+
+
+def test_reversible_voltage_is_about_1_229_v_at_standard_conditions() -> None:
+    voltage = reversible_cell_voltage_liquid_water_v(
+        temperature_k=298.15,
+        hydrogen_partial_pressure_pa=1.0e5,
+        oxygen_partial_pressure_pa=1.0e5,
+    )
+
+    assert voltage == pytest.approx(1.229, abs=2.0e-3)
+
+
+def test_reversible_voltage_increases_with_reactant_pressure() -> None:
+    base = reversible_cell_voltage_liquid_water_v(
+        temperature_k=313.15,
+        hydrogen_partial_pressure_pa=1.0e5,
+        oxygen_partial_pressure_pa=0.21e5,
+    )
+    pressurized = reversible_cell_voltage_liquid_water_v(
+        temperature_k=313.15,
+        hydrogen_partial_pressure_pa=1.36e5,
+        oxygen_partial_pressure_pa=0.21e5,
+    )
+
+    assert pressurized > base
+
+
+def test_membrane_ohmic_loss_is_j_l_over_sigma() -> None:
+    loss = membrane_ohmic_loss_v(
+        current_density_a_m2=2000.0,
+        membrane_thickness_m=50e-6,
+        proton_conductivity_s_m=10.0,
+    )
+
+    assert loss == pytest.approx(0.01)
