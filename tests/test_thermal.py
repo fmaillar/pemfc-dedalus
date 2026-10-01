@@ -4,6 +4,9 @@ from pemfc_dedalus.thermal import (
     advance_lumped_stack_temperature_k,
     air_mass_flow_kg_s,
     ideal_air_cooling_power_w,
+    lumped_equilibrium_temperature_k,
+    lumped_temperature_analytic_k,
+    lumped_thermal_time_constant_s,
     open_cathode_airflow_target,
     outlet_temperature_k,
     required_air_flow_slpm,
@@ -131,3 +134,63 @@ def test_lumped_stack_heats_when_generation_exceeds_cooling():
         dt_s=1.0,
     )
     assert next_temperature > 293.15
+
+
+def test_lumped_time_constant_matches_definition():
+    tau = lumped_thermal_time_constant_s(
+        thermal_mass_j_k=1000.0,
+        air_flow_slpm=300.0,
+    )
+    expected = 1000.0 / (
+        air_mass_flow_kg_s(300.0) * 1005.0
+    )
+    assert tau == pytest.approx(expected)
+
+
+def test_lumped_equilibrium_matches_required_flow_target():
+    inlet = 293.15
+    target = 313.15
+    heat = 120.0
+    flow = required_air_flow_slpm(
+        heat_rejection_w=heat,
+        inlet_temperature_k=inlet,
+        maximum_outlet_temperature_k=target,
+    )
+    equilibrium = lumped_equilibrium_temperature_k(
+        heat_rejection_w=heat,
+        inlet_temperature_k=inlet,
+        air_flow_slpm=flow,
+    )
+    assert equilibrium == pytest.approx(target)
+
+
+def test_euler_lumped_solution_converges_to_analytic_solution():
+    inlet = 293.15
+    initial = 293.15
+    heat = 120.0
+    flow = 300.0
+    thermal_mass = 1000.0
+    duration = 200.0
+    dt = 0.1
+
+    temperature = initial
+    steps = int(duration / dt)
+    for _ in range(steps):
+        temperature = advance_lumped_stack_temperature_k(
+            stack_temperature_k=temperature,
+            inlet_temperature_k=inlet,
+            heat_rejection_w=heat,
+            air_flow_slpm=flow,
+            thermal_mass_j_k=thermal_mass,
+            dt_s=dt,
+        )
+
+    analytic = lumped_temperature_analytic_k(
+        time_s=duration,
+        initial_stack_temperature_k=initial,
+        heat_rejection_w=heat,
+        inlet_temperature_k=inlet,
+        air_flow_slpm=flow,
+        thermal_mass_j_k=thermal_mass,
+    )
+    assert temperature == pytest.approx(analytic, abs=2.0e-3)
