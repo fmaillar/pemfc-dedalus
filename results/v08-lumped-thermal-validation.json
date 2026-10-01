@@ -1,0 +1,273 @@
+{
+  "schema_version": 1,
+  "model": "v08-lumped-thermal-validation",
+  "duration_s": 600.0,
+  "thermal_mass_j_k": 1000.0,
+  "max_absolute_error_k": 0.02415502013798232,
+  "rows": [
+    {
+      "inlet_temperature_c": 10.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 2.0,
+      "air_flow_slpm": 216.132,
+      "thermal_time_constant_s": 229.42441312209596,
+      "analytic_final_temperature_c": 36.8462401416071,
+      "numerical_final_temperature_c": 36.87039516174508,
+      "error_k": 0.02415502013798232,
+      "absolute_error_k": 0.02415502013798232
+    },
+    {
+      "inlet_temperature_c": 10.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 1.0,
+      "air_flow_slpm": 216.132,
+      "thermal_time_constant_s": 229.42441312209596,
+      "analytic_final_temperature_c": 36.8462401416071,
+      "numerical_final_temperature_c": 36.85831703514174,
+      "error_k": 0.012076893534640476,
+      "absolute_error_k": 0.012076893534640476
+    },
+    {
+      "inlet_temperature_c": 10.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 0.5,
+      "air_flow_slpm": 216.132,
+      "thermal_time_constant_s": 229.42441312209596,
+      "analytic_final_temperature_c": 36.8462401416071,
+      "numerical_final_temperature_c": 36.85227842668627,
+      "error_k": 0.006038285079171146,
+      "absolute_error_k": 0.006038285079171146
+    },
+    {
+      "inlet_temperature_c": 10.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 0.25,
+      "air_flow_slpm": 216.132,
+      "thermal_time_constant_s": 229.42441312209596,
+      "analytic_final_temperature_c": 36.8462401416071,
+      "numerical_final_temperature_c": 36.84925924278576,
+      "error_k": 0.003019101178665551,
+      "absolute_error_k": 0.003019101178665551
+    },
+    {
+      "inlet_temperature_c": 10.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 2.0,
+      "air_flow_slpm": 216.132,
+      "thermal_time_constant_s": 229.42441312209596,
+      "analytic_final_temperature_c": 37.57774213503217,
+      "numerical_final_temperature_c": 37.593557784188704,
+      "error_k": 0.015815649156536438,
+      "absolute_error_k": 0.015815649156536438
+    },
+    {
+      "inlet_temperature_c": 10.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 1.0,
+      "air_flow_slpm": 216.132,
+      "thermal_time_constant_s": 229.42441312209596,
+      "analytic_final_temperature_c": 37.57774213503217,
+      "numerical_final_temperature_c": 37.585649555931184,
+      "error_k": 0.007907420899016415,
+      "absolute_error_k": 0.007907420899016415
+    },
+    {
+      "inlet_temperature_c": 10.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 0.5,
+      "air_flow_slpm": 216.132,
+      "thermal_time_constant_s": 229.42441312209596,
+      "analytic_final_temperature_c": 37.57774213503217,
+      "numerical_final_temperature_c": 37.581695739615554,
+      "error_k": 0.003953604583387005,
+      "absolute_error_k": 0.003953604583387005
+    },
+    {
+      "inlet_temperature_c": 10.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 0.25,
+      "air_flow_slpm": 216.132,
+      "thermal_time_constant_s": 229.42441312209596,
+      "analytic_final_temperature_c": 37.57774213503217,
+      "numerical_final_temperature_c": 37.57971891024238,
+      "error_k": 0.00197677521020978,
+      "absolute_error_k": 0.00197677521020978
+    },
+    {
+      "inlet_temperature_c": 20.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 2.0,
+      "air_flow_slpm": 315.99659267730163,
+      "thermal_time_constant_s": 156.9192782643148,
+      "analytic_final_temperature_c": 39.378354547087326,
+      "numerical_final_temperature_c": 39.388862443362825,
+      "error_k": 0.010507896275498751,
+      "absolute_error_k": 0.010507896275498751
+    },
+    {
+      "inlet_temperature_c": 20.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 1.0,
+      "air_flow_slpm": 315.99659267730163,
+      "thermal_time_constant_s": 156.9192782643148,
+      "analytic_final_temperature_c": 39.378354547087326,
+      "numerical_final_temperature_c": 39.38361832233534,
+      "error_k": 0.005263775248010916,
+      "absolute_error_k": 0.005263775248010916
+    },
+    {
+      "inlet_temperature_c": 20.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 0.5,
+      "air_flow_slpm": 315.99659267730163,
+      "thermal_time_constant_s": 156.9192782643148,
+      "analytic_final_temperature_c": 39.378354547087326,
+      "numerical_final_temperature_c": 39.380988878111395,
+      "error_k": 0.00263433102406907,
+      "absolute_error_k": 0.00263433102406907
+    },
+    {
+      "inlet_temperature_c": 20.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 0.25,
+      "air_flow_slpm": 315.99659267730163,
+      "thermal_time_constant_s": 156.9192782643148,
+      "analytic_final_temperature_c": 39.378354547087326,
+      "numerical_final_temperature_c": 39.37967232178289,
+      "error_k": 0.0013177746955648217,
+      "absolute_error_k": 0.0013177746955648217
+    },
+    {
+      "inlet_temperature_c": 20.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 2.0,
+      "air_flow_slpm": 315.99659267730163,
+      "thermal_time_constant_s": 156.9192782643148,
+      "analytic_final_temperature_c": 39.596839774086504,
+      "numerical_final_temperature_c": 39.60204365229379,
+      "error_k": 0.005203878207282742,
+      "absolute_error_k": 0.005203878207282742
+    },
+    {
+      "inlet_temperature_c": 20.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 1.0,
+      "air_flow_slpm": 315.99659267730163,
+      "thermal_time_constant_s": 156.9192782643148,
+      "analytic_final_temperature_c": 39.596839774086504,
+      "numerical_final_temperature_c": 39.59944657991929,
+      "error_k": 0.0026068058327837207,
+      "absolute_error_k": 0.0026068058327837207
+    },
+    {
+      "inlet_temperature_c": 20.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 0.5,
+      "air_flow_slpm": 315.99659267730163,
+      "thermal_time_constant_s": 156.9192782643148,
+      "analytic_final_temperature_c": 39.596839774086504,
+      "numerical_final_temperature_c": 39.59814438706002,
+      "error_k": 0.0013046129735130307,
+      "absolute_error_k": 0.0013046129735130307
+    },
+    {
+      "inlet_temperature_c": 20.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 0.25,
+      "air_flow_slpm": 315.99659267730163,
+      "thermal_time_constant_s": 156.9192782643148,
+      "analytic_final_temperature_c": 39.596839774086504,
+      "numerical_final_temperature_c": 39.59749238226283,
+      "error_k": 0.0006526081763240654,
+      "absolute_error_k": 0.0006526081763240654
+    },
+    {
+      "inlet_temperature_c": 30.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 2.0,
+      "air_flow_slpm": 638.0740069358042,
+      "thermal_time_constant_s": 77.71192168605863,
+      "analytic_final_temperature_c": 39.80684877780277,
+      "numerical_final_temperature_c": 39.80726714073842,
+      "error_k": 0.0004183629356475649,
+      "absolute_error_k": 0.0004183629356475649
+    },
+    {
+      "inlet_temperature_c": 30.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 1.0,
+      "air_flow_slpm": 638.0740069358042,
+      "thermal_time_constant_s": 77.71192168605863,
+      "analytic_final_temperature_c": 39.80684877780277,
+      "numerical_final_temperature_c": 39.80706142909605,
+      "error_k": 0.0002126512932818514,
+      "absolute_error_k": 0.0002126512932818514
+    },
+    {
+      "inlet_temperature_c": 30.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 0.5,
+      "air_flow_slpm": 638.0740069358042,
+      "thermal_time_constant_s": 77.71192168605863,
+      "analytic_final_temperature_c": 39.80684877780277,
+      "numerical_final_temperature_c": 39.80695597652141,
+      "error_k": 0.00010719871863784647,
+      "absolute_error_k": 0.00010719871863784647
+    },
+    {
+      "inlet_temperature_c": 30.0,
+      "initial_offset_k": 0.0,
+      "dt_s": 0.25,
+      "air_flow_slpm": 638.0740069358042,
+      "thermal_time_constant_s": 77.71192168605863,
+      "analytic_final_temperature_c": 39.80684877780277,
+      "numerical_final_temperature_c": 39.80690259612493,
+      "error_k": 5.381832215789473e-05,
+      "absolute_error_k": 5.381832215789473e-05
+    },
+    {
+      "inlet_temperature_c": 30.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 2.0,
+      "air_flow_slpm": 638.0740069358042,
+      "thermal_time_constant_s": 77.71192168605863,
+      "analytic_final_temperature_c": 39.811283731934,
+      "numerical_final_temperature_c": 39.81127568124475,
+      "error_k": -8.050689245919784e-06,
+      "absolute_error_k": 8.050689245919784e-06
+    },
+    {
+      "inlet_temperature_c": 30.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 1.0,
+      "air_flow_slpm": 638.0740069358042,
+      "thermal_time_constant_s": 77.71192168605863,
+      "analytic_final_temperature_c": 39.811283731934,
+      "numerical_final_temperature_c": 39.81127963981862,
+      "error_k": -4.092115375442518e-06,
+      "absolute_error_k": 4.092115375442518e-06
+    },
+    {
+      "inlet_temperature_c": 30.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 0.5,
+      "air_flow_slpm": 638.0740069358042,
+      "thermal_time_constant_s": 77.71192168605863,
+      "analytic_final_temperature_c": 39.811283731934,
+      "numerical_final_temperature_c": 39.81128166907541,
+      "error_k": -2.062858584395144e-06,
+      "absolute_error_k": 2.062858584395144e-06
+    },
+    {
+      "inlet_temperature_c": 30.0,
+      "initial_offset_k": 10.0,
+      "dt_s": 0.25,
+      "air_flow_slpm": 638.0740069358042,
+      "thermal_time_constant_s": 77.71192168605863,
+      "analytic_final_temperature_c": 39.811283731934,
+      "numerical_final_temperature_c": 39.81128269629107,
+      "error_k": -1.0356429243074672e-06,
+      "absolute_error_k": 1.0356429243074672e-06
+    }
+  ]
+}
