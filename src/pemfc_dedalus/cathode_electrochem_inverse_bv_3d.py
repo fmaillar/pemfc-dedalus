@@ -170,6 +170,7 @@ def solve_stationary_inverse_bv(
     phi_s = dist.Field(name="phi_s", bases=bases)
     phi_m = dist.Field(name="phi_m", bases=bases)
     q_hat = dist.Field(name="q_hat", bases=bases)
+    q_bv_projection = dist.Field(name="q_bv_projection", bases=bases)
 
     tau_c1 = dist.Field(name="tau_c1", bases=(xbasis, ybasis))
     tau_c2 = dist.Field(name="tau_c2", bases=(xbasis, ybasis))
@@ -368,8 +369,13 @@ def solve_stationary_inverse_bv(
                 * np.sinh(-beta * eta_picard)
                 / q_reference
             )
+            q_bv_projection.change_scales(1)
+            q_bv_projection["g"] = q_bv_hat
+            q_bv_projection.change_layout("c")
+            q_bv_projection.change_scales(1)
+            q_bv_projected = np.asarray(q_bv_projection["g"]).copy()
             q_hat.change_scales(1)
-            return q_bv_hat, c_picard
+            return q_bv_projected, c_picard
 
         q_bv_hat, c_picard = picard_map()
         for picard_iteration in range(1, picard_iterations + 1):
