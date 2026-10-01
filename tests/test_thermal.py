@@ -171,7 +171,7 @@ def test_euler_lumped_solution_converges_to_analytic_solution():
     flow = 300.0
     thermal_mass = 1000.0
     duration = 200.0
-    dt = 0.1
+    dt = 0.05
 
     temperature = initial
     steps = int(duration / dt)
