@@ -17731,3 +17731,46 @@ Si elle échoue dès 1e-6 ou 3e-6, le problème n'est plus un simple choix de pa
 de continuation : il faudra réexaminer la formulation stationnaire/Jacobienne
 elle-même.
 
+
+*** Résultat de la continuation à 1e-6
+
+Le premier niveau non linéaire :
+
+  lambda = 1e-6
+
+reste proche de l'état initial mais ne franchit pas le critère absolu après
+12 itérations amorties :
+
+  perturbation_norm = 5.94e-2.
+
+Avec :
+
+  damping = 0.25
+
+une décroissance géométrique proche de 0.75 par itération peut expliquer cette
+valeur sans impliquer une divergence.
+
+Une seconde anomalie doit être isolée : le champ O2 reporté présente encore une
+valeur minimale négative.
+
+*** Étape 12 — diagnostic LBVP et décroissance Newton
+
+Le solveur enregistre désormais, immédiatement après le LBVP sans réaction :
+
+  min(c_O2)
+  mean(c_O2)
+  max(c_O2).
+
+Pour chaque niveau de continuation, il enregistre également toute la série :
+
+  perturbation_norm_history.
+
+L'objectif est de distinguer :
+
+1. un LBVP initial incorrect ou sous-résolu ;
+2. un Newton amorti mais convergent ;
+3. un Newton réellement divergent.
+
+Aucune modification supplémentaire de la physique ni de la grille n'est faite
+avant ce diagnostic.
+
