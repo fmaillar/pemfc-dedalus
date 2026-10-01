@@ -10,6 +10,16 @@ import numpy as np
 from .parameters import CathodeParameters
 
 
+class InverseBVBacktrack(TypedDict):
+    iteration: int
+    residual_start: float
+    residual_final: float
+    damping: float
+    backtracks: int
+    min_c_o2_mol_m3: float
+    min_q_hat: float
+
+
 class InverseBVResult(TypedDict):
     converged: bool
     newton_iterations: int
@@ -33,6 +43,9 @@ class InverseBVResult(TypedDict):
     initial_min_c_o2_mol_m3: float
     initial_max_c_o2_mol_m3: float
     initial_mean_c_o2_mol_m3: float
+    globalized: bool
+    residual_merit: float
+    globalization_history: list[InverseBVBacktrack]
 
 
 def symmetric_bv_current(
@@ -69,6 +82,9 @@ def solve_stationary_inverse_bv(
     newton_tolerance: float = 1e-7,
     max_newton_iterations: int = 30,
     newton_damping: float = 1.0,
+    globalized: bool = False,
+    residual_tolerance: float = 1e-8,
+    max_backtracks: int = 10,
 ) -> InverseBVResult:
     """Solve the stationary cathode with q as an algebraic inverse-BV unknown."""
     if not 0.0 < newton_damping <= 1.0:
@@ -77,6 +93,10 @@ def solve_stationary_inverse_bv(
         raise ValueError("newton_tolerance must be positive")
     if max_newton_iterations < 1:
         raise ValueError("max_newton_iterations must be positive")
+    if residual_tolerance <= 0.0:
+        raise ValueError("residual_tolerance must be positive")
+    if max_backtracks < 1:
+        raise ValueError("max_backtracks must be positive")
 
     beta_a = params.beta_anodic
     beta_c = params.beta_cathodic
@@ -273,38 +293,153 @@ def solve_stationary_inverse_bv(
 
     solver = problem.build_solver()
 
+    residual_scales = (
+        max(params.d_o2_gdl, params.d_o2_cl) * c_ref / Lz**2,
+        max(params.sigma_s_gdl, params.sigma_s_cl) / Lz**2,
+        max(params.sigma_m_floor, params.sigma_m_cl) / Lz**2,
+        1.0,
+        c_ref,
+        c_ref / Lz,
+        1.0,
+        1.0 / Lz,
+        1.0 / Lz,
+        1.0,
+    )
+
+    def residual_merit() -> float:
+        solver.evaluator.evaluate_scheduled(iteration=solver.iteration)
+        normalized = [
+            float(field.allreduce_data_norm("c", 2)) / scale
+            for field, scale in zip(solver.F, residual_scales, strict=True)
+        ]
+        return float(np.sqrt(sum(value * value for value in normalized)))
+
+    def snapshot_state() -> list[np.ndarray]:
+        snapshot: list[np.ndarray] = []
+        for field in solver.state:
+            field.change_layout("c")
+            snapshot.append(np.asarray(field["c"]).copy())
+        return snapshot
+
+    def restore_state(snapshot: list[np.ndarray]) -> None:
+        for field, data in zip(solver.state, snapshot, strict=True):
+            field.change_layout("c")
+            field["c"] = data
+
+    def physical_bounds() -> tuple[float, float]:
+        c.change_scales(1)
+        q_hat.change_scales(1)
+        return (
+            float(np.min(np.asarray(c["g"]))),
+            float(np.min(np.asarray(q_hat["g"]))),
+        )
+
     physical_norm = np.inf
     physical_norm_history: list[float] = []
     min_c_o2_history: list[float] = []
     component_norm_history: list[dict[str, float]] = []
+    globalization_history: list[InverseBVBacktrack] = []
     iterations = 0
+    final_residual_merit = residual_merit()
 
-    while iterations < max_newton_iterations and physical_norm > newton_tolerance:
-        solver.newton_iteration(damping=newton_damping)
-        component_norms: dict[str, float] = {}
-        for index, perturbation in enumerate(solver.perturbations[:4]):
-            name = perturbation.name or f"perturbation_{index}"
-            component_norms[name] = float(
-                perturbation.allreduce_data_norm("c", 2)
+    if globalized:
+        while (
+            iterations < max_newton_iterations
+            and final_residual_merit > residual_tolerance
+        ):
+            base_state = snapshot_state()
+            base_iteration = solver.iteration
+            residual_start = final_residual_merit
+            damping = 1.0
+            accepted = False
+            used_backtracks = 0
+
+            for backtrack in range(max_backtracks):
+                restore_state(base_state)
+                solver.iteration = base_iteration
+                solver.newton_iteration(damping=damping)
+                trial_residual = residual_merit()
+                c_min, q_min = physical_bounds()
+
+                if (
+                    np.isfinite(trial_residual)
+                    and trial_residual < residual_start
+                    and c_min > 0.0
+                    and q_min > 0.0
+                ):
+                    accepted = True
+                    used_backtracks = backtrack
+                    final_residual_merit = trial_residual
+                    break
+
+                damping *= 0.5
+
+            if not accepted:
+                restore_state(base_state)
+                solver.iteration = base_iteration
+                break
+
+            component_norms: dict[str, float] = {}
+            for index, perturbation in enumerate(solver.perturbations[:4]):
+                name = perturbation.name or f"perturbation_{index}"
+                component_norms[name] = float(
+                    perturbation.allreduce_data_norm("c", 2)
+                )
+            component_norm_history.append(component_norms)
+            physical_norm = float(sum(component_norms.values()))
+            physical_norm_history.append(physical_norm)
+            c_min, q_min = physical_bounds()
+            min_c_o2_history.append(c_min)
+            iterations += 1
+            globalization_history.append(
+                {
+                    "iteration": iterations,
+                    "residual_start": residual_start,
+                    "residual_final": final_residual_merit,
+                    "damping": damping,
+                    "backtracks": used_backtracks,
+                    "min_c_o2_mol_m3": c_min,
+                    "min_q_hat": q_min,
+                }
             )
-        component_norm_history.append(component_norms)
-        physical_norm = float(sum(component_norms.values()))
-        physical_norm_history.append(physical_norm)
 
-        c.change_scales(1)
-        c_min = float(np.min(np.asarray(c["g"])))
-        min_c_o2_history.append(c_min)
-        iterations += 1
+        c_min, q_min = physical_bounds()
+        converged = (
+            np.isfinite(final_residual_merit)
+            and final_residual_merit <= residual_tolerance
+            and c_min > 0.0
+            and q_min > 0.0
+        )
+    else:
+        while (
+            iterations < max_newton_iterations
+            and physical_norm > newton_tolerance
+        ):
+            solver.newton_iteration(damping=newton_damping)
+            component_norms = {}
+            for index, perturbation in enumerate(solver.perturbations[:4]):
+                name = perturbation.name or f"perturbation_{index}"
+                component_norms[name] = float(
+                    perturbation.allreduce_data_norm("c", 2)
+                )
+            component_norm_history.append(component_norms)
+            physical_norm = float(sum(component_norms.values()))
+            physical_norm_history.append(physical_norm)
 
-        if not np.isfinite(physical_norm) or c_min <= 0.0:
-            break
+            c_min, _ = physical_bounds()
+            min_c_o2_history.append(c_min)
+            iterations += 1
 
-    converged = (
-        np.isfinite(physical_norm)
-        and physical_norm <= newton_tolerance
-        and bool(min_c_o2_history)
-        and min_c_o2_history[-1] > 0.0
-    )
+            if not np.isfinite(physical_norm) or c_min <= 0.0:
+                break
+
+        converged = (
+            np.isfinite(physical_norm)
+            and physical_norm <= newton_tolerance
+            and bool(min_c_o2_history)
+            and min_c_o2_history[-1] > 0.0
+        )
+        final_residual_merit = residual_merit()
 
     c.change_scales(1)
     phi_s.change_scales(1)
@@ -356,4 +491,7 @@ def solve_stationary_inverse_bv(
         "initial_min_c_o2_mol_m3": initial_min_c_o2,
         "initial_max_c_o2_mol_m3": initial_max_c_o2,
         "initial_mean_c_o2_mol_m3": initial_mean_c_o2,
+        "globalized": globalized,
+        "residual_merit": final_residual_merit,
+        "globalization_history": globalization_history,
     }
