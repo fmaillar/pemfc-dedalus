@@ -12617,3 +12617,95 @@ Objectif :
 déterminer si les événements V0.7 génèrent une modulation significative de la
 demande d'air avant d'introduire une capacité thermique ou une dynamique de
 ventilateur.
+
+
+*** Étape 4 — couplage instantané aux trajectoires dynamiques V0.7
+
+La loi statique de débit d'air est validée sur l'enveloppe stationnaire.
+
+La prochaine étape ne rajoute toujours aucune inertie thermique.
+
+Elle réutilise directement la dynamique V0.7 validée afin de déterminer si :
+
+- les purges ;
+- la dilution H2/N2 ;
+- les variations de RH anodique ;
+- les variations de courant associées
+
+modulent significativement la demande d'air de refroidissement.
+
+Un nouveau driver est ajouté :
+
+  scripts/run_v08_thermal_dynamic_coupling.py
+
+Il utilise la baseline :
+
+  Motupally
+  + k_a = 2e-6 m/s
+  + dynamique H2/N2
+  + purge
+  + gamma = 1.
+
+Quick initial :
+
+  régime = nominal
+  T_in = 20 °C
+  horizon = 200 s
+  dt = 0.01 s
+  write_every = 100
+  lookup = 21 x 21
+  JOBS = 8.
+
+Pour chaque échantillon dynamique :
+
+1. récupérer I_cell(t) ;
+2. interpoler V_BOL(I) ;
+3. calculer :
+     Q_dot(t) = N I(t) [1.253 - V_cell(t)] ;
+4. calculer :
+     T_opt(t) = 26.01 + 0.53 I(t) ;
+5. calculer le plancher stoechiométrique ;
+6. calculer la demande thermique ;
+7. appliquer :
+     Q_air,target(t) =
+       max(
+         Q_air,stoich_floor,
+         Q_air,thermal
+       ).
+
+Le CSV conserve :
+
+- time_s ;
+- purge_open ;
+- purge_count ;
+- cell_current_a ;
+- V_cell ;
+- Q_dot ;
+- T_opt ;
+- contrainte active ;
+- débit stoechiométrique ;
+- débit thermique ;
+- débit cible.
+
+Le résumé JSON calcule notamment :
+
+- plage de courant ;
+- plage de puissance thermique ;
+- plage de débit cible ;
+- moyenne du débit cible ;
+- moyenne pendant purge ;
+- moyenne hors purge ;
+- nombre d'échantillons où la cible est inaccessible.
+
+Cible :
+
+  make quick-thermal-dynamic-v08.
+
+Décision :
+
+  exécuter make test ;
+
+  puis make quick-thermal-dynamic-v08 ;
+
+  analyser l'amplitude réelle des variations thermiques induites par la
+  dynamique V0.7 avant toute introduction d'une capacité thermique.
