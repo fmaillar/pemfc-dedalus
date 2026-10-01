@@ -19592,3 +19592,57 @@ ramené à l'échelle 1 avant tout calcul de différence ou mise à jour :
   q_hat.change_scales(1)
 
 La logique du solveur Gummel globalisé reste inchangée.
+
+
+*** Résultat après forcing spectral préservant la discrétisation (8b134de)
+
+Le point fixe Gummel est atteint à la précision machine, mais la boucle a
+continué inutilement jusqu'à 160 itérations :
+
+  fp_res ~ 1e-13
+  alpha = 1
+  backtracks = 0
+
+sur des dizaines d'itérations.
+
+Le run termine avec :
+
+  picard_converged = true
+  newton_iterations = 0
+  j = 2144.45 A/m2
+  erreur courant ~= -0.258 %
+  temps mur ~= 2.11 s.
+
+Le défaut principal n'est donc plus la convergence du point fixe, mais le fait
+que l'évaluation spectrale du forcing modifie temporairement l'échelle de
+q_hat. Le retour à l'échelle 1 ne restitue pas exactement l'itéré stocké.
+
+Conséquence :
+
+- trial_residual est calculé contre trial_q_hat et devient ~1e-13 ;
+- à l'itération suivante, q_hat a été légèrement modifié par les changements
+  d'échelle induits par j_orr.evaluate() ;
+- le critère d'arrêt porte alors sur un état légèrement différent et la boucle
+  continue.
+
+*** Étape 34 — préserver exactement l'itéré Gummel
+
+Avant l'évaluation spectrale du forcing :
+
+  q_hat.change_scales(1)
+  q_iterate = q_hat["g"].copy()
+
+Puis j_orr est évalué avec déaliasing.
+
+Enfin, q_hat est explicitement restauré :
+
+  q_hat.change_scales(1)
+  q_hat["g"] = q_iterate.
+
+Ainsi, le calcul du forcing spectral ne peut plus modifier l'inconnue de point
+fixe.
+
+Le solveur Gummel et son line search restent inchangés.
+
+L'objectif du prochain run est de retrouver la convergence en ~7 itérations,
+avec arrêt immédiat lorsque fp_res <= 1e-8.
