@@ -61,31 +61,47 @@ def nafion_water_interfacial_transfer_coefficient_ge(
     water_volume_fraction: np.ndarray | float,
     *,
     mode: str,
+    temperature_k: float = 303.0,
+    activation_energy_j_mol: float = 20_000.0,
+    gas_constant_j_mol_k: float = 8.31446261815324,
 ) -> np.ndarray:
-    """Return Ge et al. (2005) Nafion/gas water transfer coefficient at 353 K.
+    """Return Ge et al. (2005) Nafion/gas water transfer coefficient [m/s].
 
-    The reported correlations are:
+    Reference coefficients at 303 K are:
 
-        absorption:  k = 3.53e-5 * f_v  [m/s]
-        desorption:  k = 1.42e-4 * f_v  [m/s]
+        absorption:  k0 = 1.14e-5 m/s
+        desorption:  k0 = 4.59e-5 m/s
 
-    where f_v is the membrane water volume fraction. These correlations are
-    retained as a literature diagnostic and should not be extrapolated in
-    temperature without an additional model.
+    multiplied by membrane water volume fraction f_v and the Arrhenius factor
+
+        exp[E_a/R * (1/303 - 1/T)].
+
+    Ge et al. used E_a = 20 kJ/mol for the interfacial process.
     """
+    if temperature_k <= 0.0:
+        raise ValueError("temperature_k must be positive")
+    if activation_energy_j_mol <= 0.0 or gas_constant_j_mol_k <= 0.0:
+        raise ValueError("activation energy and gas constant must be positive")
+
     fraction = np.asarray(water_volume_fraction, dtype=float)
     if np.any(fraction < 0.0) or np.any(fraction > 1.0):
         raise ValueError("water_volume_fraction must be in [0, 1]")
 
-    coefficients = {
-        "absorption": 3.53e-5,
-        "desorption": 1.42e-4,
+    reference_coefficients = {
+        "absorption": 1.14e-5,
+        "desorption": 4.59e-5,
     }
     try:
-        prefactor = coefficients[mode]
+        reference = reference_coefficients[mode]
     except KeyError as exc:
         raise ValueError("mode must be 'absorption' or 'desorption'") from exc
-    return prefactor * fraction
+
+    arrhenius = np.exp(
+        activation_energy_j_mol
+        / gas_constant_j_mol_k
+        * (1.0 / 303.0 - 1.0 / temperature_k)
+    )
+    return reference * fraction * arrhenius
 
 
 def membrane_water_content_grimaldi_da(
