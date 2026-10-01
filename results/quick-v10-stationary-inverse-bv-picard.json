@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "model": "v10-stationary-inverse-butler-volmer-picard-globalized",
+  "current_a": 26.04,
+  "voltage_v": 0.7681655172413794,
+  "slice_xi": 0.5,
+  "grid": [
+    4,
+    4,
+    16
+  ],
+  "oxygen_feed_concentration_mol_m3": 8.229922696355533,
+  "target_current_density_a_m2": 2150.0,
+  "current_density_a_m2": 2143.1145561547846,
+  "relative_current_error": -0.003202532021030408,
+  "converged": false,
+  "newton_iterations": 1,
+  "physical_norm": 0.28187393457428084,
+  "physical_norm_history": [
+    0.28187393457428084
+  ],
+  "min_c_o2_history": [
+    6.914710708869282
+  ],
+  "component_norm_history": [
+    {
+      "\u03b4c_o2": 0.0022128791870109237,
+      "\u03b4phi_s": 1.7665568887741894e-06,
+      "\u03b4phi_m": 0.029769874839359108,
+      "\u03b4q_hat": 0.24988941399102202
+    }
+  ],
+  "total_reaction_current": 0.004286229112309569,
+  "mean_eta_v": -0.3698465206855342,
+  "mean_c_o2_mol_m3": 7.520969995965972,
+  "min_c_o2_mol_m3": 6.914710708869282,
+  "min_eta_v": -0.412026451114648,
+  "max_eta_v": -0.306029828459561,
+  "min_q_hat": 0.10849453538375017,
+  "max_q_hat": 1.1091009480678642,
+  "min_q_a_m3": 19438604.25625525,
+  "max_q_a_m3": 198713919.86215913,
+  "q_reference_a_m3": 179166666.66666678,
+  "max_inverse_bv_residual_v": 0.023623143110101996,
+  "max_forward_bv_relative_error": 0.5495755099868979,
+  "initial_min_c_o2_mol_m3": 6.915029146137645,
+  "initial_max_c_o2_mol_m3": 8.228028615156532,
+  "initial_mean_c_o2_mol_m3": 7.57152888064709,
+  "globalized": true,
+  "residual_merit": 0.019799142530158867,
+  "globalization_history": [
+    {
+      "iteration": 1,
+      "residual_start": 0.0211107290454359,
+      "residual_final": 0.019799142530158867,
+      "damping": 1.0,
+      "backtracks": 0,
+      "min_c_o2_mol_m3": 6.914710708869282,
+      "min_q_hat": 0.10849453538375017
+    }
+  ],
+  "picard_iterations": 12,
+  "picard_relaxation": 0.25,
+  "picard_history": [
+    {
+      "iteration": 1,
+      "min_c_o2_mol_m3": 6.914770050200909,
+      "min_q_hat": 0.8180592834265721,
+      "max_q_hat": 1.117404869582596,
+      "relative_q_change": 0.1715842743438719
+    },
+    {
+      "iteration": 2,
+      "min_c_o2_mol_m3": 6.914772538602326,
+      "min_q_hat": 0.6926130649142952,
+      "max_q_hat": 1.115451321776816,
+      "relative_q_change": 0.16135393555133534
+    },
+    {
+      "iteration": 3,
+      "min_c_o2_mol_m3": 6.914774387859091,
+      "min_q_hat": 0.5955271116674298,
+      "max_q_hat": 1.113982768882611,
+      "relative_q_change": 0.14907905703575808
+    },
+    {
+      "iteration": 4,
+      "min_c_o2_mol_m3": 6.914775761287251,
+      "min_q_hat": 0.52066144744213,
+      "max_q_hat": 1.1128815016662028,
+      "relative_q_change": 0.13520595551900877
+    },
+    {
+      "iteration": 5,
+      "min_c_o2_mol_m3": 6.914776780725598,
+      "min_q_hat": 0.46309670063890906,
+      "max_q_hat": 1.1120575072571695,
+      "relative_q_change": 0.12027803567342987
+    },
+    {
+      "iteration": 6,
+      "min_c_o2_mol_m3": 6.914777536995915,
+      "min_q_hat": 0.41893947786582875,
+      "max_q_hat": 1.1114422383808116,
+      "relative_q_change": 0.10491555130303301
+    },
+    {
+      "iteration": 7,
+      "min_c_o2_mol_m3": 6.914778097745402,
+      "min_q_hat": 0.38513449837138375,
+      "max_q_hat": 1.110983688896417,
+      "relative_q_change": 0.08975457833359173
+    },
+    {
+      "iteration": 8,
+      "min_c_o2_mol_m3": 6.914778513321617,
+      "min_q_hat": 0.35929905869695133,
+      "max_q_hat": 1.1106425343084312,
+      "relative_q_change": 0.07536997845144602
+    },
+    {
+      "iteration": 9,
+      "min_c_o2_mol_m3": 6.914778821169393,
+      "min_q_hat": 0.3395837948854017,
+      "max_q_hat": 1.110389128985474,
+      "relative_q_change": 0.06220936738638148
+    },
+    {
+      "iteration": 10,
+      "min_c_o2_mol_m3": 6.9147790491184224,
+      "min_q_hat": 0.32455870260381847,
+      "max_q_hat": 1.110201184777842,
+      "relative_q_change": 0.050557288516305615
+    },
+    {
+      "iteration": 11,
+      "min_c_o2_mol_m3": 6.914779217838941,
+      "min_q_hat": 0.31312144142744786,
+      "max_q_hat": 1.110061986396569,
+      "relative_q_change": 0.04053451660983965
+    },
+    {
+      "iteration": 12,
+      "min_c_o2_mol_m3": 6.914779342674332,
+      "min_q_hat": 0.3044244396144352,
+      "max_q_hat": 1.1099590261497152,
+      "relative_q_change": 0.032124604316622916
+    }
+  ]
+}
