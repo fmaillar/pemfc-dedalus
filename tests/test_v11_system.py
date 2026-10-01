@@ -172,3 +172,46 @@ def test_predictive_rhs_closes_cell_voltage_from_dynamic_state() -> None:
         0.0,
         abs=1.0e-15,
     )
+
+
+
+def test_low_level_rhs_conserves_internal_nitrogen_crossover() -> None:
+    state = _nominal_state()
+    crossover = 2.5e-8
+    without_crossover, _ = coupled_v11_rhs(
+        state=state,
+        current_a=10.0,
+        stack_air_flow_slpm=100.0,
+        cathode_outlet_molar_flow_per_cell_mol_s=7.0e-3,
+        cell_voltage_v=0.8,
+        inlet_air_temperature_k=293.15,
+        cathode_air_outlet_temperature_k=300.15,
+        cathode_total_pressure_pa=101325.0,
+        inlet_oxygen_mole_fraction=0.2095,
+        inlet_water_mole_fraction=0.005,
+        nitrogen_crossover_mol_s=0.0,
+        dt_regulator_s=0.01,
+    )
+    with_crossover, _ = coupled_v11_rhs(
+        state=state,
+        current_a=10.0,
+        stack_air_flow_slpm=100.0,
+        cathode_outlet_molar_flow_per_cell_mol_s=7.0e-3,
+        cell_voltage_v=0.8,
+        inlet_air_temperature_k=293.15,
+        cathode_air_outlet_temperature_k=300.15,
+        cathode_total_pressure_pa=101325.0,
+        inlet_oxygen_mole_fraction=0.2095,
+        inlet_water_mole_fraction=0.005,
+        nitrogen_crossover_mol_s=crossover,
+        dt_regulator_s=0.01,
+    )
+
+    assert (
+        with_crossover.anode_nitrogen_mol_s
+        - without_crossover.anode_nitrogen_mol_s
+    ) == pytest.approx(crossover)
+    assert (
+        with_crossover.cathode_nitrogen_mol_s
+        - without_crossover.cathode_nitrogen_mol_s
+    ) == pytest.approx(-crossover)
