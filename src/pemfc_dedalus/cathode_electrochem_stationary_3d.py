@@ -214,11 +214,13 @@ def solve_stationary(
         stage_iterations = 0
         perturbation_norm = np.inf
 
+        stage_damping = 1.0 if scale == 0.0 else newton_damping
+
         while (
             stage_iterations < max_newton_iterations
             and perturbation_norm > newton_tolerance
         ):
-            solver.newton_iteration(damping=newton_damping)
+            solver.newton_iteration(damping=stage_damping)
             perturbation_norm = float(
                 sum(
                     perturbation.allreduce_data_norm("c", 2)

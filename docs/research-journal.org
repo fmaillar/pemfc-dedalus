@@ -17566,3 +17566,54 @@ Si la continuation échoue à un lambda intermédiaire, le niveau d'échec
 identifiera la zone de raideur et permettra d'affiner la continuation sans
 augmenter inutilement la grille.
 
+
+*** Résultat de la première continuation amortie
+
+La continuation ne quitte pas :
+
+  lambda = 0.
+
+Après 10 itérations :
+
+  perturbation_norm = 2.49e-2.
+
+Le courant est logiquement nul à ce niveau, mais le champ O2 reste encore
+légèrement non convergé :
+
+  min(c_O2) = -0.187 mol/m3.
+
+Ce comportement n'indique pas une difficulté de la cinétique, puisque la
+réaction est exactement nulle.
+
+Il provient du fait que le premier niveau linéaire est lui aussi amorti avec :
+
+  damping = 0.5.
+
+La correction Newton n'est alors appliquée qu'à moitié à chaque itération.
+
+*** Correction du premier niveau de continuation
+
+Le niveau :
+
+  lambda = 0
+
+utilise désormais :
+
+  damping = 1.
+
+Comme ce problème est linéaire, il doit fournir directement l'état de référence
+sans réaction.
+
+Les niveaux :
+
+  lambda > 0
+
+conservent :
+
+  damping = 0.5.
+
+Cette correction permet de distinguer proprement :
+
+- convergence du problème linéaire de référence ;
+- difficulté réelle introduite par la non-linéarité Butler-Volmer.
+
