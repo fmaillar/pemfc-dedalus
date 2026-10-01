@@ -17345,3 +17345,125 @@ classée comme instabilité numérique du schéma explicite.
 Si les trois pas présentent la même remontée au même temps physique, la
 formulation pseudo-temporelle elle-même devra être modifiée.
 
+
+*** Résultats de la sensibilité au pas de temps
+
+Au point nominal, les trois pas testés donnent pratiquement la même trajectoire.
+
+Pour :
+
+  max_dt = 2e-6 s
+
+le minimum vaut :
+
+  2033.886 A/m2
+
+à :
+
+  5.8 ms
+
+avec un ratio final / minimum :
+
+  1.37728.
+
+Pour :
+
+  max_dt = 1e-6 s
+
+le minimum vaut :
+
+  2033.886 A/m2
+
+à :
+
+  5.8 ms
+
+avec :
+
+  ratio final / minimum = 1.37728.
+
+Pour :
+
+  max_dt = 5e-7 s
+
+le minimum vaut :
+
+  2033.886 A/m2
+
+à :
+
+  5.8 ms
+
+avec :
+
+  ratio final / minimum = 1.39315.
+
+*** Interprétation
+
+La réduction du pas maximal par un facteur quatre ne déplace pas le minimum et
+ne supprime pas la remontée tardive.
+
+L'instabilité n'est donc pas une simple instabilité de pas de temps.
+
+Elle appartient à la dynamique artificielle de la formulation pseudo-temporelle.
+
+Le pseudo-temps n'ayant pas de signification physique dans ce modèle, il ne faut
+pas chercher à calibrer arbitrairement les pseudo-capacitances pour masquer ce
+comportement.
+
+*** Étape 9 — solution stationnaire non linéaire directe
+
+Une formulation stationnaire séparée est introduite.
+
+Les termes :
+
+  C_s dt(phi_s)
+  C_m dt(phi_m)
+  porosity dt(c_O2)
+
+sont supprimés.
+
+Le problème stationnaire conserve exactement les mêmes opérateurs spatiaux,
+conditions aux limites et cinétique Butler-Volmer.
+
+Le premier test est limité au point nominal :
+
+  I = 26.04 A
+  T_air,in = 20 degC
+  NTU = 3
+  V_cell = V_BOL(I).
+
+Les trois tranches :
+
+  xi = 0
+  xi = 0.5
+  xi = 1
+
+sont résolues indépendamment avec un NLBVP Dedalus.
+
+Le diagnostic vérifie :
+
+- convergence Newton ;
+- norme finale des perturbations ;
+- c_O2 > 0 ;
+- j_ORR > 0 ;
+- densité de courant moyenne streamwise ;
+- comparaison au pseudo-transitoire IVP.
+
+Nouvelle cible :
+
+  make quick-stationary-electrochem-v10
+
+Sorties :
+
+  results/quick-v10-stationary-electrochem.json
+  results/quick-v10-stationary-electrochem.csv
+
+*** Critère de décision
+
+Si le NLBVP converge de façon robuste et produit un courant stationnaire
+physiquement admissible, il remplacera le pseudo-transitoire comme fermeture
+électrochimique de V1.0.
+
+Le solveur IVP restera conservé uniquement comme outil historique / diagnostic.
+

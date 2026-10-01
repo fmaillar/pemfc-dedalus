@@ -973,3 +973,7 @@ quick-polarization-dt-stability-v10:
 	  --inlet-temperature-c 20 --ntu 3 \
 	  --nx 8 --ny 8 --nz 32 \
 	  --stop-time 8e-3 --scalar-dt 1e-4
+
+
+quick-stationary-electrochem-v10:
+	$(TIME) $(PYTHON) -m scripts.run_v10_stationary_electrochem
