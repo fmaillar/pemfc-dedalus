@@ -134,7 +134,14 @@ def main() -> None:
         f"error={100.0 * relative_current_error:+.3f}%",
         flush=True,
     )
-    print("normalized residual components:", flush=True)
+    print(
+        f"pre_newton_residual={result['pre_newton_residual_merit']:.6e}",
+        flush=True,
+    )
+    print("pre-Newton normalized residual components:", flush=True)
+    for name, value in result["pre_newton_residual_components"].items():
+        print(f"  {name}={value:.6e}", flush=True)
+    print("final normalized residual components:", flush=True)
     for name, value in result["residual_components"].items():
         print(f"  {name}={value:.6e}", flush=True)
     for newton_step in result["globalization_history"]:
