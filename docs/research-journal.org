@@ -22789,3 +22789,61 @@ mathématiquement propre et la convergence en dt interprétable.
 
 La campagne complète de polarisation peut maintenant être lancée avec le
 régulateur isobare continu.
+
+
+
+*** Étape 25d — fermeture thermique constructeur Ballard
+
+Le manuel MAN5100319-0B a été relu directement.
+
+Il confirme explicitement que le 1020ACS utilise un seul flux d'air open-cathode
+pour :
+
+- fournir l'O2 ;
+- évacuer la chaleur.
+
+Le manuel précise que, dans la plupart des situations, le besoin de
+refroidissement dépasse largement le besoin oxydant et contrôle donc le débit
+d'air réel.
+
+La fermeture géométrique précédente :
+
+  Nu -> h -> UA -> NTU -> T_air,out
+
+est remplacée dans le chemin prédictif V11 par l'équation constructeur Ballard
+E.23 :
+
+  q_removed
+    = m_dot Cp (T_stack - T_amb)
+      / (1 + 0.403 m_dot Cp).
+
+La relation inverse est également implémentée :
+
+  m_dot
+    = q_removed
+      / [Cp (T_stack - T_amb - 0.403 q_removed)].
+
+Le coefficient 0.403 est fourni par le manuel et n'est pas calibré.
+
+Validation interne contre l'exemple Ballard page 58 :
+
+  I = 75 A
+  V_cell = 0.5 V
+  T_stack = 72 degC
+  T_amb = 40 degC
+
+donne :
+
+  q_created ~= 56.48 W/cell
+  m_dot ~= 6.08e-3 kg/s/cell
+  Q_air ~= 283 slpm/cell.
+
+Le manuel compare ce débit à seulement 1.245 slpm/cell nécessaire à la réaction
+O2, soit une stoechiométrie proche de 227.
+
+Ainsi, les valeurs lambda_air ~90 observées dans les quick V11 ne sont pas
+intrinsèquement anormales pour ce stack open-cathode : la ventilation est
+principalement imposée par le refroidissement.
+
+L'ancienne fermeture géométrique reste dans le dépôt pour comparaison mais ne
+pilote plus coupled_v11_predictive_rhs().
