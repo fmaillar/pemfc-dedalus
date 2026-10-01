@@ -97,12 +97,10 @@ def main() -> None:
         )
         operating_base = replace(
             base,
-            stack_current_a=current_a_bound,
+            stack_current_a=current_a,
             stack_temperature=target_temperature_k,
             cathode_solid_potential=bol_voltage_v,
         )
-
-        evaluation_index = 0
 
         def evaluate(
             voltage_v: float,
@@ -114,9 +112,6 @@ def main() -> None:
             inlet_temperature_k_bound: float = inlet_temperature_k,
             target_current_density_bound: float = target_current_density,
         ) -> float:
-            nonlocal evaluation_index
-            evaluation_index += 1
-
             heat_rejection_w = operating_base_bound.stack.heat_rejection_w(
                 current_a_bound,
                 voltage_v,
@@ -142,7 +137,7 @@ def main() -> None:
                 oxygen_mole_fraction=operating_base_bound.oxygen_mole_fraction,
                 faraday_c_mol=operating_base_bound.faraday,
                 inlet_temperature_k=inlet_temperature_k_bound,
-                stack_temperature_k=target_temperature_k,
+                stack_temperature_k=target_temperature_k_bound,
                 ntu=args.ntu,
                 points=args.profile_points,
             )
@@ -173,7 +168,7 @@ def main() -> None:
                 run_dir = (
                     args.work_dir
                     / f"current-{current_a_bound:.2f}"
-                    / f"eval-{evaluation_index:02d}-{label}"
+                    / f"eval-{label}"
                     / f"xi-{xi:.1f}"
                 )
                 if run_dir.exists():
@@ -294,9 +289,9 @@ def main() -> None:
 
         solutions.append(
             {
-                "current_a": current_a_bound,
+                "current_a": current_a,
                 "target_temperature_c": target_temperature_c,
-                "target_current_density_a_m2": target_current_density_bound,
+                "target_current_density_a_m2": target_current_density,
                 "bol_voltage_v": bol_voltage_v,
                 "bol_mean_current_density_a_m2": bol_j,
                 "bol_relative_error": bol_error,
