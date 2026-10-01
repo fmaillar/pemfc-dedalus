@@ -80,7 +80,10 @@ def main() -> None:
         name: min(step[name] for step in histories)
         for name in final_components
     }
-    dominant_final = max(final_components, key=final_components.get)
+    dominant_final = max(
+        final_components,
+        key=lambda name: final_components[name],
+    )
 
     output = {
         "schema_version": 1,
