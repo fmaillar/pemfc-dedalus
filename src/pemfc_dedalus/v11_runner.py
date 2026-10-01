@@ -216,7 +216,7 @@ def run_v11_dynamic(
         )
     if any(
         right <= left
-        for left, right in zip(manual_purge_times_s, manual_purge_times_s[1:])
+        for left, right in zip(manual_purge_times_s, manual_purge_times_s[1:], strict=False)
     ):
         raise ValueError("manual purge times must be strictly increasing")
 
