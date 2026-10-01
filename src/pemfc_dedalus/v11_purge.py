@@ -182,13 +182,14 @@ def apply_v11_purge_event(
         volume_m3=tech.anode_gas_volume_per_cell_m3,
         temperature_k=state.stack_temperature_k,
     )
-    hydrogen_refill = max(
-        refilled_hydrogen - purge.state.hydrogen_mol,
-        0.0,
+    final_hydrogen = max(
+        purge.state.hydrogen_mol,
+        refilled_hydrogen,
     )
+    hydrogen_refill = final_hydrogen - purge.state.hydrogen_mol
     updated = replace(
         state,
-        anode_hydrogen_mol=refilled_hydrogen,
+        anode_hydrogen_mol=final_hydrogen,
         anode_nitrogen_mol=purge.state.nitrogen_mol,
         anode_water_vapour_mol=purge.state.water_vapour_mol,
     )
