@@ -13689,3 +13689,140 @@ Le comportement V0.7 sans modèle de température reste inchangé.
 
 Le gate doit être relancé avant toute campagne ou tout push de nouveaux
 résultats.
+
+
+*** Résultats de la rétroaction thermique ciblée N2 / vapeur
+
+Le quick à température prescrite est terminé avec gate logiciel vert.
+
+La trajectoire thermique imposée est :
+
+  20.0 -> 35.54 °C
+
+sur :
+
+  200 s.
+
+La comparaison porte sur :
+
+  baseline V0.7 à T fixe
+
+contre :
+
+  dynamique avec T(t) prescrite.
+
+*** Effet sur le crossover N2
+
+Flux N2 moyen :
+
+  fixe :
+    1.70656e-6 mol/m2/s
+
+  T(t) :
+    9.35875e-7 mol/m2/s
+
+  variation :
+    -45.16 %.
+
+Fraction molaire N2 maximale :
+
+  fixe :
+    0.00489456
+
+  T(t) :
+    0.00263075
+
+  variation :
+    -46.25 %.
+
+N2 cumulé traversé :
+
+  fixe :
+    8.98632e-6 mol
+
+  T(t) :
+    4.92808e-6 mol
+
+  variation :
+    -45.16 %.
+
+N2 cumulé purgé :
+
+  fixe :
+    5.04768e-6 mol
+
+  T(t) :
+    2.41096e-6 mol
+
+  variation :
+    -52.24 %.
+
+La température exerce donc un effet majeur sur le bilan N2.
+
+*** Effet sur courant et purge
+
+Courant moyen :
+
+  28.5157 -> 28.5563 A
+
+  variation :
+    +0.142 %.
+
+Période moyenne de purge :
+
+  80.71 -> 80.57 s
+
+  variation :
+    -0.173 %.
+
+La purge reste donc essentiellement déterminée par la charge cumulée.
+
+La forte réduction de N2 ne modifie presque pas le calendrier de purge dans
+cette configuration.
+
+*** Effet sur RH
+
+RH finale :
+
+  0.433669 -> 0.433506
+
+  variation :
+    -0.0376 %.
+
+Dans ce quick ciblé, la RH globale varie peu malgré l'utilisation de T(t).
+
+Cela est attendu car la fermeture hydrique Motupally reste encore calculée à la
+température fixe V0.7.
+
+*** Décision
+
+La dépendance thermique directe du crossover N2 est validée comme mécanisme
+important de V0.8.
+
+La prochaine étape doit maintenant inclure la dépendance thermique de
+D_Motupally.
+
+Le lookup actuel :
+
+  RH x j
+
+doit être étendu à :
+
+  RH x j x T.
+
+Objectifs :
+
+- recalculer le profil hydrique membrane à la température locale ;
+- recalculer la perméance N2 cohérente avec D_Motupally(lambda,T) ;
+- conserver l'interpolation rapide pendant la dynamique ;
+- comparer avec le quick T(t) ciblé précédent pour isoler l'effet additionnel
+  de la rétroaction Motupally.
+
+La température ne doit pas être discrétisée plus finement que nécessaire.
+
+Un premier quick utilisera un axe T couvrant :
+
+  293.15 ... 313.15 K
+
+avec un nombre réduit de plans de température, puis une étude de convergence
+sera réalisée avant le gel du lookup 3D.
