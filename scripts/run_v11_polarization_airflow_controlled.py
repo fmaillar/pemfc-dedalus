@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from pemfc_dedalus.ballard_1020acs import Ballard1020ACSTechnologyReference
+from pemfc_dedalus.membrane import membrane_water_content_from_activity
 from pemfc_dedalus.v11_materials import V11MEAReference
 from pemfc_dedalus.v11_polarization import solve_ballard_airflow_operating_point
 
@@ -64,7 +65,34 @@ def _run_current(
         row["model_membrane_asr_ohm_m2"] = (
             point.mean_membrane_ohmic_loss_v / current_density
         )
+        row["mean_anode_equilibrium_water_content"] = float(
+            membrane_water_content_from_activity(
+                point.mean_anode_water_activity
+            ).item()
+        )
+        row["mean_cathode_equilibrium_water_content"] = float(
+            membrane_water_content_from_activity(
+                point.mean_cathode_water_activity
+            ).item()
+        )
         if implied_ohmic > 0.0:
+            conductivity_target_s_m = (
+                mea.membrane_thickness_m
+                / (implied_ohmic / current_density)
+            )
+            temperature_factor = __import__("math").exp(
+                1268.0
+                * (
+                    1.0 / 303.0
+                    - 1.0 / point.mean_stack_temperature_k
+                )
+            )
+            row["bol_implied_membrane_water_content"] = (
+                conductivity_target_s_m
+                / 100.0
+                / temperature_factor
+                + 0.00326
+            ) / 0.005139
             row["bol_implied_membrane_asr_ohm_m2"] = (
                 implied_ohmic / current_density
             )
@@ -74,6 +102,7 @@ def _run_current(
                 / point.mean_membrane_ohmic_loss_v
             )
         else:
+            row["bol_implied_membrane_water_content"] = None
             row["bol_implied_membrane_asr_ohm_m2"] = None
             row["bol_implied_effective_membrane_thickness_m"] = None
         return row
