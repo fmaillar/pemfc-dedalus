@@ -20527,13 +20527,11 @@ Point de conservation important :
 - seul le flux net à travers les deux interfaces externes modifie la quantité
   totale d'eau stockée dans la membrane.
 
-La corrélation interfaciale de Ge présente dans le dépôt n'est pas branchée ici
-car sa forme implémentée est explicitement documentée à 353 K. L'appliquer à
-la température nominale du stack (~313 K) introduirait une extrapolation non
-justifiée.
-
-Les flux interfaciaux restent donc des entrées physiques explicites du bilan
-jusqu'à sélection d'une loi compatible avec le domaine de fonctionnement V11.
+La corrélation interfaciale de Ge n'était pas encore branchée à cette étape.
+Une vérification ultérieure de la littérature a montré que la formulation
+utilisée par Ge et reprise dans les revues est référencée à 303 K avec une
+dépendance d'Arrhenius d'environ 20 kJ/mol. Le commentaire historique du code
+qui la présentait comme une loi uniquement à 353 K était donc trop restrictif.
 
 Les tests vérifient :
 
@@ -20542,3 +20540,67 @@ Les tests vérifient :
 - conservation pour deux flux interfaciaux égaux et opposés ;
 - augmentation de lambda_bar en absorption nette ;
 - diminution de lambda_bar en désorption nette.
+
+
+** V11 étape 12 — fermeture des échanges eau gaz/membrane par Ge
+
+La littérature a été vérifiée avant de fermer les flux interfaciaux.
+
+Ge et al. (2005) donnent pour Nafion 112/115/117 des coefficients de transfert
+eau gaz/ionomère proportionnels à la fraction volumique d'eau de l'ionomère,
+avec référence à 303 K :
+
+  k_a,0 = 1.14e-5 m/s
+  k_d,0 = 4.59e-5 m/s
+
+et une dépendance thermique de type Arrhenius :
+
+  k(T) = k_0 f_w exp[E_a/R (1/303 - 1/T)]
+
+avec E_a ~= 20 kJ/mol.
+
+Le code historique utilisait directement les valeurs remontées vers ~353 K,
+ce qui avait conduit à une documentation trop restrictive. La fonction
+nafion_water_interfacial_transfer_coefficient_ge accepte maintenant
+explicitement T.
+
+La fraction volumique d'eau est calculée par :
+
+  f_w = lambda V_w / (lambda V_w + V_m)
+
+avec :
+
+  V_m = EW / rho_mem,dry
+  V_w = 18e-6 m3/mol.
+
+Pour un état lumped de membrane, le flux interfacial est :
+
+  N_int = k(T,lambda) * (rho_mem,dry/EW) * (lambda_eq - lambda_mem)
+
+positif vers la membrane.
+
+lambda_eq est obtenu depuis l'activité de l'eau gazeuse via l'isotherme de
+Springer.
+
+Le mode est choisi sans paramètre libre :
+
+- lambda_eq >= lambda_mem : absorption, coefficient k_a ;
+- lambda_eq < lambda_mem : désorption, coefficient k_d.
+
+Une fermeture directe de la dynamique d'hydratation est maintenant disponible :
+
+  membrane_hydration_rhs_ge(...)
+
+qui calcule les flux anode et cathode puis leur contribution à l'inventaire
+total de membrane.
+
+Les tests vérifient :
+
+- croissance de f_w avec lambda ;
+- flux nul à l'équilibre de sorption ;
+- absorption positive pour un gaz plus humide ;
+- désorption négative pour un gaz plus sec ;
+- relaxation de lambda_bar dans le bon sens.
+
+Cette fermeture conserve le statut de corrélation littérature : ses constantes
+ne sont pas réajustées aux données Ballard.
