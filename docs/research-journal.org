@@ -20804,3 +20804,83 @@ Les tests d'intégration vérifient :
 - cohérence de la partition cathodique algébrique ;
 - dépendance thermique explicite à T_air,out ;
 - possibilité d'un flux d'eau cathode négatif vers la membrane.
+
+
+** V11 étape 16 — cinétique ORR cathodique ancrée littérature
+
+Le verrou principal de la tension prédictive est la surtension d'activation
+cathodique.
+
+Une revue ciblée de la littérature a été menée autour de Neyerlin et al.
+(J. Electrochem. Soc., 2006, DOI 10.1149/1.2266294), qui déterminent les
+paramètres cinétiques intrinsèques d'un catalyseur Pt/C à grande surface dans
+une PEMFC en fonctionnement.
+
+Le jeu de paramètres retenu pour la formulation référencée au potentiel
+réversible est :
+
+  alpha_c ~= 1
+  i0,Pt,ref ~= 2.5e-8 A/cm2_Pt
+  gamma_O2 ~= 0.54
+  E_a ~= 67 kJ/mol
+  T_ref = 353 K
+  p_O2,ref = 101.3 kPa.
+
+La loi implémentée dans :
+
+  src/pemfc_dedalus/v11_orr.py
+
+est :
+
+  i0,Pt(T,pO2)
+    = i0,Pt,ref
+      * (pO2/p_ref)^gamma
+      * exp[-E_a/R * (1/T - 1/T_ref)].
+
+La surtension d'activation est calculée dans le régime cathodique de Tafel :
+
+  eta_act
+    = RT/(alpha_c F)
+      * ln(j/i0,geo).
+
+Point critique de provenance :
+
+Neyerlin rapporte i0 par aire électrochimiquement active de Pt.
+
+La conversion vers l'aire géométrique exige :
+
+  roughness
+    = A_Pt / A_geo
+    = 10 * L_Pt[mg/cm2] * ECSA[m2/g],
+
+puis :
+
+  i0,geo = i0,Pt * roughness.
+
+Ni le manuel Ballard ni les sources FCgen-1020ACS examinées ne fournissent
+actuellement une valeur suffisamment défendable pour :
+
+- le chargement Pt cathode ;
+- l'ECSA.
+
+Ces deux quantités restent donc des arguments obligatoires de la fermeture
+ORR. Aucun défaut Ballard n'est introduit.
+
+Les valeurs 0.4 mg/cm2 et 50 m2/g utilisées dans les tests ne servent qu'à
+vérifier la conversion d'unités et ne constituent pas une hypothèse V11 sur
+le stack.
+
+Les tests vérifient :
+
+- récupération exacte de i0 au point de référence ;
+- diminution de i0 à plus basse température ;
+- ordre de réaction en O2 ;
+- conversion correcte du roughness factor ;
+- conversion i0,Pt -> i0,geo ;
+- expression analytique de Tafel ;
+- augmentation de la perte d'activation lorsque pO2 diminue.
+
+La cinétique intrinsèque ORR est désormais résolue par littérature.
+
+Le dernier verrou d'activation est le roughness factor spécifique au catalyst
+layer FCgen-1020ACS.
