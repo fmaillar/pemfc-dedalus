@@ -81,6 +81,7 @@ def main() -> None:
         picard_iterations=160,
         picard_relaxation=0.25,
         picard_tolerance=1e-8,
+        newton_fallback=os.environ.get("V10_NEWTON_FALLBACK", "1") != "0",
     )
 
     area_m2 = params.length_x * params.length_y
