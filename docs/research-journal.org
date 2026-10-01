@@ -13364,3 +13364,139 @@ Décision :
 
   ne préparer le vrai couplage dynamique que pour les propriétés dont la
   sensibilité thermique est significative.
+
+
+*** Résultats du screening de rétroaction thermique
+
+Le screening est terminé sur la trajectoire thermique :
+
+  20.0 -> 35.54 °C
+
+comparée à la baseline V0.7 fixe :
+
+  39.8112 °C.
+
+*** Diffusivité Motupally
+
+À lambda = 4 :
+
+  rapport D(T) / D(V0.7)
+
+varie entre :
+
+  0.59095
+  et
+  0.89791.
+
+Cela correspond à une réduction de :
+
+  environ 41 %
+  au démarrage
+
+et encore :
+
+  environ 10 %
+  à 200 s.
+
+La dépendance thermique de Motupally est donc significative.
+
+*** Perméabilité N2 Catalano
+
+Pour la branche sèche avec :
+
+  E_a = 49.6 kJ/mol
+
+le rapport :
+
+  P_N2(T) / P_N2(V0.7)
+
+varie entre :
+
+  0.27577
+  et
+  0.76819.
+
+Cela correspond à une réduction de :
+
+  environ 72 %
+  au démarrage
+
+et encore :
+
+  environ 23 %
+  à 200 s.
+
+La rétroaction thermique sur le crossover N2 est donc très forte.
+
+*** Pression de vapeur saturante
+
+Le rapport :
+
+  p_sat(T) / p_sat(V0.7)
+
+varie entre :
+
+  0.31995
+  et
+  0.79323.
+
+Cela correspond à une réduction de :
+
+  environ 68 %
+  au démarrage
+
+et encore :
+
+  environ 21 %
+  à 200 s.
+
+La thermodynamique de vapeur d'eau doit donc être recalculée avec T(t).
+
+*** Facteur gaz parfait
+
+Le rapport :
+
+  [1/T(t)] / [1/T_V0.7]
+
+varie entre :
+
+  1.01383
+  et
+  1.06758.
+
+L'effet pur du facteur 1/T reste beaucoup plus faible :
+
+  environ +1.4 % à +6.8 %.
+
+Il est secondaire par rapport aux lois Arrhenius et à p_sat(T), mais sera
+naturellement inclus lorsque les états gaz utiliseront T(t).
+
+*** Décision scientifique
+
+Le couplage thermique en retour est nécessaire.
+
+Ordre de priorité :
+
+1. perméabilité N2 Catalano/Arrhenius ;
+2. saturation de vapeur d'eau et états gaz ;
+3. diffusivité Motupally ;
+4. corrections gaz parfait résiduelles.
+
+Le premier couplage en retour doit rester ciblé.
+
+Avant de construire un lookup complet :
+
+  RH x j x T
+
+pour Motupally, isoler d'abord l'effet direct de T(t) sur :
+
+- p_sat(T) ;
+- perméabilité N2 Arrhenius ;
+- accumulation N2 ;
+- calendrier de purge.
+
+Cette étape utilise la trajectoire thermique lumped validée comme température
+imposée et conserve temporairement la fermeture hydrique V0.7 inchangée.
+
+Elle constitue un couplage thermique unidirectionnel contrôlé avant le vrai
+couplage bidirectionnel.
