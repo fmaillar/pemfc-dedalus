@@ -7,7 +7,6 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-
 INPUT = Path("results/quick-v09-quasi3d-full-map.json")
 OUTPUT = Path("results/v09-final-validation.json")
 
