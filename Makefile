@@ -43,8 +43,8 @@ TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
 help:
 	@printf '%s\n' \
 	  'make install          install editable package and test dependencies' \
-	  'make test             run fast tests, Ruff and mypy' \
-	  'make test-full        run all tests including slow numerical tests' \
+	  'make test             run transactional Ruff, fast pytest and mypy; push Ruff fixes' \
+	  'make test-full        run transactional full validation including slow tests' \
 	  'make test-durations   show the slowest pytest tests' \
 	  'make test-profile     profile pytest in one process with cProfile' \
 	  'make unit             run pytest only' \
@@ -151,9 +151,13 @@ help:
 install:
 	$(PYTHON) -m pip install -e '.[test]'
 
-test check: lint unit typecheck
+test:
+	@PYTEST_WORKERS=$(PYTEST_WORKERS) bash scripts/run_checks.sh fast
 
-test-full: unit-full lint typecheck
+check: test
+
+test-full:
+	@PYTEST_WORKERS=$(PYTEST_WORKERS) bash scripts/run_checks.sh full
 
 unit:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(PYTHON) -m pytest -q \
@@ -175,12 +179,6 @@ test-profile:
 
 lint:
 	$(PYTHON) -m ruff check --fix --unsafe-fixes src tests scripts
-	@if ! git diff --quiet -- src tests scripts; then \
-		git add src tests scripts; \
-		git commit -m "Ruff fixes"; \
-	else \
-		echo "Ruff: no changes to commit"; \
-	fi
 
 typecheck:
 	$(PYTHON) -m mypy src tests scripts
