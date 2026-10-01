@@ -315,6 +315,8 @@ def solve_stationary_inverse_bv(
             current = np.asarray(current_field["g"]).copy()
             q_hat.change_scales(1)
             q_hat["g"] = q_iterate
+            q_hat.change_layout("c")
+            q_hat.change_scales(1)
             j_orr_forcing.change_scales(1)
             s_o2_forcing.change_scales(1)
             j_orr_forcing["g"] = current
@@ -406,6 +408,8 @@ def solve_stationary_inverse_bv(
                     continue
 
                 q_hat["g"] = trial_q_hat
+                q_hat.change_layout("c")
+                q_hat.change_scales(1)
                 trial_q_bv, trial_c = picard_map()
                 trial_scale = np.maximum(np.abs(trial_q_hat), 1e-12)
                 trial_residual = float(
@@ -424,6 +428,8 @@ def solve_stationary_inverse_bv(
 
             if not accepted:
                 q_hat["g"] = old_q_hat
+                q_hat.change_layout("c")
+                q_hat.change_scales(1)
                 q_bv_hat, c_picard = picard_map()
                 break
 
