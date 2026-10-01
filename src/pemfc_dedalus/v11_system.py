@@ -325,6 +325,7 @@ def coupled_v11_predictive_rhs(
     inlet_water_mole_fraction: float,
     cathode_platinum_loading_mg_cm2_geo: float,
     cathode_ecsa_m2_pt_g_pt: float,
+    membrane_conductivity_multiplier: float = 1.0,
     additional_resolved_loss_v: float = 0.0,
     stack: UserStackConfiguration | None = None,
     technology: Ballard1020ACSTechnologyReference | None = None,
@@ -406,6 +407,7 @@ def coupled_v11_predictive_rhs(
             cathode_platinum_loading_mg_cm2_geo
         ),
         cathode_ecsa_m2_pt_g_pt=cathode_ecsa_m2_pt_g_pt,
+        membrane_conductivity_multiplier=membrane_conductivity_multiplier,
         additional_resolved_loss_v=additional_resolved_loss_v,
     )
 
