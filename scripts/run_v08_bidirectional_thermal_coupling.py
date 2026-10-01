@@ -232,14 +232,17 @@ def main() -> None:
     for iteration in range(1, args.max_iterations + 1):
         previous_temperature_k = temperature_k.copy()
 
-        def temperature_model(time_s: float) -> float:
+        def temperature_model(
+            time_s: float,
+            trajectory_k: np.ndarray = previous_temperature_k,
+        ) -> float:
             return float(
                 np.interp(
                     time_s,
                     time_axis,
-                    previous_temperature_k,
-                    left=previous_temperature_k[0],
-                    right=previous_temperature_k[-1],
+                    trajectory_k,
+                    left=trajectory_k[0],
+                    right=trajectory_k[-1],
                 )
             )
 
