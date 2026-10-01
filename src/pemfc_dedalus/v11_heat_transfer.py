@@ -140,6 +140,8 @@ def cathode_air_outlet_temperature_geometry_v11(
         raise ValueError("stack_air_flow_slpm must be positive")
     if n_cells <= 0:
         raise ValueError("n_cells must be positive")
+    if n_cells <= 0:
+        raise ValueError("n_cells must be positive")
     if air_specific_heat_j_kg_k <= 0.0:
         raise ValueError("air_specific_heat_j_kg_k must be positive")
 
@@ -191,6 +193,7 @@ def cathode_air_outlet_temperature_ballard_v11(
     stack_temperature_k: float,
     inlet_temperature_k: float,
     stack_air_flow_slpm: float,
+    n_cells: int,
     air_specific_heat_j_kg_k: float = 1005.0,
     standard_air_density_kg_m3: float = 1.293,
     ballard_thermal_resistance_k_w: float = 0.403,
@@ -226,15 +229,21 @@ def cathode_air_outlet_temperature_ballard_v11(
         stack_air_flow_slpm=stack_air_flow_slpm,
         standard_air_density_kg_m3=standard_air_density_kg_m3,
     )
-    capacity_rate = mass_flow * air_specific_heat_j_kg_k
-    effectiveness = 1.0 / (
-        1.0 + ballard_thermal_resistance_k_w * capacity_rate
+    mass_flow_per_cell = mass_flow / n_cells
+    capacity_rate_per_cell = (
+        mass_flow_per_cell * air_specific_heat_j_kg_k
     )
-    heat_removed = (
-        capacity_rate
+    effectiveness = 1.0 / (
+        1.0
+        + ballard_thermal_resistance_k_w * capacity_rate_per_cell
+    )
+    heat_removed_per_cell = (
+        capacity_rate_per_cell
         * (stack_temperature_k - inlet_temperature_k)
         * effectiveness
     )
+    heat_removed = n_cells * heat_removed_per_cell
+    capacity_rate = mass_flow * air_specific_heat_j_kg_k
     outlet_temperature = (
         inlet_temperature_k + heat_removed / capacity_rate
     )
@@ -254,12 +263,15 @@ def ballard_required_coolant_mass_flow_kg_s(
     heat_removed_w: float,
     stack_temperature_k: float,
     inlet_temperature_k: float,
+    n_cells: int,
     air_specific_heat_j_kg_k: float = 1005.0,
     ballard_thermal_resistance_k_w: float = 0.403,
 ) -> float:
     """Invert Ballard MAN5100319-0B Eq. E.23 for required air mass flow."""
     if heat_removed_w < 0.0:
         raise ValueError("heat_removed_w must be non-negative")
+    if n_cells <= 0:
+        raise ValueError("n_cells must be positive")
     if stack_temperature_k <= inlet_temperature_k:
         raise ValueError(
             "stack_temperature_k must exceed inlet_temperature_k"
@@ -271,18 +283,20 @@ def ballard_required_coolant_mass_flow_kg_s(
     if heat_removed_w == 0.0:
         return 0.0
 
+    heat_removed_per_cell_w = heat_removed_w / n_cells
     available_delta_k = (
         stack_temperature_k
         - inlet_temperature_k
-        - ballard_thermal_resistance_k_w * heat_removed_w
+        - ballard_thermal_resistance_k_w * heat_removed_per_cell_w
     )
     if available_delta_k <= 0.0:
         raise ValueError(
             "requested heat removal is unattainable at this temperature lift"
         )
-    return heat_removed_w / (
+    mass_flow_per_cell = heat_removed_per_cell_w / (
         air_specific_heat_j_kg_k * available_delta_k
     )
+    return n_cells * mass_flow_per_cell
 
 
 def ballard_required_coolant_air_slpm(
@@ -290,6 +304,7 @@ def ballard_required_coolant_air_slpm(
     heat_removed_w: float,
     stack_temperature_k: float,
     inlet_temperature_k: float,
+    n_cells: int,
     air_specific_heat_j_kg_k: float = 1005.0,
     standard_air_density_kg_m3: float = 1.293,
     ballard_thermal_resistance_k_w: float = 0.403,
@@ -301,6 +316,7 @@ def ballard_required_coolant_air_slpm(
         heat_removed_w=heat_removed_w,
         stack_temperature_k=stack_temperature_k,
         inlet_temperature_k=inlet_temperature_k,
+        n_cells=n_cells,
         air_specific_heat_j_kg_k=air_specific_heat_j_kg_k,
         ballard_thermal_resistance_k_w=ballard_thermal_resistance_k_w,
     )
