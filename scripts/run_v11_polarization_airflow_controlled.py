@@ -64,14 +64,18 @@ def _run_current(
         row["model_membrane_asr_ohm_m2"] = (
             point.mean_membrane_ohmic_loss_v / current_density
         )
-        row["bol_implied_membrane_asr_ohm_m2"] = (
-            implied_ohmic / current_density
-        )
-        row["bol_implied_effective_membrane_thickness_m"] = (
-            mea.membrane_thickness_m
-            * implied_ohmic
-            / point.mean_membrane_ohmic_loss_v
-        )
+        if implied_ohmic > 0.0:
+            row["bol_implied_membrane_asr_ohm_m2"] = (
+                implied_ohmic / current_density
+            )
+            row["bol_implied_effective_membrane_thickness_m"] = (
+                mea.membrane_thickness_m
+                * implied_ohmic
+                / point.mean_membrane_ohmic_loss_v
+            )
+        else:
+            row["bol_implied_membrane_asr_ohm_m2"] = None
+            row["bol_implied_effective_membrane_thickness_m"] = None
         return row
     except Exception as exc:
         return {
