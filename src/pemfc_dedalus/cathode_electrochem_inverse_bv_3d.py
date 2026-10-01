@@ -457,7 +457,7 @@ def solve_stationary_inverse_bv(
             trial_q_bv = q_bv_hat
             trial_c = c_picard
 
-            for attempt in range(2):
+            for _attempt in range(2):
                 for backtrack in range(max_backtracks):
                     trial_q_hat = old_q_hat + damping * direction
                     if float(np.min(trial_q_hat)) <= 0.0:
