@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "model": "v10-stationary-electrochemistry-screening",
+  "current_a": 26.04,
+  "voltage_v": 0.7681655172413794,
+  "slice_xi": 0.5,
+  "grid": [
+    4,
+    4,
+    16
+  ],
+  "newton_tolerance": 1e-06,
+  "max_newton_iterations": 10,
+  "oxygen_feed_concentration_mol_m3": 8.229922696355533,
+  "target_current_density_a_m2": 2150.0,
+  "current_density_a_m2": 9.096007816814345e+19,
+  "relative_current_error": 4.230701310146206e+16,
+  "converged": false,
+  "newton_iterations": 10,
+  "perturbation_norm": 5.890702671075293e+20,
+  "total_reaction_current": 181920156336286.88,
+  "mean_eta_v": 58.5081571685296,
+  "mean_c_o2_mol_m3": 36.69062269573959,
+  "min_c_o2_mol_m3": -706.3841282028332,
+  "min_eta_v": -1861.8940370186824,
+  "max_eta_v": 5022.377091438168,
+  "min_j_orr_a_m3": -2.5415262775183233e+25,
+  "max_j_orr_a_m3": 2.8677653219668566e+25
+}
