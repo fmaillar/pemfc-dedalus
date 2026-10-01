@@ -19966,3 +19966,60 @@ La trajectoire initiale est :
 6. inventaires d'eau liquide anode/cathode ;
 7. validation des conservations et des cas limites avant toute comparaison aux
    données stack.
+
+
+** V11 étape 1 — noyau galvanostatique sans calibration libre
+
+Le premier incrément V11 implémente uniquement des relations qui ne nécessitent
+pas de coefficient système ajusté.
+
+Nouveau module :
+
+  src/pemfc_dedalus/v11_galvanostatic.py
+
+Il fournit :
+
+- conversion I -> densité de courant à partir d'une aire active explicite ;
+- stoechiométrie de Faraday exacte par cellule :
+    n_H2 = I/(2F)
+    n_O2 = I/(4F)
+    n_H2O = I/(2F)
+- inversion exacte de Butler-Volmer symétrique ;
+- relation directe correspondante pour validation aller-retour.
+
+Aucune aire active ni densité de courant d'échange n'est codée en valeur par
+défaut. Ces quantités doivent être fournies comme propriétés physiques
+indépendamment sourcées.
+
+Tests ajoutés :
+
+  tests/test_v11_galvanostatic.py
+
+Ils vérifient notamment :
+
+- conservation stoechiométrique H2/O2/H2O ;
+- limite courant nul ;
+- conversion courant/densité ;
+- round-trip exact de Butler-Volmer ;
+- rejet des entrées non physiques.
+
+Un audit de provenance est ajouté :
+
+  docs/v11-parameter-provenance.org
+
+Cet audit interdit explicitement la réutilisation silencieuse dans V11 de
+plusieurs paramètres historiques V0--V10 identifiés comme calibration,
+hypothèse provisoire ou régularisation numérique.
+
+Les quantités actuellement non résolues pour une prédiction complète de
+tension sont notamment :
+
+- aire électrochimique active réelle ;
+- densité de courant d'échange / paramètres catalytiques indépendamment
+  sourcés ;
+- modèle thermodynamique de potentiel réversible ;
+- certaines résistances électroniques et de contact.
+
+La prochaine étape est le potentiel réversible thermodynamique, puis la perte
+ohmique membrane à partir de lambda et T avec la loi de conductivité déjà
+sourcée.
