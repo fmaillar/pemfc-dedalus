@@ -19185,3 +19185,73 @@ même le premier pas Newton.
 La cible reste :
 
   make quick-stationary-inverse-bv-picard-v10
+
+
+*** Résultat Picard serré (f0d6da9)
+
+Picard atteint bien la nouvelle tolérance :
+
+  66 itérations
+  variation relative finale q_hat = 8.48e-9.
+
+La trajectoire reste stable et physique :
+
+  min(c_O2) ~= 6.91478 mol/m3
+  min(q_hat) -> 0.2771726
+  max(q_hat) -> 1.1096711.
+
+Cependant, cela ne supprime pas le plateau Newton.
+
+Le solveur globalisé s'arrête après 44 itérations avec :
+
+  mérite final ~= 1.496e-4
+  j = 2144.70 A/m2
+  erreur courant ~= -0.246 %.
+
+Les composantes dominantes restent pratiquement inchangées :
+
+  membrane_potential = 1.3635e-4
+  inverse_bv         = 6.1560e-5.
+
+Le resserrement Picard de 1e-4 à 1e-8 ne réduit donc pas sensiblement le
+plancher Newton.
+
+L'hypothèse selon laquelle le plateau venait simplement d'un Picard arrêté
+trop tôt est rejetée.
+
+*** Étape 28 — mesurer l'état Picard avant Newton
+
+Un point essentiel reste à vérifier.
+
+À variation relative q_hat ~= 1e-8, l'itération de Picard est pratiquement au
+point fixe du couplage :
+
+  q
+  -> résolution exacte des trois PDE linéaires
+  -> recalcul exact de q_BV
+  -> q inchangé à 1e-8 relatif.
+
+Cela suggère que l'état Picard lui-même peut déjà satisfaire le système complet
+mieux que l'état obtenu après le polissage Newton.
+
+Les dix résidus physiques normalisés sont donc désormais enregistrés deux fois :
+
+1. immédiatement après Picard, avant tout pas Newton ;
+2. à la fin du solveur Newton globalisé.
+
+Les nouveaux champs de sortie sont :
+
+  pre_newton_residual_merit
+  pre_newton_residual_components.
+
+La cible reste :
+
+  make quick-stationary-inverse-bv-picard-v10
+
+Le prochain run doit répondre à une question décisive :
+
+  Newton améliore-t-il réellement le point fixe Picard ?
+
+Si le mérite pré-Newton est inférieur au mérite final, Picard deviendra le
+solveur stationnaire de référence et Newton ne sera plus utilisé comme étape
+obligatoire.
