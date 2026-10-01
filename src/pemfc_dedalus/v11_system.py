@@ -414,6 +414,7 @@ def coupled_v11_predictive_rhs(
         stack_temperature_k=state.stack_temperature_k,
         inlet_temperature_k=inlet_air_temperature_k,
         stack_air_flow_slpm=stack_air_flow_slpm,
+        n_cells=cfg.n_cells,
     )
     thermal = stack_temperature_rhs_k_s(
         n_cells=cfg.n_cells,
