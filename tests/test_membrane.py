@@ -42,14 +42,16 @@ def test_ge_interfacial_transfer_correlation_matches_published_values():
     absorption = nafion_water_interfacial_transfer_coefficient_ge(
         fractions,
         mode="absorption",
+        temperature_k=303.0,
     )
     desorption = nafion_water_interfacial_transfer_coefficient_ge(
         fractions,
         mode="desorption",
+        temperature_k=303.0,
     )
 
-    assert np.allclose(absorption, 3.53e-5 * fractions)
-    assert np.allclose(desorption, 1.42e-4 * fractions)
+    assert np.allclose(absorption, 1.14e-5 * fractions)
+    assert np.allclose(desorption, 4.59e-5 * fractions)
     assert np.all(desorption > absorption)
 
 
@@ -626,3 +628,20 @@ def test_anode_transfer_zero_drag_has_expected_robin_limit():
 def test_anode_water_removal_flux_is_positive_above_equilibrium():
     flux = anode_water_removal_flux_lambda_m_s(3.0, 1.0, 2.0e-6)
     assert flux == pytest.approx(4.0e-6)
+
+
+
+def test_ge_interfacial_transfer_increases_with_temperature():
+    fraction = 0.2
+    cold = nafion_water_interfacial_transfer_coefficient_ge(
+        fraction,
+        mode="absorption",
+        temperature_k=303.0,
+    ).item()
+    warm = nafion_water_interfacial_transfer_coefficient_ge(
+        fraction,
+        mode="absorption",
+        temperature_k=313.15,
+    ).item()
+
+    assert warm > cold
