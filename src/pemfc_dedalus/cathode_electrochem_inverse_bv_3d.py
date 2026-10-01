@@ -297,45 +297,42 @@ def solve_stationary_inverse_bv(
 
     picard_history: list[InverseBVPicardStep] = []
     if picard_iterations:
-        picard_namespace = locals().copy()
-
-        def solve_picard_transport() -> None:
-            picard_problem = d3.LBVP(
-                [
-                    c,
-                    phi_s,
-                    phi_m,
-                    tau_c1,
-                    tau_c2,
-                    tau_s1,
-                    tau_s2,
-                    tau_m1,
-                    tau_m2,
-                ],
-                namespace=picard_namespace,
-            )
-            picard_problem.add_equation(
-                "-div(diffusivity*grad_c) + lift(tau_c2, -1) = -s_o2"
-            )
-            picard_problem.add_equation(
-                "-div(sigma_s*grad_phi_s) + lift(tau_s2, -1) = -j_orr"
-            )
-            picard_problem.add_equation(
-                "-div(sigma_m*grad_phi_m) + lift(tau_m2, -1) = -j_orr"
-            )
-            picard_problem.add_equation("c(z=0) = inlet")
-            picard_problem.add_equation("ez @ grad_c(z=Lz) = 0")
-            picard_problem.add_equation("phi_s(z=0) = phi_s_bc")
-            picard_problem.add_equation("ez @ grad_phi_s(z=Lz) = 0")
-            picard_problem.add_equation("ez @ grad_phi_m(z=0) = 0")
-            picard_problem.add_equation("phi_m(z=Lz) = phi_m_bc")
-            picard_problem.build_solver().solve()
+        picard_problem = d3.LBVP(
+            [
+                c,
+                phi_s,
+                phi_m,
+                tau_c1,
+                tau_c2,
+                tau_s1,
+                tau_s2,
+                tau_m1,
+                tau_m2,
+            ],
+            namespace=locals(),
+        )
+        picard_problem.add_equation(
+            "-div(diffusivity*grad_c) + lift(tau_c2, -1) = -s_o2"
+        )
+        picard_problem.add_equation(
+            "-div(sigma_s*grad_phi_s) + lift(tau_s2, -1) = -j_orr"
+        )
+        picard_problem.add_equation(
+            "-div(sigma_m*grad_phi_m) + lift(tau_m2, -1) = -j_orr"
+        )
+        picard_problem.add_equation("c(z=0) = inlet")
+        picard_problem.add_equation("ez @ grad_c(z=Lz) = 0")
+        picard_problem.add_equation("phi_s(z=0) = phi_s_bc")
+        picard_problem.add_equation("ez @ grad_phi_s(z=Lz) = 0")
+        picard_problem.add_equation("ez @ grad_phi_m(z=0) = 0")
+        picard_problem.add_equation("phi_m(z=Lz) = phi_m_bc")
+        picard_solver = picard_problem.build_solver()
 
         for picard_iteration in range(1, picard_iterations + 1):
             q_hat.change_scales(1)
             old_q_hat = np.asarray(q_hat["g"]).copy()
 
-            solve_picard_transport()
+            picard_solver.solve()
 
             c.change_scales(1)
             eta_picard_field = eta.evaluate()
@@ -384,10 +381,8 @@ def solve_stationary_inverse_bv(
             ):
                 break
 
-        # The Picard loop updates q_hat after solving the transport equations.
-        # Re-solve once with the final relaxed q_hat so that c, phi_s and phi_m
-        # are consistent with the current source before entering Newton.
-        solve_picard_transport()
+        # Re-solve once with the final relaxed q_hat before entering Newton.
+        picard_solver.solve()
 
     problem = d3.NLBVP(
         [
@@ -469,6 +464,7 @@ def solve_stationary_inverse_bv(
             strict=True,
         ):
             residual_field = expression.evaluate()
+            residual_field.change_scales(1)
             values.append(
                 float(residual_field.allreduce_data_norm("c", 2)) / scale
             )
