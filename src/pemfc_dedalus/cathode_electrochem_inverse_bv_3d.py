@@ -26,6 +26,9 @@ class InverseBVPicardStep(TypedDict):
     min_q_hat: float
     max_q_hat: float
     relative_q_change: float
+    fixed_point_residual: float
+    damping: float
+    backtracks: int
 
 
 class InverseBVResidualComponents(TypedDict):
@@ -297,6 +300,20 @@ def solve_stationary_inverse_bv(
 
     picard_history: list[InverseBVPicardStep] = []
     if picard_iterations:
+        j_orr_forcing = dist.Field(name="j_orr_forcing", bases=bases)
+        s_o2_forcing = dist.Field(name="s_o2_forcing", bases=bases)
+
+        def update_picard_forcing() -> None:
+            q_hat.change_scales(1)
+            chi_cl.change_scales(1)
+            current = (
+                np.asarray(chi_cl["g"]) * q_reference * np.asarray(q_hat["g"])
+            )
+            j_orr_forcing.change_scales(1)
+            s_o2_forcing.change_scales(1)
+            j_orr_forcing["g"] = current
+            s_o2_forcing["g"] = current / (4.0 * F)
+
         picard_problem = d3.LBVP(
             [
                 c,
@@ -312,13 +329,13 @@ def solve_stationary_inverse_bv(
             namespace=locals(),
         )
         picard_problem.add_equation(
-            "-div(diffusivity*grad_c) + lift(tau_c2, -1) = -s_o2"
+            "-div(diffusivity*grad_c) + lift(tau_c2, -1) = -s_o2_forcing"
         )
         picard_problem.add_equation(
-            "-div(sigma_s*grad_phi_s) + lift(tau_s2, -1) = -j_orr"
+            "-div(sigma_s*grad_phi_s) + lift(tau_s2, -1) = -j_orr_forcing"
         )
         picard_problem.add_equation(
-            "-div(sigma_m*grad_phi_m) + lift(tau_m2, -1) = -j_orr"
+            "-div(sigma_m*grad_phi_m) + lift(tau_m2, -1) = -j_orr_forcing"
         )
         picard_problem.add_equation("c(z=0) = inlet")
         picard_problem.add_equation("ez @ grad_c(z=Lz) = 0")
@@ -328,12 +345,9 @@ def solve_stationary_inverse_bv(
         picard_problem.add_equation("phi_m(z=Lz) = phi_m_bc")
         picard_solver = picard_problem.build_solver()
 
-        for picard_iteration in range(1, picard_iterations + 1):
-            q_hat.change_scales(1)
-            old_q_hat = np.asarray(q_hat["g"]).copy()
-
+        def picard_map() -> tuple[np.ndarray, np.ndarray]:
+            update_picard_forcing()
             picard_solver.solve()
-
             c.change_scales(1)
             eta_picard_field = eta.evaluate()
             eta_picard_field.change_scales(1)
@@ -346,6 +360,16 @@ def solve_stationary_inverse_bv(
                 * np.sinh(-beta * eta_picard)
                 / q_reference
             )
+            return q_bv_hat, c_picard
+
+        q_bv_hat, c_picard = picard_map()
+        for picard_iteration in range(1, picard_iterations + 1):
+            q_hat.change_scales(1)
+            old_q_hat = np.asarray(q_hat["g"]).copy()
+            q_scale = np.maximum(np.abs(old_q_hat), 1e-12)
+            fixed_point_residual = float(
+                np.max(np.abs(q_bv_hat - old_q_hat) / q_scale)
+            )
 
             if (
                 not np.all(np.isfinite(q_bv_hat))
@@ -353,35 +377,63 @@ def solve_stationary_inverse_bv(
                 or float(np.min(q_bv_hat)) <= 0.0
             ):
                 break
+            if picard_tolerance > 0.0 and fixed_point_residual <= picard_tolerance:
+                break
 
-            relaxed_q_hat = (
-                (1.0 - picard_relaxation) * old_q_hat
-                + picard_relaxation * q_bv_hat
-            )
-            q_scale = np.maximum(np.abs(old_q_hat), 1e-12)
+            damping = min(1.0, max(picard_relaxation, 0.5))
+            accepted = False
+            used_backtracks = 0
+            trial_residual = np.inf
+            trial_q_bv = q_bv_hat
+            trial_c = c_picard
+
+            for backtrack in range(max_backtracks):
+                trial_q_hat = old_q_hat + damping * (q_bv_hat - old_q_hat)
+                if float(np.min(trial_q_hat)) <= 0.0:
+                    damping *= 0.5
+                    continue
+
+                q_hat["g"] = trial_q_hat
+                trial_q_bv, trial_c = picard_map()
+                trial_scale = np.maximum(np.abs(trial_q_hat), 1e-12)
+                trial_residual = float(
+                    np.max(np.abs(trial_q_bv - trial_q_hat) / trial_scale)
+                )
+                if (
+                    np.all(np.isfinite(trial_q_bv))
+                    and float(np.min(trial_c)) > 0.0
+                    and float(np.min(trial_q_bv)) > 0.0
+                    and trial_residual < fixed_point_residual
+                ):
+                    accepted = True
+                    used_backtracks = backtrack
+                    break
+                damping *= 0.5
+
+            if not accepted:
+                q_hat["g"] = old_q_hat
+                q_bv_hat, c_picard = picard_map()
+                break
+
             relative_q_change = float(
-                np.max(np.abs(relaxed_q_hat - old_q_hat) / q_scale)
+                np.max(np.abs(q_hat["g"] - old_q_hat) / q_scale)
             )
-            q_hat.change_scales(1)
-            q_hat["g"] = relaxed_q_hat
-
             picard_history.append(
                 {
                     "iteration": picard_iteration,
-                    "min_c_o2_mol_m3": float(np.min(c_picard)),
-                    "min_q_hat": float(np.min(relaxed_q_hat)),
-                    "max_q_hat": float(np.max(relaxed_q_hat)),
+                    "min_c_o2_mol_m3": float(np.min(trial_c)),
+                    "min_q_hat": float(np.min(np.asarray(q_hat["g"]))),
+                    "max_q_hat": float(np.max(np.asarray(q_hat["g"]))),
                     "relative_q_change": relative_q_change,
+                    "fixed_point_residual": trial_residual,
+                    "damping": damping,
+                    "backtracks": used_backtracks,
                 }
             )
+            q_bv_hat = trial_q_bv
+            c_picard = trial_c
 
-            if (
-                picard_tolerance > 0.0
-                and relative_q_change <= picard_tolerance
-            ):
-                break
-
-        # Re-solve once with the final relaxed q_hat before entering Newton.
+        update_picard_forcing()
         picard_solver.solve()
 
     problem = d3.NLBVP(
