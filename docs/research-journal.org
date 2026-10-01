@@ -22116,3 +22116,136 @@ La convergence a également été rendue hybride :
 
 Cette correction doit être validée par une nouvelle campagne complète avant
 toute interprétation des erreurs de convergence en tension.
+
+
+
+*** Étape 24 — résultats convergés après correction d'échantillonnage
+
+La campagne complète a été relancée après correction du traitement des
+frontières de commande.
+
+Résultats de convergence par rapport à dt = 0.005 s :
+
+  dt = 0.04 s:
+    max |Delta V| = 3.52e-5 V
+    RMS Delta V = 1.85e-6 V
+    max |Delta T| = 5.57e-4 K
+    max |Delta lambda| = 3.90e-4
+    max |Delta n_N2,a| = 2.97e-11 mol
+
+  dt = 0.02 s:
+    max |Delta V| = 1.06e-6 V
+    RMS Delta V = 3.64e-7 V
+    max |Delta T| = 2.35e-4 K
+    max |Delta lambda| = 4.26e-5
+    max |Delta n_N2,a| = 1.05e-11 mol
+
+  dt = 0.01 s:
+    max |Delta V| = 3.46e-7 V
+    RMS Delta V = 1.21e-7 V
+    max |Delta T| = 7.83e-5 K
+    max |Delta lambda| = 1.40e-5
+    max |Delta n_N2,a| = 3.45e-12 mol.
+
+Les temps des trois purges concordent entre tous les dt à mieux que :
+
+  4e-10 s.
+
+La convergence temporelle est donc désormais régulière et les gros écarts de
+72--102 mV observés précédemment étaient entièrement dus à l'échantillonnage de
+part et d'autre d'une discontinuité de commande.
+
+*** Première trajectoire physique dt = 0.005 s
+
+La trajectoire fine présente trois purges automatiques :
+
+  t1 = 187.680491551 s
+  t2 = 276.006144393 s
+  t3 = 371.2799999998 s.
+
+La tension cellule évolue dans l'intervalle :
+
+  0.72164 V <= V_cell <= 0.85867 V.
+
+Valeurs aux changements de charge :
+
+  t = 0 s:
+    I = 5 A
+    V_cell = 0.85751 V
+
+  t = 60 s:
+    I = 15 A
+    V_cell = 0.78520 V
+
+  t = 180 s:
+    I = 26.04 A
+    V_cell = 0.72586 V
+
+  t = 360 s:
+    I = 10 A
+    V_cell = 0.82362 V.
+
+À t = 480 s :
+
+  V_cell = 0.81925 V
+  T_stack = 314.44995 K
+  lambda_mem = 2.39338
+  n_N2,a = 1.15728e-6 mol.
+
+La température atteint environ :
+
+  T_stack,max = 316.1374 K
+              = 42.9874 degC.
+
+Elle augmente fortement pendant le palier 26.04 A puis redescend après le
+passage à 10 A.
+
+La membrane se dessèche progressivement :
+
+  lambda_0 = 3.4855
+  lambda_final = 2.3934
+
+avec un minimum proche de 2.3834.
+
+L'activité d'eau cathode descend de 0.5 à environ 0.213 au minimum. L'anode
+démarre sèche, monte transitoirement vers environ 0.497, puis évolue avec le
+couplage membrane/gaz et les purges.
+
+Aucune eau liquide cathode n'est produite dans ce protocole :
+
+  n_H2O,liquid,c = 0
+
+sur toute la trajectoire.
+
+Le N2 anode s'accumule entre purges puis chute brutalement lors de chaque
+événement. Le maximum atteint environ :
+
+  1.535e-6 mol.
+
+La première purge intervient peu après le passage à 26.04 A parce que le
+compteur de charge avait déjà accumulé 2100 A.s à t = 180 s.
+
+*** Outil d'analyse des trajectoires
+
+Un script :
+
+  scripts/analyze_v11_reference_dynamic.py
+
+lit la trajectoire fine par défaut et produit :
+
+  results/v11-reference-analysis.json
+
+ainsi que les figures :
+
+  results/v11-reference/figures/voltage.png
+  results/v11-reference/figures/temperature.png
+  results/v11-reference/figures/hydration.png
+  results/v11-reference/figures/anode-nitrogen.png
+  results/v11-reference/figures/controls.png.
+
+La cible Makefile est :
+
+  make analyze-reference-dynamic-v11
+
+Cette étape ne recalcule pas la dynamique ; elle exploite uniquement les
+résultats déjà convergés.
