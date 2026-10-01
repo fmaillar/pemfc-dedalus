@@ -76,3 +76,10 @@ def test_air_and_h2_consumption_relations():
     assert stack.coolant_air_target_slpm(29.0) > stack.stoichiometric_air_slpm(29.0)
     assert math.isfinite(stack.purge_period_s(29.0))
     assert math.isinf(stack.purge_period_s(0.0))
+
+
+def test_stack_mass_and_thermal_mass_scale_with_cell_count():
+    stack = UserStackConfiguration(n_cells=10)
+
+    assert np.isclose(stack.dry_mass_kg, 3.7)
+    assert np.isclose(stack.thermal_mass_j_k, 1000.0)
