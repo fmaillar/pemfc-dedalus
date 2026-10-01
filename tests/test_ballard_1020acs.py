@@ -118,3 +118,16 @@ def test_reported_active_cell_area_sets_current_density():
         26.04 / 0.0145,
     )
     assert np.isclose(tech.current_density_a_m2(26.04), 1795.8620689655172)
+
+
+
+def test_cathode_air_target_is_single_oxidant_cooling_stream() -> None:
+    stack = UserStackConfiguration()
+    current = 26.04
+
+    cathode_air = stack.cathode_air_target_slpm(current)
+
+    assert cathode_air == pytest.approx(
+        stack.stoichiometric_air_slpm(current) * 50.0
+    )
+    assert stack.coolant_air_target_slpm(current) == pytest.approx(cathode_air)
