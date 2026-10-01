@@ -172,3 +172,77 @@ def cathode_air_outlet_temperature_geometry_v11(
         effectiveness=effectiveness,
         outlet_temperature_k=outlet,
     )
+
+
+
+@dataclass(frozen=True)
+class V11BallardCathodeHeatTransfer:
+    """Ballard MAN5100319-0B cathode-air cooling closure."""
+
+    mass_flow_kg_s: float
+    air_capacity_rate_w_k: float
+    heat_removed_w: float
+    effectiveness: float
+    outlet_temperature_k: float
+
+
+def cathode_air_outlet_temperature_ballard_v11(
+    *,
+    stack_temperature_k: float,
+    inlet_temperature_k: float,
+    stack_air_flow_slpm: float,
+    air_specific_heat_j_kg_k: float = 1005.0,
+    standard_air_density_kg_m3: float = 1.293,
+    ballard_thermal_resistance_k_w: float = 0.403,
+) -> V11BallardCathodeHeatTransfer:
+    """Return Ballard 1020ACS coolant-air heat removal and outlet temperature.
+
+    MAN5100319-0B Eq. E.23 gives
+
+        q_removed = m_dot cp (T_stack - T_amb)
+                    / (1 + 0.403 m_dot cp).
+
+    The same physical cathode stream supplies oxidant and removes heat.  The
+    effective outlet temperature is obtained from q_removed = m_dot cp
+    (T_out - T_in), so the manufacturer relation can be used directly in the
+    existing lumped stack energy balance.
+    """
+    if stack_temperature_k <= 0.0 or inlet_temperature_k <= 0.0:
+        raise ValueError("temperatures must be positive")
+    if stack_temperature_k < inlet_temperature_k:
+        raise ValueError(
+            "Ballard cooling closure requires stack temperature >= inlet"
+        )
+    if stack_air_flow_slpm <= 0.0:
+        raise ValueError("stack_air_flow_slpm must be positive")
+    if air_specific_heat_j_kg_k <= 0.0:
+        raise ValueError("air_specific_heat_j_kg_k must be positive")
+    if standard_air_density_kg_m3 <= 0.0:
+        raise ValueError("standard_air_density_kg_m3 must be positive")
+    if ballard_thermal_resistance_k_w < 0.0:
+        raise ValueError("ballard_thermal_resistance_k_w must be non-negative")
+
+    mass_flow = standard_air_mass_flow_kg_s(
+        stack_air_flow_slpm=stack_air_flow_slpm,
+        standard_air_density_kg_m3=standard_air_density_kg_m3,
+    )
+    capacity_rate = mass_flow * air_specific_heat_j_kg_k
+    effectiveness = 1.0 / (
+        1.0 + ballard_thermal_resistance_k_w * capacity_rate
+    )
+    heat_removed = (
+        capacity_rate
+        * (stack_temperature_k - inlet_temperature_k)
+        * effectiveness
+    )
+    outlet_temperature = (
+        inlet_temperature_k + heat_removed / capacity_rate
+    )
+
+    return V11BallardCathodeHeatTransfer(
+        mass_flow_kg_s=mass_flow,
+        air_capacity_rate_w_k=capacity_rate,
+        heat_removed_w=heat_removed,
+        effectiveness=effectiveness,
+        outlet_temperature_k=outlet_temperature,
+    )
