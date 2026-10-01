@@ -20361,3 +20361,72 @@ Les tests vérifient :
 La prochaine fermeture thermique devra venir du modèle spatial/streamwise
 cathode existant ou d'une réduction physiquement dérivée de celui-ci, et non
 d'un coefficient hA ajusté.
+
+
+** V11 étape 9 — anode dead-end H2/N2/H2O et purge explicite
+
+Le raccord direct du bilan thermique V11 au modèle streamwise existant a été
+écarté pour l'instant.
+
+Motif :
+
+- solve_streamwise_coupled_profile impose déjà total_heat_rejection_w ;
+  l'utiliser pour prédire Q_air dans le bilan thermique serait circulaire ;
+- solve_streamwise_finite_thermal_profile nécessite un NTU prescrit ;
+  sans dérivation indépendante, ce NTU jouerait le rôle d'un coefficient
+  effectif non résolu.
+
+La fermeture thermique streamwise reste donc UNRESOLVED plutôt que remplacée
+par un paramètre ajusté.
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_anode.py
+
+introduit le contrôle-volume anode dead-end par cellule avec états :
+
+  n_H2
+  n_N2
+  n_H2O,v.
+
+Les mécanismes sont :
+
+- consommation H2 exacte par Faraday :
+    n_dot_H2,rxn = I/(2F) ;
+- alimentation H2 par une limite de régulateur unidirectionnel idéal visant
+  la pression totale constructeur ;
+- crossover N2 conservé comme source explicite tant que sa perméabilité n'est
+  pas définitivement sourcée ;
+- transfert d'eau conservé comme source explicite ;
+- purge appliquée comme déplacement de gaz parfaitement mélangé.
+
+Le volume anode V11 utilise la valeur dérivée du manuel :
+
+  V_anode = 10 mL/cell.
+
+La pression de régulation nominale utilise :
+
+  p_anode,target = 1 atm + 0.36 bar(g).
+
+Pour une purge Ballard standard :
+
+  V_purge = 20 mL/cell = 2 V_anode.
+
+Dans l'approximation de mélange parfait, la fraction de gaz initial remplacée
+est :
+
+  f_purge = 1 - exp(-V_purge/V_anode)
+          = 1 - exp(-2)
+          ~= 0.8647.
+
+Cette fraction n'est pas ajustée : elle résulte directement du modèle de
+déplacement parfaitement mélangé et du rapport volumique constructeur.
+
+Les tests vérifient :
+
+- fermeture de la pression par gaz parfait ;
+- consommation H2 exacte ;
+- compensation exacte de consommation par le régulateur idéal dans le cas
+  simple sans N2/H2O ;
+- fraction de purge pour deux volumes échangés ;
+- conservation de la composition pendant une purge parfaitement mélangée.
