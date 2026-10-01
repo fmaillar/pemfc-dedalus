@@ -19754,3 +19754,65 @@ Cette correction doit réconcilier :
 Le résidu fort pointwise Butler-Volmer pourra rester non nul à résolution finie
 car il contient précisément la composante hors espace spectral ; ce n'est plus
 un critère pertinent de convergence du problème discret.
+
+
+*** Validation du solveur Gummel projeté (94ce2cc)
+
+Le problème de convergence stationnaire est considéré comme résolu au point
+nominal sur la grille 4 x 4 x 16.
+
+Résultat :
+
+  picard_iterations = 13
+  picard_converged = true
+  fixed_point_residual = 8.166e-9
+  newton_iterations = 0
+  alpha = 1 à chaque itération
+  backtracks = 0
+  temps mur ~= 1.87 s.
+
+Le dernier itéré Gummel et l'état final sont désormais cohérents :
+
+  min(q_hat) ~= 0.27766
+  max(q_hat) ~= 1.10967.
+
+La densité de courant obtenue vaut :
+
+  j ~= 2144.45 A/m2
+
+pour une cible de :
+
+  2150 A/m2,
+
+soit une erreur relative d'environ -0.258 %.
+
+La concentration d'oxygène reste strictement positive :
+
+  min(c_O2) ~= 6.91478 mol/m3.
+
+Le diagnostic residual_merit ~= 3.25e-2 correspond au résidu fort non projeté
+et ne doit plus être interprété comme un échec du solveur spectral. La
+convergence du problème discret est donnée par le défaut de point fixe projeté.
+
+*** Étape 37 — convergence en maillage
+
+L'étape suivante n'est plus une modification de solveur.
+
+Il faut vérifier la stabilité de la solution avec la résolution spatiale :
+
+  4 x 4 x 16
+  6 x 6 x 24
+  8 x 8 x 32.
+
+Les grandeurs suivies seront au minimum :
+
+- densité de courant moyenne ;
+- erreur relative sur la cible 2150 A/m2 ;
+- min/max de q_hat ;
+- min(c_O2) ;
+- moyenne et extrema de eta ;
+- nombre d'itérations Gummel ;
+- défaut de point fixe final ;
+- temps de calcul.
+
+Le solveur Gummel globalisé reste inchangé pendant cette étude.
