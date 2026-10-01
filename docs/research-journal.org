@@ -20312,3 +20312,52 @@ Les tests vérifient :
 
 Aucun volume cathode, coefficient de mélange ou constante de temps empirique
 n'est introduit à ce stade.
+
+
+** V11 étape 8 — bilan thermique dynamique sans constante de temps ajustée
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_thermal.py
+
+introduit le bilan énergétique lumped du stack sous la forme :
+
+  C_stack dT/dt = Q_gen - Q_air.
+
+La capacité thermique utilise la valeur constructeur :
+
+  C_stack = n_cells * 100 J/K.
+
+La chaleur générée suit directement la relation Ballard :
+
+  Q_gen = n_cells * I * (1.253 - V_cell).
+
+Le refroidissement par air est calculé par élévation d'enthalpie sensible :
+
+  Q_air = m_dot_air * cp_air * (T_out - T_in).
+
+Le débit massique est dérivé du débit standard imposé et de la densité d'air
+à conditions standards reportée dans le manuel Ballard.
+
+Point important : T_out reste une variable physique explicite. V11 n'impose
+pas encore une efficacité d'échange thermique égale à 1.
+
+Une fermeture limite séparée est fournie pour diagnostic :
+
+  T_out = T_stack.
+
+Elle représente une borne supérieure idéale du refroidissement par air et ne
+constitue pas la fermeture thermique finale.
+
+Les tests vérifient :
+
+- la relation constructeur de chaleur générée ;
+- la conversion slpm -> kg/s ;
+- le bilan enthalpique sensible ;
+- le cas d'équilibre thermique Q_gen = Q_air ;
+- la borne idéale T_out = T_stack ;
+- Q_gen = 0 à courant nul.
+
+La prochaine fermeture thermique devra venir du modèle spatial/streamwise
+cathode existant ou d'une réduction physiquement dérivée de celui-ci, et non
+d'un coefficient hA ajusté.
