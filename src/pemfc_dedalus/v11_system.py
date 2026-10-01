@@ -271,16 +271,6 @@ def coupled_v11_rhs(
         - membrane.cathode_interface_rate_mol_s
     )
 
-    thermal = stack_temperature_rhs_k_s(
-        n_cells=cfg.n_cells,
-        current_a=current_a,
-        cell_voltage_v=cell_voltage_v,
-        stack_air_flow_slpm=stack_air_flow_slpm,
-        inlet_temperature_k=inlet_air_temperature_k,
-        outlet_temperature_k=cathode_air_outlet_temperature_k,
-        thermal_mass_j_k_per_cell=tech.thermal_mass_j_k_per_cell,
-    )
-
     total_water_storage_rate = (
         anode.water_vapour_mol_s
         + membrane.net_storage_rate_mol_s
