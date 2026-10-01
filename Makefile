@@ -152,7 +152,7 @@ test check: unit lint typecheck
 
 unit:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(PYTHON) -m pytest -q \
-	  -n $(PYTEST_WORKERS) --dist=loadfile
+	  -n $(PYTEST_WORKERS) --dist=load
 
 lint:
 	$(PYTHON) -m ruff check --fix --unsafe-fixes src tests scripts
