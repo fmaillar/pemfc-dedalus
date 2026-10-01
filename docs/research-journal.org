@@ -14504,3 +14504,55 @@ Dans ce cas, V0.8 peut être gelée avec la fermeture thermique retenue.
 
 Si la correction est significative, la trajectoire auto-cohérente devient la
 baseline thermique avant fermeture de V0.8.
+
+
+*** Gate rouge — fermeture Python dans l'itération thermique
+
+La première exécution du couplage bidirectionnel est arrêtée par Ruff.
+
+Gate :
+
+  pytest :
+    172 passed
+
+  Ruff :
+    B023.
+
+Erreur :
+
+  Function definition does not bind loop variable
+  previous_temperature_k
+
+dans :
+
+  scripts/run_v08_bidirectional_thermal_coupling.py.
+
+*** Cause
+
+La fonction locale :
+
+  temperature_model(time_s)
+
+était définie à l'intérieur de la boucle de point fixe et capturait :
+
+  previous_temperature_k
+
+par fermeture Python.
+
+L'exécution actuelle est synchrone et n'exposait pas de bug numérique observé,
+mais cette capture tardive est ambiguë et justement signalée par Ruff B023.
+
+*** Correctif
+
+La trajectoire de température de l'itération courante est maintenant liée
+explicitement dans la signature :
+
+  trajectory_k = previous_temperature_k
+
+et la fonction interpole sur :
+
+  trajectory_k.
+
+Le comportement scientifique attendu est inchangé.
+
+Le gate complet doit être relancé avant exécution du point fixe.
