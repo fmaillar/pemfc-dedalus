@@ -892,3 +892,7 @@ quick-quasi3d-full-map-v09:
 
 validate-v09-final:
 	$(PYTHON) -m scripts.analyze_v09_final_validation
+
+
+freeze-v09: validate-v09-final
+	@echo "V0.9 baseline validated and frozen"

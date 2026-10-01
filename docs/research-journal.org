@@ -16394,3 +16394,85 @@ Si cette validation passe avec le gate complet :
 
 V0.9 pourra être gelée.
 
+
+*** Résultat de la validation finale V0.9
+
+Le validateur final retourne :
+
+  status = pass
+
+avec :
+
+  reachable_case_count = 24
+  skipped_case_count = 3
+
+et :
+
+  monotonic_with_current = true
+  monotonic_with_inlet_temperature = true
+  monotonic_with_ntu = true
+  freeze_ready = true.
+
+Les bornes finales validées du span ORR sont :
+
+  minimum = 0.9648 %
+  maximum = 10.6739 %.
+
+*** Gel définitif V0.9
+
+V0.9 est figée.
+
+Baseline retenue :
+
+- bilan streamwise O2 conservatif ;
+- échauffement air streamwise à transfert thermique fini ;
+- NTU conservé comme paramètre explicite de sensibilité ;
+- concentration locale :
+
+  c_O2(x) = y_O2(x) p / (R T_air(x))
+
+- projection quasi-3D par tranches électrochimiques ;
+- état électrochimique recalculé selon le courant via :
+
+  T_stack = T_opt(I)
+  V_cell = V_BOL(I)
+
+- domaine factoriel validé :
+
+  I = 7.3, 14.5, 26.04 A
+  T_air,in = 10, 20, 30 degC
+  NTU = 1, 3, 5
+
+avec exclusion physique des cas :
+
+  I = 7.3 A
+  T_air,in = 30 degC
+
+car la température d'entrée dépasse la température cible.
+
+Résultat physique principal :
+
+  0.965 % <= span ORR <= 10.674 %
+
+sur le domaine atteignable étudié.
+
+Les tendances validées sont :
+
+- span ORR croissant avec le courant ;
+- span ORR décroissant avec T_air,in ;
+- span ORR croissant avec NTU ;
+- saturation nette de la sensibilité NTU entre 3 et 5.
+
+Aucune refonte non périodique complète de l'axe streamwise du solveur 3D n'est
+requise pour fermer V0.9.
+
+Cette refonte reste réservée à une version ultérieure si une géométrie
+streamwise entièrement résolue devient nécessaire.
+
+V0.9 est donc considérée comme :
+
+  validated
+  reproducible
+  freeze-ready
+  frozen.
+
