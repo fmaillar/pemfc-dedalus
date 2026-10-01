@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from pemfc_dedalus.v11_polarization import periodic_state_error
+from pemfc_dedalus.v11_polarization import (
+    periodic_state_error,
+    periodic_state_error_component,
+)
 from pemfc_dedalus.v11_system import V11DynamicState
 
 
@@ -33,3 +36,13 @@ def test_periodic_state_error_detects_scaled_state_change() -> None:
     error = periodic_state_error(before, after)
 
     assert error == pytest.approx(0.1 / 313.25)
+
+
+
+def test_periodic_state_error_component_identifies_temperature() -> None:
+    before = _state()
+    after = _state(temperature_k=314.15)
+
+    assert periodic_state_error_component(before, after) == (
+        "stack_temperature_k"
+    )
