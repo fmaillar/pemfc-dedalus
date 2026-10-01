@@ -16896,3 +16896,34 @@ La campagne doit vérifier :
 Si ces conditions sont satisfaites, V1.0 disposera d'une première courbe de
 polarisation cohérente avec le courant imposé.
 
+
+*** Parallélisation de la polarisation V1.0
+
+La recherche de tension reste séquentielle, car chaque étape de bracket ou de
+bissection dépend du résultat de la tension précédente.
+
+En revanche, pour une tension donnée, les trois tranches :
+
+  xi = 0
+  xi = 0.5
+  xi = 1
+
+sont indépendantes.
+
+Elles sont donc exécutées dans des processus distincts via un pool de processus.
+
+La cible Makefile transmet désormais :
+
+  --jobs $(JOBS)
+
+avec :
+
+  JOBS = 8
+
+par défaut dans le workflow utilisateur.
+
+Comme une évaluation de tension ne contient que trois tranches, le parallélisme
+utile instantané est limité à trois workers. Cette stratégie réduit donc surtout
+le coût d'une évaluation de tension sans modifier l'ordre déterministe de la
+recherche galvanostatique.
+

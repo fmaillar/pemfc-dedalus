@@ -925,6 +925,7 @@ quick-voltage-bisection-v10:
 
 quick-polarization-v10:
 	$(TIME) $(PYTHON) -m scripts.run_v10_polarization \
+	  --jobs $(JOBS) \
 	  --currents-a 7.3 14.5 26.04 \
 	  --inlet-temperature-c 20 \
 	  --ntu 3 \

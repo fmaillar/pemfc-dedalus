@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import shutil
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,55 @@ def _last_scalar(path: Path, task: str) -> float:
         values = np.asarray(handle[f"tasks/{task}"])
         return float(np.ravel(values[-1])[0])
 
+
+
+def _run_slice(
+    *,
+    params: CathodeParameters,
+    current_a: float,
+    voltage_v: float,
+    xi: float,
+    oxygen_feed_concentration: float,
+    air_flow_slpm: float,
+    heat_rejection_w: float,
+    target_current_density: float,
+    run_dir: Path,
+    nx: int,
+    ny: int,
+    nz: int,
+    stop_time: float,
+    max_dt: float,
+) -> dict[str, Any]:
+    """Run one independent quasi-3D streamwise slice."""
+    if run_dir.exists():
+        shutil.rmtree(run_dir)
+
+    run_cathode_electrochem(
+        params=params,
+        nx=nx,
+        ny=ny,
+        nz=nz,
+        stop_time=stop_time,
+        max_dt=max_dt,
+        output_dir=run_dir,
+        scalar_dt=max(stop_time / 20.0, 1.0e-7),
+        oxygen_feed_concentration=oxygen_feed_concentration,
+    )
+    reaction_current = _last_scalar(run_dir, "total_reaction_current")
+    area_m2 = params.length_x * params.length_y
+    current_density = reaction_current / area_m2
+
+    return {
+        "current_a": current_a,
+        "voltage_v": voltage_v,
+        "slice_xi": xi,
+        "oxygen_feed_concentration_mol_m3": oxygen_feed_concentration,
+        "air_flow_slpm": air_flow_slpm,
+        "heat_rejection_w": heat_rejection_w,
+        "model_current_density_a_m2": current_density,
+        "target_current_density_a_m2": target_current_density,
+        "mean_eta_v": _last_scalar(run_dir, "mean_eta"),
+    }
 
 def simpson_mean(values: list[float]) -> float:
     if len(values) != 3:
@@ -55,6 +105,7 @@ def main() -> None:
     parser.add_argument("--stop-time", type=float, default=1.0e-3)
     parser.add_argument("--max-dt", type=float, default=2.0e-6)
     parser.add_argument("--profile-points", type=int, default=64)
+    parser.add_argument("--jobs", type=int, default=8)
     parser.add_argument(
         "--work-dir",
         type=Path,
@@ -76,6 +127,8 @@ def main() -> None:
         raise ValueError("bracket-step-v must be positive")
     if args.relative_tolerance <= 0.0:
         raise ValueError("relative-tolerance must be positive")
+    if args.jobs <= 0:
+        raise ValueError("jobs must be positive")
 
     base = CathodeParameters()
     reference_current_a = base.stack_current_a
@@ -162,47 +215,45 @@ def main() -> None:
                 operating_base_bound,
                 cathode_solid_potential=voltage_v,
             )
-            local_current_densities: list[float] = []
+            worker_count = min(args.jobs, len(xis))
+            with ProcessPoolExecutor(max_workers=worker_count) as executor:
+                futures = []
+                for xi in xis:
+                    run_dir = (
+                        args.work_dir
+                        / f"current-{current_a_bound:.2f}"
+                        / f"eval-{label}"
+                        / f"xi-{xi:.1f}"
+                    )
+                    futures.append(
+                        executor.submit(
+                            _run_slice,
+                            params=params,
+                            current_a=current_a_bound,
+                            voltage_v=voltage_v,
+                            xi=xi,
+                            oxygen_feed_concentration=local_feed[xi],
+                            air_flow_slpm=airflow.target_air_flow_slpm,
+                            heat_rejection_w=heat_rejection_w,
+                            target_current_density=target_current_density_bound,
+                            run_dir=run_dir,
+                            nx=args.nx,
+                            ny=args.ny,
+                            nz=args.nz,
+                            stop_time=args.stop_time,
+                            max_dt=args.max_dt,
+                        )
+                    )
+                slice_rows = [future.result() for future in futures]
 
-            for xi in xis:
-                run_dir = (
-                    args.work_dir
-                    / f"current-{current_a_bound:.2f}"
-                    / f"eval-{label}"
-                    / f"xi-{xi:.1f}"
-                )
-                if run_dir.exists():
-                    shutil.rmtree(run_dir)
+            for row in slice_rows:
+                row["evaluation"] = label
+                rows.append(row)
 
-                run_cathode_electrochem(
-                    params=params,
-                    nx=args.nx,
-                    ny=args.ny,
-                    nz=args.nz,
-                    stop_time=args.stop_time,
-                    max_dt=args.max_dt,
-                    output_dir=run_dir,
-                    scalar_dt=max(args.stop_time / 20.0, 1.0e-7),
-                    oxygen_feed_concentration=local_feed[xi],
-                )
-                reaction_current = _last_scalar(run_dir, "total_reaction_current")
-                current_density = reaction_current / area_m2
-                local_current_densities.append(current_density)
-                rows.append(
-                    {
-                        "current_a": current_a_bound,
-                        "evaluation": label,
-                        "voltage_v": voltage_v,
-                        "slice_xi": xi,
-                        "oxygen_feed_concentration_mol_m3": local_feed[xi],
-                        "air_flow_slpm": airflow.target_air_flow_slpm,
-                        "heat_rejection_w": heat_rejection_w,
-                        "model_current_density_a_m2": current_density,
-                        "target_current_density_a_m2": target_current_density_bound,
-                        "mean_eta_v": _last_scalar(run_dir, "mean_eta"),
-                    }
-                )
-
+            local_current_densities = [
+                float(row["model_current_density_a_m2"])
+                for row in slice_rows
+            ]
             return simpson_mean(local_current_densities)
 
         bol_j = evaluate(bol_voltage_v, "bol")
