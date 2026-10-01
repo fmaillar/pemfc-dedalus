@@ -21798,3 +21798,258 @@ L'étape 24 pourra définir un premier protocole dynamique de référence, chois
 des conditions initiales physiquement cohérentes, lancer une trajectoire
 courant/ventilation/purge, puis effectuer une étude de convergence en dt avant
 d'interpréter les courbes.
+
+
+
+** V11 étape 24 — protocole dynamique de référence et convergence temporelle
+
+Un premier protocole dynamique reproductible est maintenant défini afin de
+passer de la validation des briques physiques à une vraie trajectoire V11.
+
+*** Correctif préalable : conservation globale du N2
+
+Avant de lancer des trajectoires longues, un défaut de conservation interne a
+été corrigé.
+
+Le crossover N2 était déjà ajouté au bilan anode :
+
+  dn_N2,a/dt += n_dot_N2,cross.
+
+Il est maintenant également soustrait au bilan cathode :
+
+  dn_N2,c/dt -= n_dot_N2,cross.
+
+Le même puits est inclus dans la fermeture isobare du débit cathode, de sorte
+que le transfert interne de N2 ne crée ni ne détruit de matière au niveau
+stack.
+
+Des tests vérifient explicitement :
+
+  Delta(dn_N2,a/dt) = +n_dot_cross
+
+  Delta(dn_N2,c/dt) = -n_dot_cross.
+
+*** État initial de référence
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_reference.py
+
+construit un état initial sans volume cathode arbitraire.
+
+La géométrie publiée des canaux cathode donne :
+
+  A_channel = 5.0 mm2
+  L_channel = 60 mm
+  N_channel = 80
+
+d'où :
+
+  V_cathode,gas
+    = A_channel L_channel N_channel
+    = 24 mL/cell.
+
+L'inventaire cathode initial est calculé par le gaz parfait à :
+
+  T_stack,0 = 303.15 K
+  P_cathode = 101325 Pa
+  RH_cathode,0 = 50 %.
+
+La composition humide est construite correctement à partir de l'air sec :
+
+  y_H2O = RH p_sat(T) / P
+
+  y_O2 = 0.2095 (1 - y_H2O)
+
+  y_N2 = 0.7905 (1 - y_H2O).
+
+L'anode démarre avec H2 sec à la pression nominale Ballard :
+
+  P_anode,0 = 1 atm + 0.36 bar.
+
+Le volume anode est celui déjà dérivé du manuel :
+
+  V_anode = 10 mL/cell.
+
+L'état membrane initial correspond à un préconditionnement explicite à activité
+d'eau 0.5 :
+
+  lambda_0 = lambda_Springer(a_w=0.5).
+
+Cette valeur est une condition initiale de protocole, pas un paramètre ajusté.
+
+*** Conditions d'air entrant
+
+Le protocole prend :
+
+  T_air,in = 293.15 K
+  RH_air,in = 50 %
+  P_cathode = 1 atm.
+
+Les fractions molaires O2/H2O du flux entrant sont calculées depuis ces
+conditions, sans imposer simultanément 20.95 % O2 humide et une fraction d'eau
+indépendante.
+
+*** Commandes temporelles de référence
+
+Le premier scénario est volontairement simple :
+
+  0--60 s:
+    I = 5 A
+    air = 100 slpm
+
+  60--180 s:
+    I = 15 A
+    air = 150 slpm
+
+  180--360 s:
+    I = 26.04 A
+    air = 216.1 slpm
+
+  360--480 s:
+    I = 10 A
+    air = 120 slpm.
+
+Les débits ont été choisis au-dessus de la demande stoechiométrique. Le point
+26.04 A reprend la valeur de ventilation nominale déjà utilisée dans V11.
+
+Le scénario est assez long pour provoquer des purges automatiques par la règle :
+
+  integral I dt = 2300 A.s.
+
+Les événements doivent donc être visibles directement dans les trajectoires.
+
+*** Paramètres catalytiques
+
+Le chargement Pt et l'ECSA restent explicitement des entrées du scénario.
+
+Les valeurs par défaut du scénario :
+
+  L_Pt = 0.4 mg/cm2
+  ECSA = 50 m2/g
+
+sont uniquement des valeurs génériques de sensibilité destinées à rendre le
+protocole exécutable.
+
+Elles NE SONT PAS déclarées comme valeurs FCgen-1020ACS.
+
+Les résultats de tension de cette étape doivent donc être interprétés comme une
+première trajectoire du modèle sous hypothèses catalytiques explicites, pas
+comme une prédiction Ballard définitivement identifiée.
+
+*** Convergence temporelle parallèle
+
+Un nouveau script :
+
+  scripts/run_v11_reference_dynamic.py
+
+lance plusieurs intégrations indépendantes avec différents dt.
+
+Valeurs par défaut :
+
+  dt = 0.04
+       0.02
+       0.01
+       0.005 s.
+
+Chaque trajectoire est intrinsèquement séquentielle dans le temps.
+
+En revanche, les quatre trajectoires de convergence sont indépendantes et sont
+donc lancées en parallèle avec :
+
+  ProcessPoolExecutor.
+
+Le nombre de workers est contrôlé par :
+
+  --jobs
+
+avec valeur par défaut 8.
+
+Le nombre réellement utilisé est :
+
+  min(jobs, nombre_de_dt).
+
+OMP_NUM_THREADS et NUMEXPR_NUM_THREADS sont fixés à 1 par les cibles Makefile
+afin d'éviter la sur-souscription lorsque plusieurs processus V11 tournent en
+parallèle.
+
+*** Gestion d'un dt instable
+
+Un pas temporel trop grand peut faire échouer Euler explicite.
+
+Chaque processus capture alors son erreur et retourne :
+
+  status = failed
+
+sans interrompre les autres calculs.
+
+La convergence est construite à partir du plus petit dt ayant effectivement
+terminé.
+
+Cela permet de transformer une instabilité numérique grossière en résultat
+diagnostique plutôt qu'en arrêt complet de la campagne.
+
+*** Métriques de convergence
+
+Chaque trajectoire est échantillonnée à 1 s et comparée à la trajectoire de
+référence la plus fine.
+
+Les grandeurs suivies sont :
+
+- V_cell ;
+- T_stack ;
+- lambda_mem ;
+- n_N2,anode.
+
+Pour chacune :
+
+- erreur absolue maximale ;
+- RMS de l'écart.
+
+Les trajectoires sont interpolées sur la grille de référence avant comparaison.
+
+*** Sorties
+
+Chaque dt produit :
+
+  results/v11-reference/v11-reference-dt-*.csv
+  results/v11-reference/v11-reference-dt-*.json.
+
+La synthèse de convergence est écrite dans :
+
+  results/v11-reference-convergence.csv
+  results/v11-reference-convergence.json.
+
+*** Cibles Makefile
+
+Test court :
+
+  make quick-reference-dynamic-v11
+
+avec :
+
+  dt = 0.02, 0.01 s
+  t_stop = 10 s.
+
+Campagne complète :
+
+  make reference-dynamic-v11
+
+avec :
+
+  dt = 0.04, 0.02, 0.01, 0.005 s
+  t_stop = 480 s
+  jobs = $(JOBS), par défaut 8.
+
+*** Critère de passage à l'interprétation physique
+
+Les courbes temporelles ne doivent être interprétées qu'après :
+
+1. make test vert ;
+2. quick-reference-dynamic-v11 exécutable ;
+3. campagne complète terminée sur au moins deux dt stables ;
+4. erreur de convergence suffisamment faible sur V, T, lambda et N2 ;
+5. inspection des événements de purge et des discontinuités de commande.
+
+L'étape suivante après exécution de cette campagne sera donc l'analyse des
+résultats réels, pas l'ajout immédiat d'une nouvelle physique.
