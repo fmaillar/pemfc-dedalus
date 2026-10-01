@@ -478,3 +478,54 @@ Status: RESOLVED FROM PUBLISHED GEOMETRY + HEAT-TRANSFER CORRELATION.
 Caveat: the closure assumes a lumped isothermal stack wall and fully developed
 laminar channel flow. A spatial thermal model would be required to resolve
 local wall-temperature and entrance effects.
+
+
+
+* Ballard manufacturer coolant-air closure
+
+Source: MAN5100319-0B, Sections 4.0, 4.4.1.1--4.4.1.4 and Appendix A.5.
+
+The manual states explicitly that the FCgen-1020ACS uses one open-cathode air
+stream for both:
+
+- oxidant supply;
+- stack cooling.
+
+In most operating situations the coolant-flow requirement exceeds the oxidant
+requirement, so coolant demand controls the actual cathode airflow.
+
+Ballard gives stack heat production as:
+
+  q_created = n_cells * I * (1.253 - V_cell).
+
+The manufacturer coolant relation is:
+
+  q_removed
+    = m_dot * Cp * (T_stack - T_amb)
+      / (1 + 0.403 * m_dot * Cp).
+
+The inverse relation used for required coolant mass-flow is:
+
+  m_dot
+    = q_removed
+      / { Cp * [T_stack - T_amb - 0.403 * q_removed] }.
+
+The coefficient 0.403 comes directly from Ballard equation E.23 and is not a
+V11 calibration coefficient.
+
+The manual example at 75 A, V_cell = 0.5 V, T_stack = 72 degC,
+T_amb = 40 degC gives approximately:
+
+  q_removed = 56.48 W/cell
+  m_dot = 6.08e-3 kg/s/cell
+  coolant flow = 283 slpm/cell.
+
+The same example gives only 1.245 slpm/cell of stoichiometric oxidant demand,
+corresponding to air stoichiometry about 227. This explicitly demonstrates that
+large apparent oxidant stoichiometries are expected when the same air stream is
+dimensioned by cooling.
+
+Status: RESOLVED DIRECTLY FROM BALLARD MANUFACTURER MANUAL.
+
+The former geometry/Nusselt/NTU closure remains available only as a historical
+or comparison model. It is no longer the predictive V11 thermal closure.
