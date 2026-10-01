@@ -5,6 +5,7 @@ MPI_N ?= 8
 OMP_NUM_THREADS ?= 1
 NUMEXPR_NUM_THREADS ?= 1
 JOBS ?= 8
+PYTEST_WORKERS ?= 4
 TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
 
 .PHONY: help install test unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
@@ -147,10 +148,11 @@ help:
 install:
 	$(PYTHON) -m pip install -e '.[test]'
 
-test check: unit lint unit typecheck
+test check: unit lint typecheck
 
 unit:
-	$(PYTHON) -m pytest -q
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(PYTHON) -m pytest -q \
+	  -n $(PYTEST_WORKERS) --dist=loadfile
 
 lint:
 	$(PYTHON) -m ruff check --fix --unsafe-fixes src tests scripts
