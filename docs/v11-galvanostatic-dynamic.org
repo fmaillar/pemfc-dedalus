@@ -1,0 +1,210 @@
+#+title: V11 — Galvanostatic dynamic PEMFC model
+#+description: Physics-first architecture for current-driven dynamic PEMFC simulation
+
+* Objective
+
+V11 targets a dynamic PEMFC model driven by experimentally meaningful inputs:
+
+- stack current I(t);
+- cathode air flow Q_air(t);
+- anode purge command u_purge(t);
+- ambient/inlet thermodynamic conditions when required.
+
+Primary predicted outputs are:
+
+- stack voltage V_stack(t);
+- stack temperature T_stack(t);
+- membrane hydration state;
+- anode and cathode gas inventories;
+- physically derived estimates of liquid-water inventory on both sides.
+
+The electrical formulation is galvanostatic: current is imposed and voltage is
+predicted.
+
+* Scientific constraint
+
+V11 SHALL NOT introduce free empirical tuning coefficients whose purpose is to
+make simulated trajectories match a target data set.
+
+Every model parameter must belong to one of the following provenance classes:
+
+1. fundamental physical constant;
+2. measured or manufacturer-specified stack/material/geometry parameter;
+3. independently measured material property;
+4. published mechanistic constitutive law or transport correlation, with its
+   source and validity range recorded;
+5. quantity derived algebraically from items 1--4.
+
+Published correlations may contain fitted constants from their source
+literature, but these constants must not be re-fitted to the Ballard target
+data merely to improve agreement.
+
+Any parameter whose provenance cannot be established must be marked
+UNRESOLVED rather than silently calibrated.
+
+* Modelling hierarchy
+
+The existing Dedalus spatial models remain the high-fidelity reference.
+
+V11 is not intended to discard their physics. It is intended to construct a
+dynamic model whose reduced states and closures are derived from the same
+physical balances and transport laws.
+
+The hierarchy is:
+
+  high-fidelity spatial model
+  -> physically justified reduction / averaging
+  -> dynamic galvanostatic system model.
+
+Reduction is allowed; phenomenological curve fitting is not.
+
+* Inputs
+
+** Electrical
+
+  I_stack(t)
+
+The imposed stack current determines the electrochemical reaction rate through
+Faraday's law.
+
+** Cathode
+
+  Q_air(t)
+
+Air flow controls oxygen supply, convective heat removal, water-vapour removal
+and therefore concentration, temperature and hydration dynamics.
+
+** Anode
+
+  u_purge(t)
+
+The purge command changes anode mass inventories through an explicit outlet
+mass-flow balance. Purge volume, valve timing and anode geometry must remain
+physical parameters rather than fitted gains.
+
+* Candidate dynamic states
+
+The initial state set is intentionally physical rather than minimal:
+
+  x = [
+    T_stack,
+    lambda_mem,
+    n_H2_a,
+    n_N2_a,
+    n_H2O_v_a,
+    n_O2_c,
+    n_N2_c,
+    n_H2O_v_c,
+    m_H2O_l_a,
+    m_H2O_l_c
+  ]^T
+
+States may later be removed only if a derivation shows that a quasi-steady
+approximation is justified on the relevant time scale.
+
+* Governing physics
+
+** Electrochemistry
+
+Current is prescribed.
+
+Local or effective overpotential is obtained from the inverse electrochemical
+kinetic relation rather than by solving an unconstrained current source.
+
+The electrochemical source terms must satisfy Faraday stoichiometry exactly.
+
+** Gas inventories
+
+Species dynamics are written as molar conservation equations:
+
+  accumulation = inlet - outlet - electrochemical consumption/production
+                 + interphase transfer.
+
+No first-order lag may replace a species balance unless derived from the
+balance and geometry.
+
+** Membrane water
+
+Membrane hydration shall include physically derived water transport mechanisms,
+at minimum where relevant:
+
+- electro-osmotic drag;
+- back diffusion;
+- water exchange with adjacent gas/catalyst layers.
+
+Transport coefficients must come from explicit material laws or literature
+correlations, with temperature and hydration dependence retained where known.
+
+** Thermal balance
+
+Temperature follows an energy balance:
+
+  thermal storage
+  = electrochemical/irreversible heat generation
+    - convective heat removal
+    - other explicitly modelled heat losses.
+
+No fitted thermal time constant is permitted if heat capacity, geometry and
+heat-transfer mechanisms can be represented directly.
+
+** Liquid water
+
+Liquid-water states are mass inventories, not arbitrary saturation filters.
+
+Production, condensation, evaporation, capillary transport, drainage and purge
+removal shall be represented only through explicit mass balances and
+physically documented constitutive relations.
+
+If a reliable mechanistic closure is unavailable, the corresponding mechanism
+must remain identified as unresolved rather than replaced with a fitted gain.
+
+* Voltage prediction
+
+The model output is
+
+  V_stack(t) = N_cells * V_cell(t).
+
+V_cell must be obtained from reversible potential and physically represented
+losses, including as applicable:
+
+- activation;
+- membrane/protonic ohmic loss;
+- electronic ohmic loss;
+- concentration / reactant-transport loss.
+
+The imposed current is therefore an input constraint, while voltage is a
+predicted observable.
+
+* Validation philosophy
+
+Validation and calibration are distinct.
+
+Validation compares predictions against independent observations.
+
+Calibration may only identify genuinely physical quantities that are
+independently uncertain but measurable in principle, and such identification
+must be explicitly documented.
+
+Calibration SHALL NOT introduce compensating coefficients to hide missing
+physics.
+
+Each V11 validation result should therefore report:
+
+- parameter provenance;
+- conservation residuals;
+- numerical tolerances;
+- predicted voltage and temperature;
+- water inventories;
+- sensitivity to spatial/time discretization;
+- unresolved physics.
+
+* Initial implementation trajectory
+
+1. Freeze V10 as the spatial/high-fidelity reference.
+2. Implement the galvanostatic electrochemical algebra with current imposed.
+3. Add dynamic cathode species balances driven by Q_air(t).
+4. Add dynamic stack thermal balance.
+5. Add dead-end anode H2/N2/H2O balances and explicit purge events.
+6. Add membrane water transport from electro-osmotic drag and back diffusion.
+7. Add physically based phase-change/liquid-water inventories.
+8. Validate conservation and limiting cases before comparison with stack data.
