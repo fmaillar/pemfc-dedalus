@@ -1060,3 +1060,9 @@ reference-dynamic-v11:
 	  --dt-values 0.04 0.02 0.01 0.005 \
 	  --stop-time 480 \
 	  --sample-every 1
+
+
+.PHONY: analyze-reference-dynamic-v11
+
+analyze-reference-dynamic-v11:
+	$(PYTHON) -m scripts.analyze_v11_reference_dynamic
