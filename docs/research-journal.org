@@ -17139,3 +17139,126 @@ entre deux durées successives tombe sous environ :
 Si 8e-3 s ne suffit pas, il faudra abandonner le simple critère de durée fixe et
 introduire un vrai critère de convergence stationnaire sur les observables.
 
+
+*** Résultats de la convergence en pseudo-temps étendue
+
+À 7.3 A, la densité de courant moyenne évolue comme :
+
+  1 ms :
+    602.50 A/m2
+
+  2 ms :
+    586.59 A/m2
+
+  4 ms :
+    577.34 A/m2
+
+  8 ms :
+    569.97 A/m2.
+
+Les variations successives sont :
+
+  1 -> 2 ms :
+    -2.640 %
+
+  2 -> 4 ms :
+    -1.577 %
+
+  4 -> 8 ms :
+    -1.277 %.
+
+Aucun plateau à 0.5 % n'est encore atteint.
+
+À 26.04 A :
+
+  1 ms :
+    2155.85 A/m2
+
+  2 ms :
+    2093.03 A/m2
+
+  4 ms :
+    2052.34 A/m2
+
+  8 ms :
+    2752.13 A/m2.
+
+Les variations successives sont :
+
+  1 -> 2 ms :
+    -2.914 %
+
+  2 -> 4 ms :
+    -1.944 %
+
+  4 -> 8 ms :
+    +34.097 %.
+
+*** Interprétation
+
+Le comportement à 26.04 A entre 4 et 8 ms exclut l'idée d'une simple
+convergence monotone lente.
+
+Le pseudo-transitoire présente une instabilité tardive au point nominal.
+
+Il serait incorrect de retenir arbitrairement 8 ms comme durée de convergence.
+
+La prochaine étape doit analyser la série temporelle complète du courant
+électrochimique afin de déterminer :
+
+- si un plateau quasi-stationnaire existe avant l'instabilité ;
+- à quel temps il apparaît ;
+- quelle est sa durée ;
+- si le phénomène est commun aux deux courants extrêmes.
+
+*** Étape 7 — diagnostic temporel stationnaire
+
+La campagne conserve :
+
+  I = 7.3 A
+  I = 26.04 A
+
+aux tensions galvanostatiques actuelles, avec :
+
+  grille = 8 x 8 x 32
+  stop_time = 8e-3 s.
+
+Les trois tranches streamwise sont exécutées en parallèle.
+
+Pour chaque tranche, l'intégralité de :
+
+  total_reaction_current(t)
+  mean_eta(t)
+
+est relue depuis les sorties scalaires Dedalus.
+
+Les trois courants locaux sont combinés à chaque instant par Simpson afin
+d'obtenir :
+
+  j_bar(t).
+
+Le diagnostic calcule ensuite :
+
+- variation relative point à point ;
+- variation relative sur fenêtre glissante ;
+- minimum / maximum après la phase initiale ;
+- existence éventuelle d'une fenêtre où la variation reste sous 0.5 %.
+
+Nouvelle cible :
+
+  make diagnose-polarization-stationary-v10
+
+Sorties :
+
+  results/quick-v10-polarization-stationary.json
+  results/quick-v10-polarization-stationary.csv
+
+*** Critère de décision
+
+Si un plateau stable est détecté avant l'instabilité, V1.0 pourra utiliser un
+critère stationnaire explicite et arrêter le pseudo-transitoire à ce plateau.
+
+Si aucun plateau robuste n'existe, il faudra stabiliser ou reformuler le
+pseudo-transitoire électrochimique avant de poursuivre la fermeture
+galvanostatique.
+

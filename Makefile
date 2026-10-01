@@ -952,3 +952,14 @@ quick-polarization-time-convergence-v10:
 	  --stop-times 1e-3 2e-3 4e-3 8e-3 \
 	  --inlet-temperature-c 20 --ntu 3 \
 	  --nx 8 --ny 8 --nz 32 --max-dt 2e-6
+
+
+diagnose-polarization-stationary-v10:
+	$(TIME) $(PYTHON) -m scripts.run_v10_polarization_stationary \
+	  --jobs $(JOBS) \
+	  --currents-a 7.3 26.04 \
+	  --inlet-temperature-c 20 --ntu 3 \
+	  --nx 8 --ny 8 --nz 32 \
+	  --stop-time 8e-3 --max-dt 2e-6 \
+	  --scalar-dt 1e-4 --window-points 6 \
+	  --relative-tolerance 5e-3 --skip-fraction 0.25
