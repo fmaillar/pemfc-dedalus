@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 import dedalus.public as d3
 import numpy as np
 
