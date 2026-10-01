@@ -227,7 +227,7 @@ def run_v11_dynamic(
     trajectory: list[V11TrajectoryPoint] = []
     tolerance = 1.0e-12
 
-    def append_point(*, purge_event: bool, diagnostic_dt_s: float) -> None:
+    def append_point(*, purge_event: bool) -> None:
         index = _control_index_at_time(controls, time_s)
         control = controls[index]
         _, diagnostics = _diagnostics(
@@ -248,7 +248,7 @@ def run_v11_dynamic(
             )
         )
 
-    append_point(purge_event=False, diagnostic_dt_s=dt_s)
+    append_point(purge_event=False)
     if sample_every_s is not None:
         next_sample_s = sample_every_s
 
@@ -297,12 +297,12 @@ def run_v11_dynamic(
                 purge_count += 1
                 if manual_purge_now:
                     manual_purge_index += 1
-                append_point(purge_event=True, diagnostic_dt_s=dt_s)
+                append_point(purge_event=True)
                 continue
 
             if sample_every_s is not None and next_sample_s <= time_s + tolerance:
                 time_s = min(next_sample_s, stop_time_s)
-                append_point(purge_event=False, diagnostic_dt_s=dt_s)
+                append_point(purge_event=False)
                 next_sample_s += sample_every_s
                 continue
 
@@ -317,6 +317,7 @@ def run_v11_dynamic(
         state = advance_state_euler(
             state=state,
             derivative=derivative,
+            dt_s=step,
         )
         time_s += step
         # Snap accumulated floating-point time onto exact scheduled surfaces.
@@ -357,18 +358,18 @@ def run_v11_dynamic(
             purge_count += 1
             if manual_purge_now:
                 manual_purge_index += 1
-            append_point(purge_event=True, diagnostic_dt_s=dt_s)
+            append_point(purge_event=True)
 
         if sample_every_s is None:
             if not purge_now:
-                append_point(purge_event=False, diagnostic_dt_s=dt_s)
+                append_point(purge_event=False)
         elif time_s >= next_sample_s - tolerance:
             if not purge_now:
-                append_point(purge_event=False, diagnostic_dt_s=dt_s)
+                append_point(purge_event=False)
             next_sample_s += sample_every_s
 
     if trajectory[-1].time_s < stop_time_s - tolerance:
-        append_point(purge_event=False, diagnostic_dt_s=dt_s)
+        append_point(purge_event=False)
     return trajectory
 
 
