@@ -305,9 +305,9 @@ def solve_stationary(
     phi_s.change_scales(1)
     phi_m.change_scales(1)
 
-    c_values = np.asarray(c["g"])
-    eta_values = np.asarray((phi_s - phi_m - E_eq).evaluate()["g"])
-    j_values = np.asarray(j_orr.evaluate()["g"])
+    c_values = np.asarray(c["g"]).copy()
+    eta_values = np.asarray((phi_s - phi_m - E_eq).evaluate()["g"]).copy()
+    j_values = np.asarray(j_orr.evaluate()["g"]).copy()
 
     total_reaction_current = float(d3.Integrate(j_orr).evaluate()["g"].ravel()[0])
     mean_eta = float(d3.Average(eta).evaluate()["g"].ravel()[0])
