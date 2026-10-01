@@ -910,3 +910,14 @@ quick-voltage-bracket-v10:
 	  --voltages-v 0.74 0.77 0.80 \
 	  --nx 8 --ny 8 --nz 32 \
 	  --stop-time 1e-3 --max-dt 2e-6
+
+
+quick-voltage-bisection-v10:
+	$(TIME) $(PYTHON) -m scripts.run_v10_voltage_bisection \
+	  --current-a 26.04 \
+	  --inlet-temperature-c 20 \
+	  --ntu 3 \
+	  --voltage-low-v 0.74 --voltage-high-v 0.77 \
+	  --relative-tolerance 5e-3 --max-iterations 8 \
+	  --nx 8 --ny 8 --nz 32 \
+	  --stop-time 1e-3 --max-dt 2e-6

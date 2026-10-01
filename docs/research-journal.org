@@ -16688,3 +16688,103 @@ Le balayage doit vérifier :
 Si l'encadrement est obtenu, l'étape suivante introduira une résolution
 automatique par bissection sur une tension commune.
 
+
+*** Résultats du bracket de tension commune
+
+Au point nominal :
+
+  I = 26.04 A
+  T_air,in = 20 degC
+  NTU = 3
+
+la densité de courant moyenne streamwise suit une loi monotone décroissante avec
+la tension commune.
+
+Les résultats sont :
+
+  V_cell = 0.740 V :
+    j_bar = 3500.02 A/m2
+    erreur = +62.79 %
+
+  V_cell = 0.770 V :
+    j_bar = 2090.73 A/m2
+    erreur = -2.76 %
+
+  V_cell = 0.800 V :
+    j_bar = 1235.92 A/m2
+    erreur = -42.52 %.
+
+La cible :
+
+  j_target = 2150 A/m2
+
+est donc bien encadrée entre :
+
+  0.740 V
+  0.770 V.
+
+La monotonie est validée.
+
+*** Décision après bracket
+
+La fermeture galvanostatique peut être formulée comme une recherche de racine
+sur la tension commune :
+
+  f(V)
+  =
+  j_bar(V) - j_target.
+
+Une bissection est suffisante à ce stade car :
+
+- la réponse est monotone ;
+- le bracket est déjà établi ;
+- la robustesse prime sur la vitesse de convergence.
+
+*** Étape 3 — bissection de la tension commune
+
+Le solveur conserve les trois tranches :
+
+  xi = 0
+  xi = 0.5
+  xi = 1
+
+et reconstruit :
+
+  j_bar
+  =
+  (j_0 + 4 j_0.5 + j_1) / 6.
+
+La bissection utilise :
+
+  V_low = 0.740 V
+  V_high = 0.770 V
+
+avec un critère d'arrêt :
+
+  |j_bar - j_target| / j_target
+  <= 0.5 %.
+
+Le nombre maximal d'itérations est fixé à :
+
+  8.
+
+Nouvelle cible :
+
+  make quick-voltage-bisection-v10
+
+Sorties :
+
+  results/quick-v10-voltage-bisection.json
+  results/quick-v10-voltage-bisection.csv
+
+*** Critère de décision
+
+Si la bissection converge proprement au point nominal, la prochaine étape
+appliquera la même fermeture aux trois courants :
+
+  7.3
+  14.5
+  26.04 A
+
+afin de construire une courbe V(I) cohérente avec le courant imposé.
+
