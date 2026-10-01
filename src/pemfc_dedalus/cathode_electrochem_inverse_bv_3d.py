@@ -399,6 +399,18 @@ def solve_stationary_inverse_bv(
 
     solver = problem.build_solver()
 
+    residual_expressions = (
+        -div(diffusivity * grad_c) + lift(tau_c2, -1) + s_o2,
+        -div(sigma_s * grad_phi_s) + lift(tau_s2, -1) + j_orr,
+        -div(sigma_m * grad_phi_m) + lift(tau_m2, -1) + j_orr,
+        inverse_bv_residual,
+        c(z=0) - inlet,
+        ez @ grad_c(z=Lz),
+        phi_s(z=0) - phi_s_bc,
+        ez @ grad_phi_s(z=Lz),
+        ez @ grad_phi_m(z=0),
+        phi_m(z=Lz) - phi_m_bc,
+    )
     residual_scales = (
         max(params.d_o2_gdl, params.d_o2_cl) * c_ref / Lz**2,
         max(params.sigma_s_gdl, params.sigma_s_cl) / Lz**2,
@@ -413,11 +425,16 @@ def solve_stationary_inverse_bv(
     )
 
     def residual_merit() -> float:
-        solver.evaluator.evaluate_scheduled(iteration=solver.iteration)
-        normalized = [
-            float(field.allreduce_data_norm("c", 2)) / scale
-            for field, scale in zip(solver.F, residual_scales, strict=True)
-        ]
+        normalized: list[float] = []
+        for expression, scale in zip(
+            residual_expressions,
+            residual_scales,
+            strict=True,
+        ):
+            residual_field = expression.evaluate()
+            normalized.append(
+                float(residual_field.allreduce_data_norm("c", 2)) / scale
+            )
         return float(np.sqrt(sum(value * value for value in normalized)))
 
     def snapshot_state() -> list[np.ndarray]:
