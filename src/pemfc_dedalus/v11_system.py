@@ -35,8 +35,9 @@ from .v11_cathode import (
     standard_litre_per_minute_to_mol_s,
 )
 from .v11_heat_transfer import (
+    V11BallardCathodeHeatTransfer,
     V11CathodeHeatTransfer,
-    cathode_air_outlet_temperature_geometry_v11,
+    cathode_air_outlet_temperature_ballard_v11,
 )
 from .v11_membrane import (
     MembraneHydrationDerivative,
@@ -98,7 +99,7 @@ class V11CoupledDiagnostics:
     cathode_outlet_molar_flow_per_cell_mol_s: float
     voltage: V11VoltagePrediction | None = None
     nitrogen_crossover: V11NitrogenCrossover | None = None
-    heat_transfer: V11CathodeHeatTransfer | None = None
+    heat_transfer: V11CathodeHeatTransfer | V11BallardCathodeHeatTransfer | None = None
 
 
 def _bounded_water_activity(
@@ -334,8 +335,8 @@ def coupled_v11_predictive_rhs(
     Pt loading and ECSA remain mandatory because no defensible
     FCgen-1020ACS-specific roughness factor has been established. Cathode outlet
     molar flow is closed isobarically, nitrogen crossover is predicted from
-    Catalano Nafion permeability, and cathode-air outlet temperature is derived
-    from published FCgen-1020ACS channel geometry and a laminar Nusselt law.
+    Catalano Nafion permeability, and cathode-air heat removal follows the
+    manufacturer coolant relation in Ballard MAN5100319-0B Eq. E.23.
     """
     tech = (
         Ballard1020ACSTechnologyReference()
@@ -409,11 +410,10 @@ def coupled_v11_predictive_rhs(
     )
 
     cfg = UserStackConfiguration() if stack is None else stack
-    heat_transfer = cathode_air_outlet_temperature_geometry_v11(
+    heat_transfer = cathode_air_outlet_temperature_ballard_v11(
         stack_temperature_k=state.stack_temperature_k,
         inlet_temperature_k=inlet_air_temperature_k,
         stack_air_flow_slpm=stack_air_flow_slpm,
-        n_cells=cfg.n_cells,
     )
     thermal = stack_temperature_rhs_k_s(
         n_cells=cfg.n_cells,
