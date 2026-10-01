@@ -13,32 +13,52 @@
   "max_newton_iterations": 12,
   "oxygen_feed_concentration_mol_m3": 8.229922696355533,
   "target_current_density_a_m2": 2150.0,
-  "current_density_a_m2": 0.0020330731379097594,
+  "current_density_a_m2": 0.002033073137909764,
   "relative_current_error": -0.9999990543845869,
   "converged": false,
   "newton_iterations": 12,
-  "perturbation_norm": 0.05940593611953352,
+  "perturbation_norm": 0.05940593492258451,
   "newton_damping": 0.25,
   "continuation_history": [
     {
       "reaction_scale": 0.0,
       "iterations": 1,
       "perturbation_norm": 0.0,
-      "converged": true
+      "converged": true,
+      "perturbation_norm_history": [
+        0.0
+      ]
     },
     {
       "reaction_scale": 1e-06,
       "iterations": 12,
-      "perturbation_norm": 0.05940593611953352,
-      "converged": false
+      "perturbation_norm": 0.05940593492258451,
+      "converged": false,
+      "perturbation_norm_history": [
+        0.6618462248793777,
+        0.44430137308581785,
+        0.3409068000073993,
+        0.2863079523227877,
+        0.23837120968932302,
+        0.19717930895895616,
+        0.16231069832649642,
+        0.13314703191809318,
+        0.10896110862847301,
+        0.08904552964811618,
+        0.07272503700635767,
+        0.05940593492258451
+      ]
     }
   ],
-  "total_reaction_current": 4.066146275819519e-09,
-  "mean_eta_v": -0.41183445543000813,
+  "total_reaction_current": 4.066146275819528e-09,
+  "mean_eta_v": -0.41183445543000863,
   "mean_c_o2_mol_m3": 7.57152883378138,
-  "min_c_o2_mol_m3": -0.18715940235269984,
-  "min_eta_v": -0.4118344830873638,
-  "max_eta_v": -0.4118344186282624,
-  "min_j_orr_a_m3": -1.9582150667887546,
-  "max_j_orr_a_m3": 196.5777897818087
+  "min_c_o2_mol_m3": -0.18715940235269996,
+  "min_eta_v": -0.41183448308736353,
+  "max_eta_v": -0.4118344186282667,
+  "min_j_orr_a_m3": -1.958215066788757,
+  "max_j_orr_a_m3": 196.57778978180795,
+  "initial_min_c_o2_mol_m3": 6.915029146137645,
+  "initial_max_c_o2_mol_m3": 8.228028615156532,
+  "initial_mean_c_o2_mol_m3": 7.57152888064709
 }
