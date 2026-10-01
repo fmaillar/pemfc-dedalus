@@ -18990,3 +18990,80 @@ Le prochain run testera donc la combinaison :
   Picard convergé
   -> Newton globalisé
   -> line search sur résidus physiques explicitement réévalués.
+
+
+*** Résultat avec mérite explicite (a98e252)
+
+Le remplacement de solver.F par des résidus physiques explicitement évalués
+change complètement le comportement du line search.
+
+Après les 34 itérations Picard déjà convergées, Newton globalisé effectue les
+40 itérations autorisées sans quitter la branche physique.
+
+Le mérite résiduel décroît de manière monotone :
+
+  3.2486e-2
+  -> 2.0598e-2
+  -> ...
+  -> 2.4183e-4.
+
+Le facteur de réduction global est donc d'environ 134.
+
+Les pas acceptés varient automatiquement entre :
+
+  alpha = 1
+  1/2
+  1/4
+  1/8
+  1/16,
+
+ce qui confirme qu'un damping fixe n'était pas adapté.
+
+La solution reste physique pendant toute la trajectoire :
+
+  min(c_O2) ~= 6.91472 mol/m3 > 0
+  min(q_hat) > 0.
+
+À l'itération 40 :
+
+  j = 2144.66 A/m2
+  erreur courant = -0.249 %
+  max résidu inverse-BV = 1.34e-4 V
+  erreur round-trip BV max = 2.49e-3
+  mérite = 2.42e-4.
+
+Le statut converged=false ne représente donc plus une divergence ou un blocage.
+Il signifie uniquement que la limite de 40 itérations Newton a été atteinte
+avant le seuil demandé 1e-8.
+
+Ce résultat valide deux éléments :
+
+1. l'initialisation Picard place bien le solveur dans une région physique
+   exploitable ;
+2. le line search fonctionne lorsque son mérite est construit à partir de
+   résidus explicitement réévalués.
+
+*** Étape 25 — prolonger Newton sans modifier la méthode
+
+Avant toute nouvelle modification algorithmique, le même solveur est prolongé
+afin d'observer sa convergence asymptotique.
+
+Nouveau maximum :
+
+  120 itérations Newton.
+
+Tous les autres paramètres restent identiques :
+
+  Picard max = 80
+  omega = 0.25
+  tolérance Picard = 1e-4
+  tolérance résiduelle Newton = 1e-8
+  maximum backtracks = 12.
+
+La cible reste :
+
+  make quick-stationary-inverse-bv-picard-v10
+
+Le prochain run devra permettre de déterminer si le mérite continue à décroître
+jusqu'au seuil, ou s'il atteint un plateau numérique nécessitant alors une
+révision du scaling résiduel ou du critère d'arrêt.
