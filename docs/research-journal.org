@@ -23183,3 +23183,65 @@ Le diagnostic suivant est donc ajouté :
 
 Objectif : déterminer si le dessèchement vient principalement de la fermeture
 gaz/membrane Ge ou du bilan global d'eau.
+
+
+
+*** Étape 25h — correction du diagnostic : MEA auto-humidifiante FCgen-1020ACS
+
+Après le commit 94e12a9, les activités d'eau moyennes sont :
+
+  I = 15 A:
+    a_w,anode = 0.284918
+    a_w,cathode = 0.285028
+    lambda_mem = 2.71509
+
+  I = 26.04 A:
+    a_w,anode = 0.216575
+    a_w,cathode = 0.216674
+    lambda_mem = 2.39675.
+
+Dans les deux cas, lambda_mem est pratiquement identique aux valeurs
+d'équilibre Springer calculées à partir des gaz. La cinétique d'échange Ge n'est
+donc pas le verrou principal.
+
+Une première hypothèse était que le modèle de cathode bulk-gas diluait trop
+fortement l'eau produite. Cette hypothèse a été confrontée à la littérature
+spécifique au FCgen-1020ACS avant toute modification du transport GDL.
+
+Andisheh-Tadbir et al., International Journal of Hydrogen Energy 39 (2014),
+"Cell level modeling of the hygrothermal characteristics of open cathode
+polymer electrolyte membrane fuel cells", ont développé un modèle 3D validé
+avec des données expérimentales FCgen-1020ACS. À fort courant, ils rapportent
+des RH locales de l'ordre de 5--35 % dans la cellule/couche catalytique.
+
+La valeur V11 à 26.04 A :
+
+  RH ~= 21.7 %
+
+est donc compatible avec cette plage et ne constitue pas, à elle seule, une
+preuve de sur-séchage du bulk cathodique.
+
+En parallèle, la documentation Ballard du FCgen-1020ACS décrit explicitement
+une "self-humidifying membrane electrode assembly" propriétaire, conçue pour
+fonctionner sans humidification externe.
+
+Conséquence :
+
+Le point faible actuel est plus probablement l'utilisation de la fermeture
+générique Nafion/Springer pour transformer activité d'eau -> lambda ->
+conductivité protonique, alors que le stack réel utilise une MEA Ballard
+auto-humidifiante spécifique.
+
+Ainsi :
+
+- ne pas ajouter pour l'instant une résistance GDL arbitraire dans le seul but
+  d'augmenter a_w à l'interface ;
+- conserver le bilan gazeux actuel comme hypothèse de travail ;
+- reclasser la loi Springer + L_mem=80 um comme surrogate Nafion, et non comme
+  fermeture FCgen-1020ACS validée ;
+- chercher désormais une mesure ou fermeture publiée de conductivité/ASR de la
+  MEA FCgen-1020ACS ou, à défaut, encadrer cette inconnue par une analyse de
+  sensibilité physiquement sourcée.
+
+La BOL Ballard reste une validation et ne doit pas servir à ajuster directement
+la conductivité.
