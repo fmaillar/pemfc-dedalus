@@ -832,3 +832,12 @@ quick-local-o2-state-v09:
 	  --currents-a 7.3 14.5 26.04 \
 	  --inlet-temperatures-c 10 20 30 \
 	  --points 64
+
+
+quick-electrochem-slices-v09:
+	$(PYTHON) -m scripts.run_v09_electrochem_slices \
+	  --ntu-values 1 3 5 \
+	  --slice-xi 0 0.5 1 \
+	  --currents-a 7.3 14.5 26.04 \
+	  --inlet-temperatures-c 10 20 30 \
+	  --points 64

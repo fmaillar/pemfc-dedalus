@@ -15526,3 +15526,123 @@ Si elle devient nettement supérieure à la variation de y_O2 seule, le prochain
 incrément devra injecter explicitement la concentration thermo-couplée comme
 condition d'entrée spatiale du solveur cathodique Dedalus.
 
+
+*** Résultats de l'état gazeux O2 thermo-couplé
+
+Le couplage du profil de fraction molaire O2 au champ thermique local augmente
+nettement la non-uniformité réellement vue par le milieu cathodique.
+
+La baisse relative maximale de concentration O2 atteint :
+
+  10.900 %
+
+au point :
+
+  I = 26.04 A
+  T_air,in = 10 degC
+  NTU = 5.
+
+Dans ce cas :
+
+  c_O2,in  = 9.0160 mol/m3
+  c_O2,out = 8.0333 mol/m3.
+
+La baisse qui serait obtenue avec la seule variation de composition, à
+température uniforme, vaut seulement :
+
+  1.590 %.
+
+La contribution additionnelle attribuable au champ thermique atteint donc :
+
+  9.310 points de pourcentage.
+
+À 26.04 A / 20 degC :
+
+  NTU = 1 :
+    baisse c_O2 = 5.137 %
+
+  NTU = 3 :
+    baisse c_O2 = 7.052 %
+
+  NTU = 5 :
+    baisse c_O2 = 7.303 %.
+
+La spatialisation de la fraction molaire O2 seule sous-estime donc fortement le
+forçage gazeux local.
+
+*** Interprétation
+
+La température devient le terme dominant dans la variation streamwise de
+concentration O2.
+
+Le champ local pertinent pour la cinétique et la diffusion cathodiques est donc :
+
+  c_O2(x)
+
+et non simplement :
+
+  y_O2(x).
+
+Une variation de concentration de l'ordre de 5 à 11 % n'est plus suffisamment
+faible pour être négligée dans la reconnexion au solveur électrochimique.
+
+*** Contrainte géométrique du solveur 3D actuel
+
+Le solveur cathodique historique utilise :
+
+  x : RealFourier périodique
+  y : RealFourier périodique
+  z : Chebyshev through-plane.
+
+Un profil monotone entrée-sortie en x ne peut donc pas être imposé directement
+sans refondre la géométrie numérique et les conditions aux limites streamwise.
+
+Avant cette refonte, V0.9 utilisera une stratégie quasi-3D par tranches.
+
+*** Étape 7 — projection sur tranches électrochimiques locales
+
+Le profil thermo-couplé est échantillonné aux positions :
+
+  xi =
+    0
+    0.5
+    1.
+
+Pour chaque tranche, on calcule le facteur d'activité O2 utilisé par la
+cinétique du solveur électrochimique :
+
+  a_O2(xi)
+  =
+  c_O2(xi) / c_ref
+
+et le facteur de forçage cinétique direct :
+
+  f_kin(xi)
+  =
+  a_O2(xi)^gamma_O2.
+
+Dans la baseline actuelle :
+
+  gamma_O2 = 1.
+
+Cette étape quantifie donc directement la perturbation du préfacteur
+Butler-Volmer due au champ gazeux streamwise.
+
+Nouvelle cible :
+
+  make quick-electrochem-slices-v09
+
+Sorties :
+
+  results/quick-v09-electrochem-slices.json
+  results/quick-v09-electrochem-slices.csv
+
+*** Critère de décision
+
+Si le facteur cinétique varie de plusieurs pourcents entre entrée et sortie,
+l'étape suivante modifiera le solveur 3D pour accepter une concentration locale
+imposée et exécutera des tranches quasi-3D indépendantes.
+
+Si la variation reste faible malgré celle de c_O2, la refonte streamwise du
+solveur pourra être différée.
+
