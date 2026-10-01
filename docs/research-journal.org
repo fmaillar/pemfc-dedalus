@@ -18837,3 +18837,75 @@ Les quantités décisives seront :
 - maintien de c_O2 > 0 et q_hat > 0 ;
 - fermeture finale inverse-BV ;
 - cohérence du courant surfacique.
+
+
+*** Résultat Picard + Newton globalisé (33a139b)
+
+La pré-itération Picard confirme l'hypothèse d'une mauvaise initialisation du
+NLBVP comme difficulté majeure.
+
+Avec omega = 0.25 sur 12 itérations :
+
+- la variation relative maximale de q_hat décroît presque monotoniquement de
+  1.72e-1 à 3.21e-2 ;
+- min(c_O2) reste pratiquement constant et strictement positif autour de
+  6.91478 mol/m3 ;
+- max(q_hat) se stabilise rapidement près de 1.11 ;
+- min(q_hat) décroît progressivement de 0.818 à 0.304.
+
+Le préconditionnement Picard reste donc sur une branche physique et présente
+un comportement contractant.
+
+Le Newton globalisé lancé après seulement 12 itérations Picard n'accepte
+cependant qu'un seul pas :
+
+  mérite : 2.111e-2 -> 1.980e-2
+  alpha = 1
+  backtracks = 0.
+
+Aucun second pas satisfaisant le critère de diminution du mérite et les
+contraintes physiques n'est trouvé. Le run s'arrête donc avec :
+
+  converged = false
+  newton_iterations = 1
+  j = 2143.11 A/m2
+  erreur courant = -0.320 %
+  min(c_O2) = 6.91471 mol/m3.
+
+Interprétation :
+
+Picard rapproche clairement l'état du manifold transport-cinétique, mais
+12 itérations sont encore insuffisantes pour placer Newton dans une région où
+son line search peut progresser durablement.
+
+*** Étape 23 — laisser Picard converger avant Newton
+
+La stratégie est modifiée pour traiter Picard comme un véritable
+préconditionneur non linéaire convergent, et non comme une simple préchauffe
+de longueur fixe.
+
+Nouveaux paramètres :
+
+  maximum Picard = 80 itérations
+  omega = 0.25
+  tolérance Picard sur variation relative q_hat = 1e-4.
+
+Picard s'arrête dès que :
+
+  max |q^(n+1)-q^(n)| / max(|q^(n)|, eps) <= 1e-4.
+
+Newton globalisé est ensuite lancé sans autre modification.
+
+La cible reste :
+
+  make quick-stationary-inverse-bv-picard-v10
+
+L'objectif du prochain run est de déterminer si :
+
+1. Picard atteint effectivement un point fixe stable ;
+2. le mérite NLBVP initial après Picard devient nettement plus faible ;
+3. Newton accepte alors plusieurs pas et atteint le seuil résiduel.
+
+Si Picard converge mais Newton reste bloqué, il faudra alors examiner le
+critère de mérite ou envisager Picard lui-même comme solveur stationnaire de
+référence, avec Newton uniquement comme accélérateur optionnel.
