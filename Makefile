@@ -1130,3 +1130,21 @@ quick-membrane-conductivity-sensitivity-v11:
 	  --temperature-tolerance-k 0.5 \
 	  --max-airflow-iterations 4 \
 	  --feasibility-scan-points 6
+
+
+.PHONY: membrane-conductivity-sensitivity-v11
+
+membrane-conductivity-sensitivity-v11:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_membrane_conductivity_sensitivity \
+	  --jobs $(JOBS) \
+	  --currents-a 5 10 15 20 26.04 30 \
+	  --conductivity-multipliers 1.0 1.5 2.0 \
+	  --dt 0.01 \
+	  --sample-every 1 \
+	  --max-cycles 30 \
+	  --cycle-tolerance 1e-4 \
+	  --temperature-tolerance-k 0.1 \
+	  --max-airflow-iterations 8 \
+	  --feasibility-scan-points 10 \
+	  --output-csv results/v11-membrane-conductivity-sensitivity.csv \
+	  --output-json results/v11-membrane-conductivity-sensitivity.json
