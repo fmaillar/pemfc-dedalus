@@ -17834,3 +17834,78 @@ L'objectif est de vérifier directement si la correction Newton complète :
 Aucune continuation vers des lambda plus élevés n'est effectuée pendant ce
 diagnostic.
 
+
+*** Résultat du Newton complet à lambda = 1e-6
+
+Avec :
+
+  damping = 1
+
+la norme des perturbations suit :
+
+  0.662
+  0.210
+  0.0106
+  0.0163
+  0.0285
+  0.163
+  1.157
+  8.381.
+
+Le Newton complet s'approche donc rapidement d'une solution, atteint un minimum
+à la troisième itération, puis diverge.
+
+Pendant toute cette séquence, le minimum physique du champ O2 reste voisin de :
+
+  6.915 mol/m3.
+
+La valeur négative précédemment observée dans le diagnostic final provenait
+d'une vue NumPy non copiée, susceptible d'être modifiée par les évaluations
+Dedalus ultérieures. Le diagnostic final utilise désormais des copies.
+
+*** Étape 14 — scan d'amortissement Newton
+
+Avant de réintroduire la continuation, le premier niveau :
+
+  lambda = 1e-6
+
+est résolu indépendamment avec :
+
+  damping = 0.25
+  damping = 0.50
+  damping = 0.75
+  damping = 1.00.
+
+Chaque cas dispose de :
+
+  40 itérations Newton maximum
+  grille = 4 x 4 x 16
+  xi = 0.5.
+
+Les quatre cas sont exécutés en parallèle.
+
+Pour chaque amortissement sont enregistrés :
+
+- norme finale ;
+- norme minimale atteinte ;
+- itération de cette norme minimale ;
+- convergence ou non ;
+- min(c_O2) final ;
+- historique complet des normes.
+
+Nouvelle cible :
+
+  make quick-stationary-damping-scan-v10
+
+Sortie :
+
+  results/quick-v10-stationary-damping-scan.json
+
+*** Critère de décision
+
+Le facteur d'amortissement retenu devra produire une décroissance durable de la
+norme jusqu'au critère, sans rebond tardif.
+
+Ce choix sera ensuite utilisé pour réintroduire progressivement la continuation
+en lambda.
+
