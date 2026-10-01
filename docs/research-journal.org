@@ -16255,3 +16255,142 @@ Si certaines régions présentent un comportement non monotone ou un span très
 supérieur aux tendances déjà observées, une dernière étape ciblée sera ajoutée
 avant le gel de V0.9.
 
+
+*** Résultats de la carte factorielle quasi-3D complète
+
+La carte complète comporte :
+
+  24 cas atteignables
+
+et :
+
+  3 cas inatteignables.
+
+Les trois cas inatteignables correspondent uniquement à :
+
+  I = 7.3 A
+  T_air,in = 30 degC
+
+pour :
+
+  NTU = 1
+  NTU = 3
+  NTU = 5.
+
+La raison est physique et déjà identifiée :
+
+  T_air,in = 30 degC
+
+est supérieure à :
+
+  T_opt(7.3 A) = 29.879 degC.
+
+Le domaine observé du span ORR entrée-sortie est :
+
+  0.965 % <= span ORR <= 10.674 %.
+
+Le minimum apparaît pour :
+
+  I = 14.5 A
+  T_air,in = 30 degC
+  NTU = 1.
+
+Le maximum apparaît pour :
+
+  I = 26.04 A
+  T_air,in = 10 degC
+  NTU = 5.
+
+*** Monotonies observées
+
+Sur tous les sous-domaines comparables :
+
+1. le span ORR augmente avec le courant ;
+
+2. le span ORR diminue lorsque la température d'entrée augmente ;
+
+3. le span ORR augmente avec NTU.
+
+Aucune inversion de tendance n'est observée.
+
+La dépendance à NTU reste saturante :
+
+  l'écart NTU = 3 -> 5
+
+est systématiquement nettement plus faible que :
+
+  l'écart NTU = 1 -> 3.
+
+*** Interprétation finale V0.9
+
+La non-uniformité cathodique streamwise est principalement gouvernée par le
+champ thermo-gazeux local.
+
+La variation de y_O2 seule est faible, mais la combinaison :
+
+  y_O2(x)
+  T_air(x)
+
+produit une variation significative de :
+
+  c_O2(x).
+
+Cette variation se transmet à la cinétique ORR dans les tranches 3D.
+
+Le span électrochimique obtenu reste de l'ordre de :
+
+  1 à 11 %
+
+sur le domaine étudié.
+
+La baseline V0.9 doit donc conserver explicitement :
+
+- courant I ;
+- température d'air d'entrée ;
+- NTU comme paramètre de sensibilité ;
+- profil streamwise thermo-couplé ;
+- concentration O2 locale ;
+- correction électrochimique quasi-3D par tranches.
+
+*** Décision de fermeture V0.9
+
+Aucune interaction non monotone ou anomalie physique nouvelle n'apparaît dans
+la carte factorielle.
+
+La refonte complète de l'axe x du solveur 3D en coordonnée non périodique n'est
+pas requise pour fermer V0.9.
+
+Elle reste une direction ultérieure possible si une vraie géométrie
+streamwise résolue devient nécessaire.
+
+Avant le gel définitif de V0.9, une validation automatique finale doit vérifier :
+
+- 24 cas atteignables ;
+- 3 cas inatteignables identifiés ;
+- monotonie croissante avec I ;
+- monotonie décroissante avec T_air,in ;
+- monotonie croissante avec NTU ;
+- bornes du span cohérentes avec la carte publiée.
+
+*** Étape 13 — validation finale V0.9
+
+Nouvelle cible :
+
+  make validate-v09-final
+
+Elle lit :
+
+  results/quick-v09-quasi3d-full-map.json
+
+et produit :
+
+  results/v09-final-validation.json.
+
+Si cette validation passe avec le gate complet :
+
+  pytest
+  Ruff
+  mypy
+
+V0.9 pourra être gelée.
+

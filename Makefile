@@ -888,3 +888,7 @@ quick-quasi3d-full-map-v09:
 	  --ntu-values 1 3 5 \
 	  --nx 8 --ny 8 --nz 32 \
 	  --stop-time 1e-3 --max-dt 2e-6
+
+
+validate-v09-final:
+	$(PYTHON) -m scripts.analyze_v09_final_validation
