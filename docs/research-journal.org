@@ -20497,3 +20497,48 @@ Les tests vérifient :
 La dynamique de l'inventaire moyen de membrane et les échanges interfaciaux
 restent à introduire séparément ; cette étape établit uniquement la fermeture
 through-plane du flux.
+
+
+** V11 étape 11 — inventaire dynamique d'eau de membrane
+
+La fermeture through-plane précédente décrit le transport interne EOD +
+back-diffusion. Cette étape ajoute l'inventaire total d'eau de la membrane.
+
+Pour une cellule :
+
+  N_sites = (rho_mem,dry / EW) * A_cell * L_mem
+
+et, pour une teneur moyenne lambda_bar :
+
+  n_H2O,mem = lambda_bar * N_sites.
+
+Le bilan dynamique de l'hydratation moyenne est :
+
+  d(lambda_bar)/dt
+    = (n_dot_a->mem + n_dot_c->mem) / N_sites.
+
+Les deux flux interfaciaux sont définis positifs vers la membrane.
+
+Point de conservation important :
+
+- l'électro-osmose et le back-diffusion ne figurent pas dans ce bilan
+  d'inventaire total ;
+- ils redistribuent l'eau à travers l'épaisseur ;
+- seul le flux net à travers les deux interfaces externes modifie la quantité
+  totale d'eau stockée dans la membrane.
+
+La corrélation interfaciale de Ge présente dans le dépôt n'est pas branchée ici
+car sa forme implémentée est explicitement documentée à 353 K. L'appliquer à
+la température nominale du stack (~313 K) introduirait une extrapolation non
+justifiée.
+
+Les flux interfaciaux restent donc des entrées physiques explicites du bilan
+jusqu'à sélection d'une loi compatible avec le domaine de fonctionnement V11.
+
+Les tests vérifient :
+
+- conversion exacte lambda <-> inventaire molaire ;
+- calcul de N_sites à partir de rho, EW, aire et épaisseur V11 ;
+- conservation pour deux flux interfaciaux égaux et opposés ;
+- augmentation de lambda_bar en absorption nette ;
+- diminution de lambda_bar en désorption nette.
