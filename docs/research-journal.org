@@ -18146,3 +18146,166 @@ sera appliquée pour progresser vers 1e-2.
 Si l'échec se reproduit à un niveau précis, ce niveau identifiera la prochaine
 zone de raideur à raffiner.
 
+
+*** Décision méthodologique après la continuation manuelle
+
+Les essais successifs ont montré que :
+
+- le LBVP sans réaction est sain ;
+- Newton possède localement une bonne direction ;
+- un pas complet peut converger rapidement puis dépasser la zone de convergence ;
+- un damping fixe de 0.25 est stable mais lent ;
+- la norme globale des perturbations est dominée par les variables tau ;
+- les champs physiques peuvent être déjà quasi-convergés alors que les tau
+  restent relativement grands ;
+- une continuation en lambda écrite à la main devient rapidement fastidieuse.
+
+La stratégie manuelle de réglage successif de :
+
+  damping
+  lambda
+
+est donc abandonnée comme méthode principale.
+
+La documentation et l'implémentation Dedalus confirment que le NLBVP utilise
+Newton-Kantorovich et que :
+
+  solver.newton_iteration(damping=alpha)
+
+met à jour l'état à partir de la direction Newton calculée au point courant.
+
+Dedalus expose également les champs de résidu du NLBVP via :
+
+  solver.F.
+
+*** Étape 18 — Newton globalisé et continuation adaptative
+
+Une stratégie de globalisation est introduite autour du NLBVP existant.
+
+Le modèle physique et les équations ne sont pas modifiés.
+
+**** Mérite résiduel
+
+La convergence n'est plus pilotée uniquement par la norme de la correction
+Newton.
+
+Un mérite résiduel adimensionné est calculé à partir des neuf résidus Dedalus :
+
+- équation O2 ;
+- conduction électronique ;
+- conduction protonique ;
+- six conditions aux limites.
+
+Chaque résidu est normalisé par une échelle physique caractéristique :
+
+- diffusion O2 :
+  D_ref c_ref / Lz^2 ;
+- conduction électronique :
+  sigma_s,ref / Lz^2 ;
+- conduction protonique :
+  sigma_m,ref / Lz^2 ;
+- concentration :
+  c_ref ;
+- gradient de concentration :
+  c_ref / Lz ;
+- potentiel :
+  1 V ;
+- gradient de potentiel :
+  1 V / Lz.
+
+Le mérite est la norme euclidienne des neuf résidus normalisés.
+
+**** Backtracking Newton
+
+Pour chaque itération Newton, une sauvegarde complète de l'état Dedalus est
+effectuée.
+
+La direction Newton est ensuite essayée avec :
+
+  alpha = 1
+  1/2
+  1/4
+  1/8
+  ...
+
+jusqu'à huit essais.
+
+Une étape est acceptée seulement si :
+
+1. le mérite résiduel diminue ;
+2. le mérite reste fini ;
+3. min(c_O2) reste strictement positif.
+
+En cas d'échec, l'état est restauré avant de réduire alpha.
+
+**** Continuation adaptative
+
+La continuation démarre à :
+
+  lambda = 0
+
+depuis la solution LBVP.
+
+Le premier pas vaut :
+
+  Delta lambda = 1e-6.
+
+Après un niveau convergé :
+
+- le pas est multiplié par 2 lorsque Newton converge facilement ;
+- il est multiplié par 1.5 pour une convergence intermédiaire ;
+- sinon il est conservé.
+
+Si un niveau échoue :
+
+- le dernier état convergé est restauré ;
+- Delta lambda est divisé par 2 ;
+- le niveau est retenté.
+
+Le processus s'arrête lorsque :
+
+  lambda = 1
+
+ou lorsque :
+
+  Delta lambda < 1e-8
+
+ou après 80 tentatives.
+
+Le seuil du mérite résiduel est fixé pour ce screening à :
+
+  1e-5.
+
+Le test reste volontairement minimal :
+
+  I = 26.04 A
+  xi = 0.5
+  grille = 4 x 4 x 16.
+
+Nouvelle cible :
+
+  make quick-stationary-globalized-v10
+
+Sortie :
+
+  results/quick-v10-stationary-globalized.json
+
+*** Critère de décision
+
+Si la méthode atteint :
+
+  lambda = 1
+
+avec :
+
+- mérite résiduel <= 1e-5 ;
+- c_O2 > 0 ;
+- état électrochimique physiquement admissible ;
+
+alors le Newton globalisé remplacera la continuation manuelle comme solveur
+stationnaire de référence pour V1.0.
+
+Si elle s'arrête avant lambda = 1, l'historique de backtracking indiquera
+directement les zones de raideur et permettra de décider si une vraie
+pseudo-transient continuation Newton est nécessaire.
+
