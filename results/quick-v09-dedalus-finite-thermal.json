@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "model": "v09-dedalus-finite-thermal-transfer",
+  "ntu_values": [
+    1.0,
+    3.0,
+    5.0
+  ],
+  "points": 64,
+  "max_abs_temperature_error_k": 2.2737367544323206e-13,
+  "summaries": [
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_temperature_c": 22.565924588952896,
+      "effectiveness": 0.6321205588285577,
+      "outlet_approach_to_stack_k": 7.313075411047123
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 2.2737367544323206e-13,
+      "outlet_temperature_c": 28.889282867915256,
+      "effectiveness": 0.950212931632136,
+      "outlet_approach_to_stack_k": 0.9897171320847633
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 29.74505635160517,
+      "effectiveness": 0.9932620530009145,
+      "outlet_approach_to_stack_k": 0.13394364839484751
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_temperature_c": 26.244719000667317,
+      "effectiveness": 0.6321205588285577,
+      "outlet_approach_to_stack_k": 3.6342809993327023
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 29.387153551593883,
+      "effectiveness": 0.950212931632136,
+      "outlet_approach_to_stack_k": 0.491846448406136
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 29.81243582159607,
+      "effectiveness": 0.9932620530009145,
+      "outlet_approach_to_stack_k": 0.06656417840395079
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "status": "target_unreachable"
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "status": "target_unreachable"
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "status": "target_unreachable"
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_temperature_c": 24.978096641442676,
+      "effectiveness": 0.6321205588285577,
+      "outlet_approach_to_stack_k": 8.716903358557317
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 32.515295415023445,
+      "effectiveness": 0.950212931632136,
+      "outlet_approach_to_stack_k": 1.1797045849765482
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 33.535344345856686,
+      "effectiveness": 0.9932620530009145,
+      "outlet_approach_to_stack_k": 0.1596556541433074
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 2.2737367544323206e-13,
+      "outlet_temperature_c": 28.656891053157096,
+      "effectiveness": 0.6321205588285577,
+      "outlet_approach_to_stack_k": 5.038108946842897
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 33.01316609870207,
+      "effectiveness": 0.950212931632136,
+      "outlet_approach_to_stack_k": 0.6818339012979209
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 33.602723815847526,
+      "effectiveness": 0.9932620530009145,
+      "outlet_approach_to_stack_k": 0.09227618415246752
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 2.2737367544323206e-13,
+      "outlet_temperature_c": 32.33568546487152,
+      "effectiveness": 0.6321205588285577,
+      "outlet_approach_to_stack_k": 1.359314535128476
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 33.51103678238076,
+      "effectiveness": 0.950212931632136,
+      "outlet_approach_to_stack_k": 0.18396321761923673
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 33.670103285838366,
+      "effectiveness": 0.9932620530009145,
+      "outlet_approach_to_stack_k": 0.024896714161627642
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "status": "reachable",
+      "active_constraint": "stoichiometric_floor",
+      "max_abs_temperature_error_k": 5.684341886080802e-14,
+      "outlet_temperature_c": 28.844272403349862,
+      "effectiveness": 0.6321205588285577,
+      "outlet_approach_to_stack_k": 10.966927596650123
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "status": "reachable",
+      "active_constraint": "stoichiometric_floor",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 38.32698774747195,
+      "effectiveness": 0.950212931632136,
+      "outlet_approach_to_stack_k": 1.4842122525280388
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "status": "reachable",
+      "active_constraint": "stoichiometric_floor",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 39.61033371442085,
+      "effectiveness": 0.9932620530009145,
+      "outlet_approach_to_stack_k": 0.20086628557913855
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 2.2737367544323206e-13,
+      "outlet_temperature_c": 32.52306681506434,
+      "effectiveness": 0.6321205588285577,
+      "outlet_approach_to_stack_k": 7.288133184935646
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 38.824858431150574,
+      "effectiveness": 0.950212931632136,
+      "outlet_approach_to_stack_k": 0.9863415688494115
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 39.67771318441169,
+      "effectiveness": 0.9932620530009145,
+      "outlet_approach_to_stack_k": 0.13348681558829867
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_temperature_c": 36.20186122677876,
+      "effectiveness": 0.6321205588285577,
+      "outlet_approach_to_stack_k": 3.609338773221225
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.1368683772161603e-13,
+      "outlet_temperature_c": 39.3227291148292,
+      "effectiveness": 0.950212931632136,
+      "outlet_approach_to_stack_k": 0.4884708851707842
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "status": "reachable",
+      "active_constraint": "thermal",
+      "max_abs_temperature_error_k": 1.7053025658242404e-13,
+      "outlet_temperature_c": 39.74509265440258,
+      "effectiveness": 0.9932620530009145,
+      "outlet_approach_to_stack_k": 0.06610734559740195
+    }
+  ]
+}
