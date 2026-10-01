@@ -118,3 +118,35 @@ def test_additional_resolved_loss_is_subtracted_exactly() -> None:
     assert extra.cell_voltage_v == pytest.approx(
         baseline.cell_voltage_v - 0.05
     )
+
+
+
+def test_membrane_conductivity_multiplier_scales_ohmic_loss() -> None:
+    baseline = predict_cell_voltage_v(
+        current_a=26.04,
+        temperature_k=313.15,
+        hydrogen_partial_pressure_pa=136000.0,
+        oxygen_partial_pressure_pa=21000.0,
+        water_activity=1.0,
+        membrane_mean_water_content=5.0,
+        cathode_platinum_loading_mg_cm2_geo=0.4,
+        cathode_ecsa_m2_pt_g_pt=50.0,
+    )
+    doubled = predict_cell_voltage_v(
+        current_a=26.04,
+        temperature_k=313.15,
+        hydrogen_partial_pressure_pa=136000.0,
+        oxygen_partial_pressure_pa=21000.0,
+        water_activity=1.0,
+        membrane_mean_water_content=5.0,
+        cathode_platinum_loading_mg_cm2_geo=0.4,
+        cathode_ecsa_m2_pt_g_pt=50.0,
+        membrane_conductivity_multiplier=2.0,
+    )
+
+    assert doubled.membrane_ohmic_loss_v == pytest.approx(
+        0.5 * baseline.membrane_ohmic_loss_v
+    )
+    assert doubled.cell_voltage_v == pytest.approx(
+        baseline.cell_voltage_v + 0.5 * baseline.membrane_ohmic_loss_v
+    )
