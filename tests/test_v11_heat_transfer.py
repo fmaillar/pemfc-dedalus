@@ -84,6 +84,7 @@ def test_ballard_manual_cooling_example_matches_page_58() -> None:
         stack_temperature_k=72.0 + 273.15,
         inlet_temperature_k=40.0 + 273.15,
         stack_air_flow_slpm=283.0,
+        n_cells=1,
         air_specific_heat_j_kg_k=1006.0,
     )
 
@@ -95,12 +96,14 @@ def test_inverse_ballard_cooling_recovers_manual_example_flow() -> None:
         heat_removed_w=56.48,
         stack_temperature_k=72.0 + 273.15,
         inlet_temperature_k=40.0 + 273.15,
+        n_cells=1,
         air_specific_heat_j_kg_k=1006.0,
     )
     airflow = ballard_required_coolant_air_slpm(
         heat_removed_w=56.48,
         stack_temperature_k=72.0 + 273.15,
         inlet_temperature_k=40.0 + 273.15,
+        n_cells=1,
         air_specific_heat_j_kg_k=1006.0,
     )
 
@@ -113,8 +116,32 @@ def test_ballard_cooling_uses_same_air_stream_for_heat_removal() -> None:
         stack_temperature_k=313.15,
         inlet_temperature_k=293.15,
         stack_air_flow_slpm=216.132,
+        n_cells=10,
     )
 
     assert result.heat_removed_w > 0.0
     assert 293.15 < result.outlet_temperature_k < 313.15
     assert 0.0 < result.effectiveness < 1.0
+
+
+
+def test_ballard_cooling_scales_with_cell_count_at_fixed_flow_per_cell() -> None:
+    one_cell = cathode_air_outlet_temperature_ballard_v11(
+        stack_temperature_k=313.15,
+        inlet_temperature_k=293.15,
+        stack_air_flow_slpm=40.0,
+        n_cells=1,
+    )
+    ten_cells = cathode_air_outlet_temperature_ballard_v11(
+        stack_temperature_k=313.15,
+        inlet_temperature_k=293.15,
+        stack_air_flow_slpm=400.0,
+        n_cells=10,
+    )
+
+    assert ten_cells.heat_removed_w == pytest.approx(
+        10.0 * one_cell.heat_removed_w
+    )
+    assert ten_cells.outlet_temperature_k == pytest.approx(
+        one_cell.outlet_temperature_k
+    )
