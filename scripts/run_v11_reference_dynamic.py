@@ -42,38 +42,54 @@ def _run_one_case(
     output_dir: str,
     stop_time_s: float,
 ) -> dict[str, Any]:
-    scenario = reference_dynamic_scenario()
-    effective_stop = min(stop_time_s, scenario.stop_time_s)
-    trajectory = run_v11_dynamic(
-        initial_state=scenario.initial_state,
-        controls=scenario.controls,
-        inputs=scenario.inputs,
-        stop_time_s=effective_stop,
-        dt_s=dt_s,
-        automatic_purge=True,
-        sample_every_s=sample_every_s,
-    )
-    rows = trajectory_to_rows(trajectory)
-    dt_label = f"{dt_s:.6f}".rstrip("0").rstrip(".").replace(".", "p")
-    csv_path = Path(output_dir) / f"v11-reference-dt-{dt_label}.csv"
-    _write_csv(csv_path, rows)
+    try:
+        scenario = reference_dynamic_scenario()
+        effective_stop = min(stop_time_s, scenario.stop_time_s)
+        trajectory = run_v11_dynamic(
+            initial_state=scenario.initial_state,
+            controls=scenario.controls,
+            inputs=scenario.inputs,
+            stop_time_s=effective_stop,
+            dt_s=dt_s,
+            automatic_purge=True,
+            sample_every_s=sample_every_s,
+        )
+        rows = trajectory_to_rows(trajectory)
+        dt_label = f"{dt_s:.6f}".rstrip("0").rstrip(".").replace(".", "p")
+        csv_path = Path(output_dir) / f"v11-reference-dt-{dt_label}.csv"
+        _write_csv(csv_path, rows)
 
-    final = rows[-1]
-    summary = {
-        "dt_s": dt_s,
-        "rows": len(rows),
-        "csv_path": str(csv_path),
-        "purge_count": int(final["purge_count"]),
-        "final_cell_voltage_v": float(final["cell_voltage_v"]),
-        "final_stack_temperature_k": float(final["stack_temperature_k"]),
-        "final_membrane_mean_water_content": float(
-            final["membrane_mean_water_content"]
-        ),
-        "final_anode_nitrogen_mol": float(final["anode_nitrogen_mol"]),
-    }
-    summary_path = Path(output_dir) / f"v11-reference-dt-{dt_label}.json"
-    summary_path.write_text(json.dumps(summary, indent=2) + "\n")
-    return summary
+        final = rows[-1]
+        summary = {
+            "status": "ok",
+            "error": "",
+            "dt_s": dt_s,
+            "rows": len(rows),
+            "csv_path": str(csv_path),
+            "purge_count": int(final["purge_count"]),
+            "final_cell_voltage_v": float(final["cell_voltage_v"]),
+            "final_stack_temperature_k": float(final["stack_temperature_k"]),
+            "final_membrane_mean_water_content": float(
+                final["membrane_mean_water_content"]
+            ),
+            "final_anode_nitrogen_mol": float(final["anode_nitrogen_mol"]),
+        }
+        summary_path = Path(output_dir) / f"v11-reference-dt-{dt_label}.json"
+        summary_path.write_text(json.dumps(summary, indent=2) + "\n")
+        return summary
+    except Exception as exc:
+        return {
+            "status": "failed",
+            "error": f"{type(exc).__name__}: {exc}",
+            "dt_s": dt_s,
+            "rows": 0,
+            "csv_path": "",
+            "purge_count": 0,
+            "final_cell_voltage_v": None,
+            "final_stack_temperature_k": None,
+            "final_membrane_mean_water_content": None,
+            "final_anode_nitrogen_mol": None,
+        }
 
 
 def _read_numeric_column(
@@ -191,16 +207,27 @@ def main() -> None:
         summaries = [future.result() for future in futures]
 
     summaries.sort(key=lambda item: float(item["dt_s"]), reverse=True)
-    finest = min(summaries, key=lambda item: float(item["dt_s"]))
+    successful = [item for item in summaries if item["status"] == "ok"]
+    if not successful:
+        raise RuntimeError("all V11 reference time-step runs failed")
+    finest = min(successful, key=lambda item: float(item["dt_s"]))
     reference_rows = _load_csv(Path(str(finest["csv_path"])))
 
+    metric_names = [
+        f"{field}_{kind}"
+        for field in COMPARISON_FIELDS
+        for kind in ("max_abs", "rms")
+    ]
     convergence_rows: list[dict[str, Any]] = []
     for summary in summaries:
-        candidate_rows = _load_csv(Path(str(summary["csv_path"])))
-        metrics = convergence_metrics(
-            reference_rows=reference_rows,
-            candidate_rows=candidate_rows,
-        )
+        if summary["status"] == "ok":
+            candidate_rows = _load_csv(Path(str(summary["csv_path"])))
+            metrics: dict[str, float | None] = convergence_metrics(
+                reference_rows=reference_rows,
+                candidate_rows=candidate_rows,
+            )
+        else:
+            metrics = {name: None for name in metric_names}
         convergence_rows.append({**summary, **metrics})
 
     args.output_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -227,14 +254,21 @@ def main() -> None:
     args.output_json.write_text(json.dumps(output, indent=2) + "\n")
 
     for row in convergence_rows:
-        print(
-            f"dt={float(row['dt_s']):.6g} s "
-            f"Vmax={float(row['cell_voltage_v_max_abs']):.3e} V "
-            f"Tmax={float(row['stack_temperature_k_max_abs']):.3e} K "
-            f"lambda_max={float(row['membrane_mean_water_content_max_abs']):.3e} "
-            f"purges={int(row['purge_count'])}",
-            flush=True,
-        )
+        if row["status"] == "ok":
+            print(
+                f"dt={float(row['dt_s']):.6g} s "
+                f"Vmax={float(row['cell_voltage_v_max_abs']):.3e} V "
+                f"Tmax={float(row['stack_temperature_k_max_abs']):.3e} K "
+                f"lambda_max="
+                f"{float(row['membrane_mean_water_content_max_abs']):.3e} "
+                f"purges={int(row['purge_count'])}",
+                flush=True,
+            )
+        else:
+            print(
+                f"dt={float(row['dt_s']):.6g} s FAILED: {row['error']}",
+                flush=True,
+            )
     print(f"Wrote {args.output_csv}")
     print(f"Wrote {args.output_json}")
 
