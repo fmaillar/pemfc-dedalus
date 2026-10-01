@@ -71,6 +71,8 @@ class InverseBVResult(TypedDict):
     picard_relaxation: float
     picard_history: list[InverseBVPicardStep]
     residual_components: InverseBVResidualComponents
+    pre_newton_residual_merit: float
+    pre_newton_residual_components: InverseBVResidualComponents
 
 
 def symmetric_bv_current(
@@ -488,6 +490,23 @@ def solve_stationary_inverse_bv(
             float(np.min(np.asarray(q_hat["g"]))),
         )
 
+    pre_newton_residual_values = normalized_residuals()
+    pre_newton_residual_components: InverseBVResidualComponents = {
+        "oxygen": pre_newton_residual_values[0],
+        "solid_potential": pre_newton_residual_values[1],
+        "membrane_potential": pre_newton_residual_values[2],
+        "inverse_bv": pre_newton_residual_values[3],
+        "bc_c_inlet": pre_newton_residual_values[4],
+        "bc_c_flux": pre_newton_residual_values[5],
+        "bc_phi_s": pre_newton_residual_values[6],
+        "bc_phi_s_flux": pre_newton_residual_values[7],
+        "bc_phi_m_flux": pre_newton_residual_values[8],
+        "bc_phi_m": pre_newton_residual_values[9],
+    }
+    pre_newton_residual_merit = float(
+        np.sqrt(sum(value * value for value in pre_newton_residual_values))
+    )
+
     physical_norm = np.inf
     physical_norm_history: list[float] = []
     min_c_o2_history: list[float] = []
@@ -666,4 +685,6 @@ def solve_stationary_inverse_bv(
         "picard_relaxation": picard_relaxation,
         "picard_history": picard_history,
         "residual_components": residual_components,
+        "pre_newton_residual_merit": pre_newton_residual_merit,
+        "pre_newton_residual_components": pre_newton_residual_components,
     }
