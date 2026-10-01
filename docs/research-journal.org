@@ -18479,3 +18479,35 @@ la continuation en reaction_scale n'est plus nécessaire pour ce régime.
 Si Newton ne converge pas, l'historique par composante permettra de distinguer
 une difficulté encore cinétique d'un mauvais conditionnement des opérateurs de
 transport ou des potentiels.
+
+
+*** Correction d'implémentation avant le premier Newton inverse-BV
+
+Le premier lancement de :
+
+  make quick-stationary-inverse-bv-v10
+
+s'arrête avant toute itération Newton avec :
+
+  ValueError: operands could not be broadcast together
+  shapes (4,4,16) (6,6,24).
+
+Cause :
+
+- les champs c, phi_s et phi_m sont remis à l'échelle spectrale 1 ;
+- l'expression composée eta = phi_s - phi_m - E_eq est évaluée par Dedalus sur
+  la grille dealiasée 3/2 ;
+- l'initialisation locale de q_hat combinait donc une grille 4 x 4 x 16 avec
+  une grille 6 x 6 x 24.
+
+Ce défaut est purement lié aux échelles de grille Dedalus et ne constitue pas
+un échec de la formulation inverse Butler-Volmer.
+
+Correction :
+
+- évaluer eta dans un champ temporaire ;
+- appliquer explicitement change_scales(1) à ce champ avant conversion NumPy ;
+- appliquer la même règle au diagnostic final eta_values afin d'éviter le même
+  défaut après Newton.
+
+Le prochain lancement est donc le premier test effectif du NLBVP inverse-BV.
