@@ -8,7 +8,9 @@ from pemfc_dedalus.v11_cathode import (
     CathodeGasState,
     cathode_constant_inventory_outlet_mol_s,
     cathode_gas_rhs_per_cell,
+    cathode_isobaric_outlet_mol_s,
     standard_litre_per_minute_to_mol_s,
+    water_saturation_pressure_derivative_pa_k,
 )
 from pemfc_dedalus.v11_galvanostatic import faraday_rates_per_cell
 
@@ -142,3 +144,89 @@ def test_cathode_water_exchange_can_be_a_signed_sink() -> None:
     )
 
     assert rhs.water_vapour_mol_s == pytest.approx(-2.0e-6)
+
+
+
+def test_isobaric_outlet_reduces_to_constant_inventory_at_fixed_temperature() -> None:
+    state = CathodeGasState(
+        oxygen_mol=0.21e-3,
+        nitrogen_mol=0.78e-3,
+        water_vapour_mol=0.01e-3,
+    )
+    inlet = 1.0e-3
+    current = 26.04
+    water_to_gas = 2.0e-5
+
+    isobaric = cathode_isobaric_outlet_mol_s(
+        state=state,
+        liquid_water_mol=0.0,
+        inlet_air_mol_s=inlet,
+        inlet_water_mole_fraction=0.01,
+        current_a=current,
+        water_source_to_gas_mol_s=water_to_gas,
+        temperature_k=313.15,
+        temperature_rate_k_s=0.0,
+        total_pressure_pa=101325.0,
+    )
+    constant_inventory = cathode_constant_inventory_outlet_mol_s(
+        inlet_air_mol_s=inlet,
+        current_a=current,
+        water_source_to_gas_mol_s=water_to_gas,
+    )
+
+    assert isobaric == pytest.approx(constant_inventory)
+
+
+def test_isobaric_outlet_accounts_for_thermal_expansion() -> None:
+    state = CathodeGasState(
+        oxygen_mol=0.21e-3,
+        nitrogen_mol=0.78e-3,
+        water_vapour_mol=0.01e-3,
+    )
+    temperature = 313.15
+    temperature_rate = 2.0
+    inlet = 1.0e-3
+    water_to_gas = 2.0e-5
+    current = 10.0
+
+    fixed_temperature = cathode_isobaric_outlet_mol_s(
+        state=state,
+        liquid_water_mol=0.0,
+        inlet_air_mol_s=inlet,
+        inlet_water_mole_fraction=0.01,
+        current_a=current,
+        water_source_to_gas_mol_s=water_to_gas,
+        temperature_k=temperature,
+        temperature_rate_k_s=0.0,
+        total_pressure_pa=101325.0,
+    )
+    heating = cathode_isobaric_outlet_mol_s(
+        state=state,
+        liquid_water_mol=0.0,
+        inlet_air_mol_s=inlet,
+        inlet_water_mole_fraction=0.01,
+        current_a=current,
+        water_source_to_gas_mol_s=water_to_gas,
+        temperature_k=temperature,
+        temperature_rate_k_s=temperature_rate,
+        total_pressure_pa=101325.0,
+    )
+
+    assert heating - fixed_temperature == pytest.approx(
+        state.total_mol * temperature_rate / temperature
+    )
+
+
+def test_buck_saturation_derivative_matches_central_difference() -> None:
+    from pemfc_dedalus.anode import water_saturation_pressure_pa
+
+    temperature = 313.15
+    delta = 1.0e-3
+    numerical = (
+        water_saturation_pressure_pa(temperature + delta)
+        - water_saturation_pressure_pa(temperature - delta)
+    ) / (2.0 * delta)
+
+    analytic = water_saturation_pressure_derivative_pa_k(temperature)
+
+    assert analytic == pytest.approx(numerical, rel=1.0e-8)
