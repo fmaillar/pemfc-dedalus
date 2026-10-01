@@ -115,75 +115,77 @@ def simulate_periodic_polarization_point(
     purge_period = stack.purge_period_s(current_a)
     scenario = reference_dynamic_scenario()
     effective_inputs = scenario.inputs if inputs is None else inputs
-    state0 = reference_initial_state() if initial_state is None else initial_state
+    state = reference_initial_state() if initial_state is None else initial_state
 
-    stop_time = max_cycles * purge_period
-    trajectory = run_v11_dynamic(
-        initial_state=state0,
-        controls=(V11ControlSegment(0.0, current_a, airflow),),
-        inputs=effective_inputs,
-        stop_time_s=stop_time,
-        dt_s=dt_s,
-        automatic_purge=True,
-        sample_every_s=sample_every_s,
-    )
-    purge_points = [point for point in trajectory if point.purge_event]
-    if len(purge_points) < 2:
-        raise RuntimeError("polarization run did not produce enough purge cycles")
-
-    converged = False
+    previous_post_purge: V11DynamicState | None = None
+    final_cycle: list[V11TrajectoryPoint] = []
     error = float("inf")
-    converged_index = len(purge_points) - 1
-    for index in range(1, len(purge_points)):
-        error = periodic_state_error(
-            purge_points[index - 1].state,
-            purge_points[index].state,
+    converged = False
+    cycles_completed = 0
+
+    for cycle in range(1, max_cycles + 1):
+        trajectory = run_v11_dynamic(
+            initial_state=state,
+            controls=(V11ControlSegment(0.0, current_a, airflow),),
+            inputs=effective_inputs,
+            stop_time_s=purge_period,
+            dt_s=dt_s,
+            automatic_purge=True,
+            sample_every_s=sample_every_s,
         )
-        if index + 1 >= minimum_cycles and error <= convergence_tolerance:
-            converged = True
-            converged_index = index
-            break
+        purge_points = [point for point in trajectory if point.purge_event]
+        if len(purge_points) != 1:
+            raise RuntimeError(
+                "one fixed-current cycle must contain exactly one purge event"
+            )
+        post_purge = purge_points[0].state
+        final_cycle = [
+            point
+            for point in trajectory
+            if not point.purge_event and point.time_s > 0.0
+        ]
+        cycles_completed = cycle
 
-    cycle_end = purge_points[converged_index].time_s
-    cycle_start = (
-        purge_points[converged_index - 1].time_s
-        if converged_index > 0
-        else max(0.0, cycle_end - purge_period)
-    )
-    points = _cycle_points(
-        trajectory,
-        start_time_s=cycle_start,
-        end_time_s=cycle_end,
-    )
-    if not points:
-        raise RuntimeError("converged polarization cycle contains no samples")
+        if previous_post_purge is not None:
+            error = periodic_state_error(previous_post_purge, post_purge)
+            if cycle >= minimum_cycles and error <= convergence_tolerance:
+                converged = True
+                state = post_purge
+                break
 
-    voltages = np.asarray(
-        [point.diagnostics.voltage.cell_voltage_v for point in points
-         if point.diagnostics.voltage is not None],
-        dtype=float,
-    )
+        previous_post_purge = post_purge
+        state = post_purge
+
+    if not final_cycle:
+        raise RuntimeError("polarization cycle contains no regular samples")
+
+    voltage_values: list[float] = []
+    for point in final_cycle:
+        voltage = point.diagnostics.voltage
+        if voltage is None:
+            raise RuntimeError("missing voltage diagnostic in polarization cycle")
+        voltage_values.append(voltage.cell_voltage_v)
+
+    voltages = np.asarray(voltage_values, dtype=float)
     temperatures = np.asarray(
-        [point.state.stack_temperature_k for point in points],
+        [point.state.stack_temperature_k for point in final_cycle],
         dtype=float,
     )
     hydration = np.asarray(
-        [point.state.membrane_mean_water_content for point in points],
+        [point.state.membrane_mean_water_content for point in final_cycle],
         dtype=float,
     )
     anode_n2 = np.asarray(
-        [point.state.anode_nitrogen_mol for point in points],
+        [point.state.anode_nitrogen_mol for point in final_cycle],
         dtype=float,
     )
-    if voltages.size != len(points):
-        raise RuntimeError("missing voltage diagnostic in polarization cycle")
 
     mean_voltage = float(np.mean(voltages))
     return V11PeriodicPolarizationPoint(
         current_a=current_a,
         stack_air_flow_slpm=airflow,
         purge_period_s=purge_period,
-        cycles_completed=converged_index + 1,
+        cycles_completed=cycles_completed,
         converged=converged,
         cycle_state_error=error,
         mean_cell_voltage_v=mean_voltage,
@@ -193,5 +195,6 @@ def simulate_periodic_polarization_point(
         mean_membrane_water_content=float(np.mean(hydration)),
         mean_anode_nitrogen_mol=float(np.mean(anode_n2)),
         mean_stack_power_w=stack.stack_power_w(current_a, mean_voltage),
-        final_state=purge_points[converged_index].state,
+        final_state=state,
     )
+
