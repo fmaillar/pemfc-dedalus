@@ -109,19 +109,19 @@ def test_tafel_loss_matches_analytic_expression() -> None:
 
 
 def test_activation_loss_increases_when_oxygen_pressure_falls() -> None:
-    common = dict(
+    high = neyerlin_orr_activation_state(
         current_density_a_m2=1800.0,
         temperature_k=313.15,
+        oxygen_partial_pressure_pa=21_000.0,
         platinum_loading_mg_cm2_geo=0.4,
         ecsa_m2_pt_g_pt=50.0,
     )
-    high = neyerlin_orr_activation_state(
-        oxygen_partial_pressure_pa=21_000.0,
-        **common,
-    )
     low = neyerlin_orr_activation_state(
+        current_density_a_m2=1800.0,
+        temperature_k=313.15,
         oxygen_partial_pressure_pa=10_500.0,
-        **common,
+        platinum_loading_mg_cm2_geo=0.4,
+        ecsa_m2_pt_g_pt=50.0,
     )
 
     assert low.activation_loss_v > high.activation_loss_v
