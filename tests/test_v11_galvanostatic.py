@@ -9,7 +9,9 @@ from pemfc_dedalus.v11_galvanostatic import (
     faraday_rates_per_cell,
     inverse_symmetric_butler_volmer_overpotential_v,
     membrane_ohmic_loss_v,
+    resolved_cell_voltage_v,
     reversible_cell_voltage_liquid_water_v,
+    stack_terminal_voltage_v,
     symmetric_butler_volmer_current_density_a_m2,
 )
 
@@ -127,3 +129,35 @@ def test_membrane_ohmic_loss_is_j_l_over_sigma() -> None:
     )
 
     assert loss == pytest.approx(0.01)
+
+
+
+def test_resolved_cell_voltage_is_explicit_sum_of_losses() -> None:
+    breakdown = resolved_cell_voltage_v(
+        reversible_v=1.20,
+        activation_loss_v=0.30,
+        membrane_ohmic_loss_v=0.05,
+        other_resolved_loss_v=0.02,
+    )
+
+    assert breakdown.cell_voltage_v == pytest.approx(0.83)
+
+
+def test_stack_terminal_voltage_includes_bus_plate_loss() -> None:
+    voltage = stack_terminal_voltage_v(
+        cell_voltage_v=0.768,
+        n_cells=10,
+        current_a=26.04,
+        bus_plate_resistance_ohm=2.2e-3,
+    )
+
+    assert voltage == pytest.approx(7.622712)
+
+
+def test_resolved_voltage_rejects_negative_loss() -> None:
+    with pytest.raises(ValueError):
+        resolved_cell_voltage_v(
+            reversible_v=1.20,
+            activation_loss_v=-0.01,
+            membrane_ohmic_loss_v=0.05,
+        )
