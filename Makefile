@@ -879,3 +879,12 @@ quick-quasi3d-current-map-v09:
 	  --ntu 3 \
 	  --nx 8 --ny 8 --nz 32 \
 	  --stop-time 1e-3 --max-dt 2e-6
+
+
+quick-quasi3d-full-map-v09:
+	$(TIME) $(PYTHON) -m scripts.run_v09_quasi3d_full_map \
+	  --currents-a 7.3 14.5 26.04 \
+	  --inlet-temperatures-c 10 20 30 \
+	  --ntu-values 1 3 5 \
+	  --nx 8 --ny 8 --nz 32 \
+	  --stop-time 1e-3 --max-dt 2e-6
