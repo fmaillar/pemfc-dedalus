@@ -166,7 +166,6 @@ def _diagnostics(
     state: V11DynamicState,
     control: V11ControlSegment,
     inputs: V11RunnerInputs,
-    dt_s: float,
 ) -> tuple[V11DynamicDerivative, V11CoupledDiagnostics]:
     return coupled_v11_predictive_rhs(
         state=state,
@@ -176,7 +175,6 @@ def _diagnostics(
         cathode_total_pressure_pa=inputs.cathode_total_pressure_pa,
         inlet_oxygen_mole_fraction=inputs.inlet_oxygen_mole_fraction,
         inlet_water_mole_fraction=inputs.inlet_water_mole_fraction,
-        dt_regulator_s=dt_s,
         cathode_platinum_loading_mg_cm2_geo=(
             inputs.cathode_platinum_loading_mg_cm2_geo
         ),
@@ -236,7 +234,6 @@ def run_v11_dynamic(
             state=state,
             control=control,
             inputs=inputs,
-            dt_s=diagnostic_dt_s,
         )
         trajectory.append(
             V11TrajectoryPoint(
@@ -316,12 +313,10 @@ def run_v11_dynamic(
             state=state,
             control=control,
             inputs=inputs,
-            dt_s=step,
         )
         state = advance_state_euler(
             state=state,
             derivative=derivative,
-            dt_s=step,
         )
         time_s += step
         # Snap accumulated floating-point time onto exact scheduled surfaces.
