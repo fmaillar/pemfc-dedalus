@@ -43,14 +43,14 @@ def solve_stationary(
     newton_tolerance: float = 1e-8,
     max_newton_iterations: int = 30,
     newton_damping: float = 0.5,
-    reaction_scales: tuple[float, ...] = (0.0, 0.01, 0.03, 0.1, 0.3, 0.6, 1.0),
+    reaction_scales: tuple[float, ...] = (0.01, 0.03, 0.1, 0.3, 0.6, 1.0),
 ) -> StationaryResult:
     if not 0.0 < newton_damping <= 1.0:
         raise ValueError("newton_damping must be in (0, 1]")
     if not reaction_scales or reaction_scales[-1] != 1.0:
         raise ValueError("reaction_scales must be non-empty and end at 1.0")
-    if any(scale < 0.0 or scale > 1.0 for scale in reaction_scales):
-        raise ValueError("reaction scales must lie in [0, 1]")
+    if any(scale <= 0.0 or scale > 1.0 for scale in reaction_scales):
+        raise ValueError("reaction scales must lie in (0, 1]")
 
     coords = d3.CartesianCoordinates("x", "y", "z")
     dist = d3.Distributor(coords, dtype=np.float64)
@@ -171,6 +171,38 @@ def solve_stationary(
     )
     s_o2 = j_orr / (4.0 * F)
 
+    linear_problem = d3.LBVP(
+        [
+            c,
+            phi_s,
+            phi_m,
+            tau_c1,
+            tau_c2,
+            tau_s1,
+            tau_s2,
+            tau_m1,
+            tau_m2,
+        ],
+        namespace=locals(),
+    )
+    linear_problem.add_equation(
+        "-div(diffusivity*grad_c) + lift(tau_c2, -1) = 0"
+    )
+    linear_problem.add_equation(
+        "-div(sigma_s*grad_phi_s) + lift(tau_s2, -1) = 0"
+    )
+    linear_problem.add_equation(
+        "-div(sigma_m*grad_phi_m) + lift(tau_m2, -1) = 0"
+    )
+    linear_problem.add_equation("c(z=0) = inlet")
+    linear_problem.add_equation("ez @ grad_c(z=Lz) = 0")
+    linear_problem.add_equation("phi_s(z=0) = phi_s_bc")
+    linear_problem.add_equation("ez @ grad_phi_s(z=Lz) = 0")
+    linear_problem.add_equation("ez @ grad_phi_m(z=0) = 0")
+    linear_problem.add_equation("phi_m(z=Lz) = phi_m_bc")
+    linear_solver = linear_problem.build_solver()
+    linear_solver.solve()
+
     problem = d3.NLBVP(
         [
             c,
@@ -207,14 +239,21 @@ def solve_stationary(
 
     perturbation_norm = np.inf
     total_iterations = 0
-    continuation_history: list[ContinuationStage] = []
+    continuation_history: list[ContinuationStage] = [
+        {
+            "reaction_scale": 0.0,
+            "iterations": 1,
+            "perturbation_norm": 0.0,
+            "converged": True,
+        }
+    ]
 
     for scale in reaction_scales:
         reaction_scale["g"] = scale
         stage_iterations = 0
         perturbation_norm = np.inf
 
-        stage_damping = 1.0 if scale == 0.0 else newton_damping
+        stage_damping = newton_damping
 
         while (
             stage_iterations < max_newton_iterations
@@ -256,7 +295,7 @@ def solve_stationary(
 
     return {
         "converged": (
-            len(continuation_history) == len(reaction_scales)
+            len(continuation_history) == len(reaction_scales) + 1
             and bool(continuation_history[-1]["converged"])
         ),
         "newton_iterations": total_iterations,

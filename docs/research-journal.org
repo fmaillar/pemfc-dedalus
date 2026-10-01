@@ -17617,3 +17617,58 @@ Cette correction permet de distinguer proprement :
 - convergence du problème linéaire de référence ;
 - difficulté réelle introduite par la non-linéarité Butler-Volmer.
 
+
+*** Résultat après Newton plein à lambda = 0
+
+Même avec :
+
+  damping = 1
+
+le critère basé sur la norme des perturbations ne descend qu'à :
+
+  4.01e-4
+
+après 10 itérations.
+
+Le niveau :
+
+  lambda = 0
+
+ne doit cependant pas être traité comme un problème non linéaire.
+
+Il correspond exactement à un problème aux limites linéaire sans réaction.
+
+*** Initialisation linéaire exacte du NLBVP
+
+L'état de référence sans réaction est désormais obtenu par un LBVP Dedalus :
+
+  -div(D grad(c_O2)) = 0
+  -div(sigma_s grad(phi_s)) = 0
+  -div(sigma_m grad(phi_m)) = 0
+
+avec les mêmes conditions aux limites que le NLBVP.
+
+Ce LBVP est résolu directement par :
+
+  solver.solve().
+
+La solution obtenue initialise ensuite les champs du NLBVP.
+
+La continuation non linéaire commence donc à :
+
+  lambda = 0.01
+
+puis suit :
+
+  0.03
+  0.10
+  0.30
+  0.60
+  1.00.
+
+Le niveau lambda = 0 est enregistré comme initialisation linéaire convergée et
+n'utilise plus Newton.
+
+Cette séparation est cohérente avec la formulation Dedalus : les LBVP sont
+résolus directement, tandis que les NLBVP utilisent Newton-Kantorovich.
+
