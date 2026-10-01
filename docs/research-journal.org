@@ -12709,3 +12709,175 @@ Décision :
 
   analyser l'amplitude réelle des variations thermiques induites par la
   dynamique V0.7 avant toute introduction d'une capacité thermique.
+
+
+*** Résultats du quick dynamique de demande d'air
+
+Le couplage instantané entre la dynamique V0.7 et la loi de débit V0.8 est
+terminé pour :
+
+  régime = nominal
+  gamma = 1
+  T_in = 20 °C
+  horizon = 200 s.
+
+La dynamique V0.7 produit deux purges :
+
+  première purge :
+    80.59 s
+
+  période moyenne :
+    80.71 s.
+
+La plage de courant cellule est :
+
+  26.04 ... 28.5905 A.
+
+La chaleur à rejeter varie entre :
+
+  126.251 ... 140.628 W.
+
+La demande instantanée d'air varie entre :
+
+  315.997 ... 329.500 slpm.
+
+Amplitude totale :
+
+  13.503 slpm
+
+soit environ :
+
+  4.3 %
+
+de la valeur basse.
+
+La moyenne globale vaut :
+
+  329.054 slpm.
+
+Pendant purge :
+
+  327.853 slpm.
+
+Hors purge :
+
+  329.060 slpm.
+
+Écart purge / hors purge :
+
+  environ -1.21 slpm
+
+soit seulement :
+
+  environ -0.37 %.
+
+Aucun échantillon n'est classé :
+
+  target_unreachable.
+
+*** Interprétation
+
+La demande d'air suit surtout le niveau de courant moyen.
+
+Les événements de purge modulent très peu la charge thermique et ne justifient
+pas une dynamique thermique spécifique ou une logique de commande dédiée.
+
+Le couplage dynamique V0.7/V0.8 peut donc être traité à une échelle thermique
+beaucoup plus lente que la purge.
+
+*** Donnée Ballard de masse thermique
+
+La spécification produit Ballard :
+
+  SPC5103429-0E
+  Table 10
+
+fournit directement :
+
+  masse thermique =
+    100 J/°C/cellule.
+
+Elle donne également :
+
+  masse sèche =
+    2.1 + 0.16 N_cells kg.
+
+Pour la configuration provisoire de 10 cellules :
+
+  masse sèche =
+    3.7 kg
+
+et :
+
+  C_th =
+    1000 J/K.
+
+Cette donnée permet d'introduire une dynamique thermique lumped sans inventer
+de capacité thermique effective.
+
+*** Étape 5 — dynamique thermique lumped idéale
+
+Le premier modèle dynamique thermique utilise :
+
+  C_th dT/dt =
+    Q_dot_stack
+    - Q_dot_air.
+
+Le refroidissement d'air est pris dans une limite idéale :
+
+  Q_dot_air =
+    m_dot_air c_p
+    max(T_stack - T_in, 0).
+
+Cette hypothèse correspond à un échangeur idéal où l'air sort à la température
+de la pile.
+
+Elle constitue donc une borne supérieure de la capacité de refroidissement.
+
+Elle n'introduit :
+
+- ni coefficient convectif h ;
+- ni surface d'échange ajustée ;
+- ni constante de temps libre.
+
+Le module thermique ajoute :
+
+  ideal_air_cooling_power_w(...)
+
+et :
+
+  advance_lumped_stack_temperature_k(...).
+
+Le diagnostic :
+
+  scripts/analyze_v08_lumped_thermal_dynamics.py
+
+réutilise directement :
+
+  results/quick-v08-thermal-dynamic-coupling.csv
+
+et :
+
+  results/quick-v08-thermal-dynamic-coupling.json.
+
+La température initiale par défaut est :
+
+  20 °C.
+
+Cible :
+
+  make lumped-thermal-v08.
+
+Sorties :
+
+  results/quick-v08-lumped-thermal-dynamics.json
+  results/quick-v08-lumped-thermal-dynamics.csv
+
+Décision :
+
+  exécuter make test ;
+
+  puis make lumped-thermal-v08 ;
+
+  comparer la trajectoire obtenue à T_opt(t) avant toute introduction d'un
+  coefficient convectif réel.
