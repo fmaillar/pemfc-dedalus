@@ -1,0 +1,732 @@
+{
+  "schema_version": 1,
+  "model": "v09-electrochemical-slice-forcing",
+  "slice_xi": [
+    0.0,
+    0.5,
+    1.0
+  ],
+  "max_kinetic_factor_span": 0.12046702722858504,
+  "rows": [
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 9.016634855723051,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.070193282251807,
+      "kinetic_factor": 1.070193282251807
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.719632583814525,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0349417897275994,
+      "kinetic_factor": 1.0349417897275994
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.52570231757664,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.011924015194858,
+      "kinetic_factor": 1.011924015194858
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 9.016444263187305,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0701706606357975,
+      "kinetic_factor": 1.0701706606357975
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.497122738311774,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0085318767498341,
+      "kinetic_factor": 1.0085318767498341
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.347193328192827,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 0.9907366072187151,
+      "kinetic_factor": 0.9907366072187151
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 9.016253736099461,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0701480467878641,
+      "kinetic_factor": 1.0701480467878641
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.418074943572323,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 0.9991496160438585,
+      "kinetic_factor": 0.9991496160438585
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.323600338215023,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 0.9879363319734052,
+      "kinetic_factor": 0.9879363319734052
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.70911343726227,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0336932618504724,
+      "kinetic_factor": 1.0336932618504724
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.568573987986065,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0170124960311382,
+      "kinetic_factor": 1.0170124960311382
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.474639814325823,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0058633563317236,
+      "kinetic_factor": 1.0058633563317236
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.709025070766495,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0336827735439515,
+      "kinetic_factor": 1.0336827735439515
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.460718346710724,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0042110036126481,
+      "kinetic_factor": 1.0042110036126481
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.386605088257605,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 0.9954144278844012,
+      "kinetic_factor": 0.9954144278844012
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.70893673267343,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 1.0336722886085763,
+      "kinetic_factor": 1.0336722886085763
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.4217102364159,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 0.9995810925361935,
+      "kinetic_factor": 0.9995810925361935
+    },
+    {
+      "current_a": 7.3,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.374827659538157,
+      "reference_o2_concentration_mol_m3": 8.425239632182178,
+      "oxygen_activity": 0.9940165532560687,
+      "kinetic_factor": 0.9940165532560687
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 9.016614645658187,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.083667641207067,
+      "kinetic_factor": 1.083667641207067
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.668705688751993,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0418539790398706,
+      "kinetic_factor": 1.0418539790398706
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.444581950690788,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0149175231628027,
+      "kinetic_factor": 1.0149175231628027
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 9.0163874686109,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0836403377872532,
+      "kinetic_factor": 1.0836403377872532
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.407623261591997,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0104756192984652,
+      "kinetic_factor": 1.0104756192984652
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.236330673967009,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 0.9898887092792806,
+      "kinetic_factor": 0.9898887092792806
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 9.016160371416953,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0836130439646645,
+      "kinetic_factor": 1.0836130439646645
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.315464274551688,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 0.9993994320567163,
+      "kinetic_factor": 0.9993994320567163
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.208925178839014,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 0.9865949621880964,
+      "kinetic_factor": 0.9865949621880964
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.709093974820037,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0467080712258807,
+      "kinetic_factor": 1.0467080712258807
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.517672230755185,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0237019255693853,
+      "kinetic_factor": 1.0237019255693853
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.391430519625276,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0085294841711088,
+      "kinetic_factor": 1.0085294841711088
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.708971475646017,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0466933485837167,
+      "kinetic_factor": 1.0466933485837167
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.370493153634543,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0060131133481423,
+      "kinetic_factor": 1.0060131133481423
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.27201968979831,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 0.994178016643828,
+      "kinetic_factor": 0.994178016643828
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.708849016805363,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.046678630789044,
+      "kinetic_factor": 1.046678630789044
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.317606533953846,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 0.9996569008833682,
+      "kinetic_factor": 0.9996569008833682
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.256114997021395,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 0.9922665008939583,
+      "kinetic_factor": 0.9922665008939583
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.421858562118627,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0121864980650315,
+      "kinetic_factor": 1.0121864980650315
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.372617287884745,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.006268403791727,
+      "kinetic_factor": 1.006268403791727
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.339406724917653,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0022769708817005,
+      "kinetic_factor": 1.0022769708817005
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.421827654920792,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.012182783463544,
+      "kinetic_factor": 1.012182783463544
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.333868436099971,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.0016113480714508,
+      "kinetic_factor": 1.0016113480714508
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.30744065121207,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 0.9984351077154777,
+      "kinetic_factor": 0.9984351077154777
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.42179675725697,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 1.012179070007908,
+      "kinetic_factor": 1.012179070007908
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.319699994896615,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 0.9999085048357343,
+      "kinetic_factor": 0.9999085048357343
+    },
+    {
+      "current_a": 14.5,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.303132033895773,
+      "reference_o2_concentration_mol_m3": 8.320461276867908,
+      "oxygen_activity": 0.997917273766983,
+      "kinetic_factor": 0.997917273766983
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 9.016582641706563,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.1052639658932277,
+      "kinetic_factor": 1.1052639658932277
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.589401069023369,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0528995149762703,
+      "kinetic_factor": 1.0528995149762703
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.319684867181676,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0198373659604891,
+      "kinetic_factor": 1.0198373659604891
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 9.01629682907591,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.1052289306238567,
+      "kinetic_factor": 1.1052289306238567
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.26898037153619,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0136219455320752,
+      "kinetic_factor": 1.0136219455320752
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.066370697413715,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 0.9887857985296499,
+      "kinetic_factor": 0.9887857985296499
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 9.016011120624656,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.1051939081249267,
+      "kinetic_factor": 1.1051939081249267
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.157005862963477,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 0.9998959703658787,
+      "kinetic_factor": 0.9998959703658787
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.033258637846092,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 0.9847268808963416,
+      "kinetic_factor": 0.9847268808963416
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.709062917537644,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.067567813877368,
+      "kinetic_factor": 1.067567813877368
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.437582727519764,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0342894329869539,
+      "kinetic_factor": 1.0342894329869539
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.261647036768872,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0127230161937406,
+      "kinetic_factor": 1.0127230161937406
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.708885712418018,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0675460918523973,
+      "kinetic_factor": 1.0675460918523973
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.229922696355533,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0088342069082354,
+      "kinetic_factor": 1.0088342069082354
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.094746926638376,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 0.9922641921623852,
+      "kinetic_factor": 0.9922641921623852
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.70870856786908,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0675243772522571,
+      "kinetic_factor": 1.0675243772522571
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.156057387748909,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 0.9997797050890148,
+      "kinetic_factor": 0.9997797050890148
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.072669472296795,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 0.9895579102247547,
+      "kinetic_factor": 0.9895579102247547
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.421828914346374,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0323583108847263,
+      "kinetic_factor": 1.0323583108847263
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.29366424934705,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0166477261151377,
+      "kinetic_factor": 1.0166477261151377
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.208709295042093,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0062338416703762,
+      "kinetic_factor": 1.0062338416703762
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.421746848617373,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.032348251165129,
+      "kinetic_factor": 1.032348251165129
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.19330407326013,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0043454503364535,
+      "kinetic_factor": 1.0043454503364535
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.126715050092653,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 0.9961828846776407,
+      "kinetic_factor": 0.9961828846776407
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "local_o2_concentration_mol_m3": 8.421664809199935,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 1.0323381946708363,
+      "kinetic_factor": 1.0323381946708363
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "slice_xi": 0.5,
+      "local_o2_concentration_mol_m3": 8.156982511929986,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 0.9998931079670177,
+      "kinetic_factor": 0.9998931079670177
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "local_o2_concentration_mol_m3": 8.115740707947209,
+      "reference_o2_concentration_mol_m3": 8.157854521584571,
+      "oxygen_activity": 0.9948376361056777,
+      "kinetic_factor": 0.9948376361056777
+    }
+  ]
+}
