@@ -308,11 +308,9 @@ def solve_stationary_inverse_bv(
         s_o2_forcing = dist.Field(name="s_o2_forcing", bases=bases)
 
         def update_picard_forcing() -> None:
-            q_hat.change_scales(1)
-            chi_cl.change_scales(1)
-            current = (
-                np.asarray(chi_cl["g"]) * q_reference * np.asarray(q_hat["g"])
-            )
+            current_field = j_orr.evaluate()
+            current_field.change_scales(1)
+            current = np.asarray(current_field["g"]).copy()
             j_orr_forcing.change_scales(1)
             s_o2_forcing.change_scales(1)
             j_orr_forcing["g"] = current
