@@ -12,7 +12,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .ballard_1020acs import UserStackConfiguration
+from .ballard_1020acs import (
+    Ballard1020ACSTechnologyReference,
+    UserStackConfiguration,
+)
 from .v11_reference import reference_dynamic_scenario, reference_initial_state
 from .v11_runner import (
     V11ControlSegment,
@@ -40,6 +43,9 @@ class V11PeriodicPolarizationPoint:
     mean_membrane_water_content: float
     mean_anode_nitrogen_mol: float
     mean_stack_power_w: float
+    target_stack_temperature_k: float
+    temperature_error_k: float
+    oxygen_stoichiometry: float
     final_state: V11DynamicState
 
 
@@ -182,6 +188,16 @@ def simulate_periodic_polarization_point(
     )
 
     mean_voltage = float(np.mean(voltages))
+    mean_temperature = float(np.mean(temperatures))
+    target_temperature = (
+        273.15
+        + Ballard1020ACSTechnologyReference.optimum_stack_temperature_c(
+            current_a
+        )
+    )
+    oxygen_stoichiometry = (
+        airflow / stack.stoichiometric_air_slpm(current_a)
+    )
     return V11PeriodicPolarizationPoint(
         current_a=current_a,
         stack_air_flow_slpm=airflow,
@@ -192,10 +208,13 @@ def simulate_periodic_polarization_point(
         mean_cell_voltage_v=mean_voltage,
         min_cell_voltage_v=float(np.min(voltages)),
         max_cell_voltage_v=float(np.max(voltages)),
-        mean_stack_temperature_k=float(np.mean(temperatures)),
+        mean_stack_temperature_k=mean_temperature,
         mean_membrane_water_content=float(np.mean(hydration)),
         mean_anode_nitrogen_mol=float(np.mean(anode_n2)),
         mean_stack_power_w=stack.stack_power_w(current_a, mean_voltage),
+        target_stack_temperature_k=target_temperature,
+        temperature_error_k=mean_temperature - target_temperature,
+        oxygen_stoichiometry=oxygen_stoichiometry,
         final_state=state,
     )
 
