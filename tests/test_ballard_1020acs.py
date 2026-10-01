@@ -83,3 +83,26 @@ def test_stack_mass_and_thermal_mass_scale_with_cell_count():
 
     assert np.isclose(stack.dry_mass_kg, 3.7)
     assert np.isclose(stack.thermal_mass_j_k, 1000.0)
+
+
+
+def test_manual_implies_ten_ml_anode_volume_per_cell():
+    tech = Ballard1020ACSTechnologyReference()
+    stack = UserStackConfiguration(n_cells=10)
+
+    assert np.isclose(tech.anode_gas_volume_per_cell_m3, 10e-6)
+    assert np.isclose(stack.anode_gas_volume_m3(), 100e-6)
+
+
+def test_manual_purge_flow_rates_scale_with_cell_count():
+    stack = UserStackConfiguration(n_cells=10)
+
+    assert np.isclose(stack.runtime_purge_rate_min_slpm(), 24.0)
+    assert np.isclose(stack.startup_purge_rate_slpm(), 60.0)
+
+
+def test_manual_anode_pressure_drop_relation():
+    tech = Ballard1020ACSTechnologyReference()
+
+    assert np.isclose(tech.anode_pressure_drop_mbar(2.4), 74.904)
+    assert np.isclose(tech.anode_pressure_drop_mbar(6.0), 187.26)
