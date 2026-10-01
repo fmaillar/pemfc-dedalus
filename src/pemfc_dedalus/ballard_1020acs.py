@@ -66,6 +66,29 @@ class Ballard1020ACSTechnologyReference:
     purge_rate_min_slpm_per_cell: float = 2.4
     h2_utilization_with_standard_purge: float = 0.93
 
+    def bol_typical_cell_voltage_v(self, current_a: float) -> float:
+        """Interpolate the manual BOL typical cell-voltage curve."""
+        currents = self.bol_current_a
+        voltages = self.bol_vcell_typ_v
+        if current_a < currents[0] or current_a > currents[-1]:
+            raise ValueError(
+                "current_a must lie within the BOL polarization data range"
+            )
+        for index in range(len(currents) - 1):
+            left_current = currents[index]
+            right_current = currents[index + 1]
+            if current_a <= right_current:
+                left_voltage = voltages[index]
+                right_voltage = voltages[index + 1]
+                weight = (
+                    (current_a - left_current)
+                    / (right_current - left_current)
+                )
+                return left_voltage + weight * (
+                    right_voltage - left_voltage
+                )
+        return voltages[-1]
+
     @staticmethod
     def optimum_stack_temperature_c(current_a: float) -> float:
         return 26.01 + 0.53 * current_a
