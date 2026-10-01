@@ -11901,3 +11901,103 @@ diagnostics de littérature, mais ne font pas partie de la baseline finale.
 La prochaine version doit revenir au modèle système et ajouter une nouvelle
 physique globale, plutôt que poursuivre le raffinement de l'interface
 membrane/gaz.
+
+
+** V0.8 — Thermique open-cathode
+
+Objectif :
+
+reprendre le développement du modèle système après le gel de V0.7.
+
+La nouvelle physique prioritaire est la thermique de la pile open-cathode,
+avec couplage au débit d'air de refroidissement.
+
+La stratégie reste progressive.
+
+La première étape ne résout pas encore une PDE thermique et n'introduit pas
+de capacité thermique arbitraire.
+
+Elle vérifie d'abord le bilan énergétique stationnaire global.
+
+*** Étape 1 — bilan thermique stationnaire nominal
+
+La chaleur rejetée par la pile est calculée avec la relation déjà présente
+dans la référence Ballard :
+
+  Q_dot =
+    N_cells I (1.253 - V_cell).
+
+Le refroidissement idéal par l'air est représenté par :
+
+  Q_dot =
+    m_dot_air c_p
+    (T_out - T_in).
+
+Cette étape permet de comparer directement :
+
+- la chaleur à rejeter au point nominal ;
+- le débit d'air open-cathode actuellement utilisé comme plancher ;
+- la température d'air de sortie idéale résultante ;
+- le débit d'air minimal idéal qui maintiendrait T_out sous la température
+  optimale de pile.
+
+Aucun coefficient convectif ou paramètre de capacité thermique n'est introduit
+à ce stade.
+
+*** Infrastructure V0.8 thermique
+
+Une nouvelle branche est créée :
+
+  v08-open-cathode-thermal.
+
+Un module est ajouté :
+
+  src/pemfc_dedalus/thermal.py
+
+avec :
+
+- conversion SLPM -> m3/s ;
+- débit massique d'air ;
+- température d'air de sortie par bilan sensible ;
+- débit d'air requis pour une limite de température donnée.
+
+Des tests unitaires vérifient :
+
+- les conversions d'unités ;
+- la positivité du débit massique ;
+- le bilan énergétique ;
+- l'inversion exacte débit <-> température de sortie ;
+- les entrées physiques invalides.
+
+Un premier driver est ajouté :
+
+  scripts/run_v08_open_cathode_thermal_balance.py
+
+avec la cible :
+
+  make quick-thermal-v08.
+
+Sorties :
+
+  results/quick-v08-open-cathode-thermal-balance.json
+  results/quick-v08-open-cathode-thermal-balance.csv
+
+*** Hypothèse testée
+
+Au point nominal :
+
+  I = 26.04 A
+  V_cell = 0.768 V
+  T_in = 293.15 K.
+
+Le diagnostic doit déterminer si le plancher d'air actuel, dérivé du débit
+open-cathode conservatif, est du bon ordre de grandeur pour rejeter la chaleur
+calculée.
+
+Décision :
+
+  exécuter make test ;
+
+  puis make quick-thermal-v08 ;
+
+  analyser l'ordre de grandeur avant d'introduire toute dynamique thermique.
