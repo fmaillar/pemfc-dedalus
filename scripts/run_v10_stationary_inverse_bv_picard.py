@@ -126,6 +126,7 @@ def main() -> None:
             f"dq_rel={picard_step['relative_q_change']:.3e} "
             f"alpha={picard_step['damping']:.6g} "
             f"backtracks={picard_step['backtracks']} "
+            f"anderson={picard_step['accelerated']} "
             f"cO2_min={picard_step['min_c_o2_mol_m3']:.6g} "
             f"qhat=[{picard_step['min_q_hat']:.6g},"
             f"{picard_step['max_q_hat']:.6g}]",
