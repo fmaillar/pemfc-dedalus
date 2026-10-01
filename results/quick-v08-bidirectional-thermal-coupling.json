@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "model": "v08-bidirectional-thermal-coupling",
+  "converged": true,
+  "temperature_tolerance_k": 0.01,
+  "iterations_completed": 2,
+  "max_iterations": 6,
+  "initial_final_temperature_c": 35.54053114819288,
+  "converged_final_temperature_c": 35.56170195262126,
+  "max_total_temperature_change_k": 0.021170804428379597,
+  "rms_total_temperature_change_k": 0.013973797859903641,
+  "iterations": [
+    {
+      "iteration": 1,
+      "max_temperature_change_k": 0.021187309937829468,
+      "rms_temperature_change_k": 0.013980309420021386,
+      "final_temperature_c": 35.56171845813071,
+      "mean_cell_current_a": 28.556262907648687,
+      "mean_n2_crossover_flux_mol_m2_s": 9.358751650828012e-07,
+      "mean_purge_period_s": 80.57
+    },
+    {
+      "iteration": 2,
+      "max_temperature_change_k": 1.650550944987117e-05,
+      "rms_temperature_change_k": 7.056819544899183e-06,
+      "final_temperature_c": 35.56170195262126,
+      "mean_cell_current_a": 28.556236468281895,
+      "mean_n2_crossover_flux_mol_m2_s": 9.36681621253005e-07,
+      "mean_purge_period_s": 80.57
+    }
+  ]
+}
