@@ -36,6 +36,7 @@ class V11PeriodicPolarizationPoint:
     cycles_completed: int
     converged: bool
     cycle_state_error: float
+    cycle_state_error_component: str
     mean_cell_voltage_v: float
     min_cell_voltage_v: float
     max_cell_voltage_v: float
@@ -65,11 +66,10 @@ def _state_vector(state: V11DynamicState) -> np.ndarray:
     )
 
 
-def periodic_state_error(
+def _scaled_state_errors(
     previous: V11DynamicState,
     current: V11DynamicState,
-) -> float:
-    """Return a scaled max-norm between consecutive post-purge states."""
+) -> np.ndarray:
     before = _state_vector(previous)
     after = _state_vector(current)
     floors = np.asarray(
@@ -77,7 +77,34 @@ def periodic_state_error(
         dtype=float,
     )
     scale = np.maximum(np.maximum(np.abs(before), np.abs(after)), floors)
-    return float(np.max(np.abs(after - before) / scale))
+    return np.abs(after - before) / scale
+
+
+def periodic_state_error(
+    previous: V11DynamicState,
+    current: V11DynamicState,
+) -> float:
+    """Return a scaled max-norm between consecutive post-purge states."""
+    return float(np.max(_scaled_state_errors(previous, current)))
+
+
+def periodic_state_error_component(
+    previous: V11DynamicState,
+    current: V11DynamicState,
+) -> str:
+    """Return the state name dominating the scaled cycle error."""
+    names = (
+        "stack_temperature_k",
+        "membrane_mean_water_content",
+        "anode_hydrogen_mol",
+        "anode_nitrogen_mol",
+        "anode_water_vapour_mol",
+        "cathode_oxygen_mol",
+        "cathode_nitrogen_mol",
+        "cathode_total_water_mol",
+    )
+    index = int(np.argmax(_scaled_state_errors(previous, current)))
+    return names[index]
 
 
 def _cycle_points(
@@ -133,6 +160,7 @@ def simulate_periodic_polarization_point(
     previous_post_purge: V11DynamicState | None = None
     final_cycle: list[V11TrajectoryPoint] = []
     error = float("inf")
+    error_component = "not_available"
     converged = False
     cycles_completed = 0
 
@@ -162,6 +190,10 @@ def simulate_periodic_polarization_point(
 
         if previous_post_purge is not None:
             error = periodic_state_error(previous_post_purge, post_purge)
+            error_component = periodic_state_error_component(
+                previous_post_purge,
+                post_purge,
+            )
             if cycle >= minimum_cycles and error <= convergence_tolerance:
                 converged = True
                 state = post_purge
@@ -212,6 +244,7 @@ def simulate_periodic_polarization_point(
         cycles_completed=cycles_completed,
         converged=converged,
         cycle_state_error=error,
+        cycle_state_error_component=error_component,
         mean_cell_voltage_v=mean_voltage,
         min_cell_voltage_v=float(np.min(voltages)),
         max_cell_voltage_v=float(np.max(voltages)),
@@ -324,26 +357,53 @@ def solve_ballard_airflow_operating_point(
         feasibility_scan_points,
     )
     feasible: list[tuple[float, V11PeriodicPolarizationPoint]] = []
+    scan_diagnostics: list[str] = []
     for stoich in scan_stoich:
         airflow = stoich_flow * float(stoich)
-        point = _periodic_candidate(
-            current_a=current_a,
-            airflow_slpm=airflow,
-            dt_s=dt_s,
-            sample_every_s=sample_every_s,
-            max_cycles=max_cycles,
-            cycle_convergence_tolerance=cycle_convergence_tolerance,
+        try:
+            point = simulate_periodic_polarization_point(
+                current_a=current_a,
+                dt_s=dt_s,
+                sample_every_s=sample_every_s,
+                max_cycles=max_cycles,
+                convergence_tolerance=cycle_convergence_tolerance,
+                stack_air_flow_slpm=airflow,
+            )
+        except Exception as exc:
+            scan_diagnostics.append(
+                f"stoich={float(stoich):.1f}: "
+                f"{type(exc).__name__}: {exc}"
+            )
+            continue
+
+        if not point.converged:
+            scan_diagnostics.append(
+                f"stoich={float(stoich):.1f}: unconverged "
+                f"err={point.cycle_state_error:.3e} "
+                f"dominant={point.cycle_state_error_component} "
+                f"cycles={point.cycles_completed} "
+                f"T={point.mean_stack_temperature_k - 273.15:.2f}C "
+                f"lambda_mem={point.mean_membrane_water_content:.3f} "
+                f"V={point.mean_cell_voltage_v:.4f}"
+            )
+            continue
+
+        feasible.append((airflow, point))
+        scan_diagnostics.append(
+            f"stoich={float(stoich):.1f}: converged "
+            f"err={point.cycle_state_error:.3e} "
+            f"T={point.mean_stack_temperature_k - 273.15:.2f}C"
         )
-        if point is not None:
-            feasible.append((airflow, point))
-            if point.mean_stack_temperature_k <= (
-                target_temperature + temperature_tolerance_k
-            ):
-                break
+        if point.mean_stack_temperature_k <= (
+            target_temperature + temperature_tolerance_k
+        ):
+            break
 
     if not feasible:
+        details = " | ".join(scan_diagnostics)
         raise RuntimeError(
-            "no physically valid converged purge cycle found in airflow scan"
+            "no physically valid converged purge cycle found in airflow scan; "
+            + details
         )
 
     low_flow, low_point = feasible[0]
