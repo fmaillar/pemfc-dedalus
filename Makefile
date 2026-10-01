@@ -1066,3 +1066,22 @@ reference-dynamic-v11:
 
 analyze-reference-dynamic-v11:
 	$(PYTHON) -m scripts.analyze_v11_reference_dynamic
+
+
+.PHONY: quick-polarization-periodic-v11 polarization-periodic-v11
+
+quick-polarization-periodic-v11:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_polarization_periodic \
+	  --jobs $(JOBS) \
+	  --currents-a 15 26.04 \
+	  --dt 0.02 \
+	  --sample-every 1 \
+	  --max-cycles 4
+
+polarization-periodic-v11:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_polarization_periodic \
+	  --jobs $(JOBS) \
+	  --currents-a 5 10 15 20 26.04 30 \
+	  --dt 0.01 \
+	  --sample-every 1 \
+	  --max-cycles 12
