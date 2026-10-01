@@ -18073,3 +18073,76 @@ c_O2, la continuation pourra être prolongée vers :
 
 Sinon, le premier niveau défaillant sera analysé avant toute extension.
 
+
+*** Résultat de la continuation physique jusqu'à 1e-3
+
+Les niveaux :
+
+  lambda = 1e-6
+  lambda = 1e-5
+  lambda = 1e-4
+
+atteignent le critère sur les champs physiques.
+
+Les nombres d'itérations sont respectivement :
+
+  24
+  1
+  3.
+
+À :
+
+  lambda = 1e-3
+
+la norme physique commence par diminuer, atteint un minimum de l'ordre de :
+
+  4e-5
+
+puis repart à la hausse et termine vers :
+
+  1.9e-3.
+
+Le champ O2 reste positif, mais Newton quitte progressivement la branche
+convergente.
+
+La transition directe :
+
+  1e-4 -> 1e-3
+
+est donc trop large.
+
+*** Étape 17 — raffinement de la continuation entre 1e-4 et 1e-3
+
+Le damping reste fixé à :
+
+  0.25
+
+et le critère physique à :
+
+  1e-5.
+
+La continuation est raffinée avec :
+
+  1e-6
+  1e-5
+  1e-4
+  2e-4
+  3e-4
+  5e-4
+  7e-4
+  1e-3.
+
+Chaque niveau conserve :
+
+  40 itérations maximum
+  grille = 4 x 4 x 16
+  xi = 0.5.
+
+*** Critère de décision
+
+Si 1e-3 devient convergent avec ces pas intermédiaires, la même stratégie
+sera appliquée pour progresser vers 1e-2.
+
+Si l'échec se reproduit à un niveau précis, ce niveau identifiera la prochaine
+zone de raideur à raffiner.
+
