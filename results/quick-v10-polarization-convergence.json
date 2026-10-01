@@ -1,0 +1,497 @@
+{
+  "schema_version": 1,
+  "model": "v10-polarization-numerical-convergence",
+  "max_abs_relative_error": 0.03712098387554553,
+  "summaries": [
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 603.1199688173017,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": 0.0006526911756952196
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 587.0899118055196,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.025943210996130586
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 595.9049606641428,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.01131792445401222
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 580.3527710473622,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.03712098387554553
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 2158.380908896872,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": 0.0038980971613357747
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 2094.990265863637,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.025585922854122336
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 2132.9471829770005,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.007931542801395132
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 2073.460390825539,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.03559981822067954
+    }
+  ],
+  "rows": [
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 603.1199688173017,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": 0.0006526911756952196,
+      "slice_xi": 0.0,
+      "local_current_density_a_m2": 618.6907297601977,
+      "mean_eta_v": -0.32945994877065177
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 603.1199688173017,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": 0.0006526911756952196,
+      "slice_xi": 0.5,
+      "local_current_density_a_m2": 601.0710899268969,
+      "mean_eta_v": -0.32945752090158337
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 603.1199688173017,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": 0.0006526911756952196,
+      "slice_xi": 1.0,
+      "local_current_density_a_m2": 595.7447234360246,
+      "mean_eta_v": -0.3294567870627971
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 587.0899118055196,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.025943210996130586,
+      "slice_xi": 0.0,
+      "local_current_density_a_m2": 602.238658481051,
+      "mean_eta_v": -0.32949294722157474
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 587.0899118055196,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.025943210996130586,
+      "slice_xi": 0.5,
+      "local_current_density_a_m2": 585.0965825138203,
+      "mean_eta_v": -0.3294895809590953
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 587.0899118055196,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.025943210996130586,
+      "slice_xi": 1.0,
+      "local_current_density_a_m2": 579.9144822967851,
+      "mean_eta_v": -0.3294885634309822
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 595.9049606641428,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.01131792445401222,
+      "slice_xi": 0.0,
+      "local_current_density_a_m2": 611.2911753611033,
+      "mean_eta_v": -0.32938261500632665
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 595.9049606641428,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.01131792445401222,
+      "slice_xi": 0.5,
+      "local_current_density_a_m2": 593.8803619549069,
+      "mean_eta_v": -0.32938239716956114
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 595.9049606641428,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.01131792445401222,
+      "slice_xi": 1.0,
+      "local_current_density_a_m2": 588.6171408041254,
+      "mean_eta_v": -0.32938233132930483
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 580.3527710473622,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.03712098387554553,
+      "slice_xi": 0.0,
+      "local_current_density_a_m2": 595.3365582745229,
+      "mean_eta_v": -0.329374952161339
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 580.3527710473622,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.03712098387554553,
+      "slice_xi": 0.5,
+      "local_current_density_a_m2": 578.3811278280913,
+      "mean_eta_v": -0.3293749520447452
+    },
+    {
+      "current_a": 7.3,
+      "voltage_v": 0.850625,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 580.3527710473622,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_error": -0.03712098387554553,
+      "slice_xi": 1.0,
+      "local_current_density_a_m2": 573.2555566972856,
+      "mean_eta_v": -0.32937495202660855
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 2158.380908896872,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": 0.0038980971613357747,
+      "slice_xi": 0.0,
+      "local_current_density_a_m2": 2265.760795698862,
+      "mean_eta_v": -0.412148669596956
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 2158.380908896872,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": 0.0038980971613357747,
+      "slice_xi": 0.5,
+      "local_current_density_a_m2": 2143.799645951641,
+      "mean_eta_v": -0.41213155835547777
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 2158.380908896872,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": 0.0038980971613357747,
+      "slice_xi": 1.0,
+      "local_current_density_a_m2": 2109.3260738758063,
+      "mean_eta_v": -0.41212672573551085
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 2094.990265863637,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.025585922854122336,
+      "slice_xi": 0.0,
+      "local_current_density_a_m2": 2199.068887315918,
+      "mean_eta_v": -0.4122686878192227
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 2094.990265863637,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.025585922854122336,
+      "slice_xi": 0.5,
+      "local_current_density_a_m2": 2080.857815874215,
+      "mean_eta_v": -0.41224514732045836
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        8,
+        8,
+        32
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 2094.990265863637,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.025585922854122336,
+      "slice_xi": 1.0,
+      "local_current_density_a_m2": 2047.441444369044,
+      "mean_eta_v": -0.4122384967683956
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 2132.9471829770005,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.007931542801395132,
+      "slice_xi": 0.0,
+      "local_current_density_a_m2": 2239.065361523073,
+      "mean_eta_v": -0.4118626421332706
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 2132.9471829770005,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.007931542801395132,
+      "slice_xi": 0.5,
+      "local_current_density_a_m2": 2118.537346328036,
+      "mean_eta_v": -0.41186110353741323
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.001,
+      "mean_current_density_a_m2": 2132.9471829770005,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.007931542801395132,
+      "slice_xi": 1.0,
+      "local_current_density_a_m2": 2084.4683510267837,
+      "mean_eta_v": -0.4118606691052565
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 2073.460390825539,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.03559981822067954,
+      "slice_xi": 0.0,
+      "local_current_density_a_m2": 2176.6134103523073,
+      "mean_eta_v": -0.41183467588408806
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 2073.460390825539,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.03559981822067954,
+      "slice_xi": 0.5,
+      "local_current_density_a_m2": 2059.453204919552,
+      "mean_eta_v": -0.4118346299376019
+    },
+    {
+      "current_a": 26.04,
+      "voltage_v": 0.7681655172413794,
+      "grid": [
+        12,
+        12,
+        40
+      ],
+      "stop_time": 0.002,
+      "mean_current_density_a_m2": 2073.460390825539,
+      "target_current_density_a_m2": 2150.0,
+      "relative_error": -0.03559981822067954,
+      "slice_xi": 1.0,
+      "local_current_density_a_m2": 2026.3361149227187,
+      "mean_eta_v": -0.4118346176882593
+    }
+  ]
+}
