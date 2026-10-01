@@ -22,6 +22,11 @@ class Ballard1020ACSTechnologyReference:
     cell_pitch_m: float = 5.5e-3
     end_hardware_height_m: float = 55.4e-3
 
+    # Product specification SPC5103429-0E, Table 10.
+    dry_mass_base_kg: float = 2.1
+    dry_mass_per_cell_kg: float = 0.16
+    thermal_mass_j_k_per_cell: float = 100.0
+
     # Electrical operating limits.
     current_min_a: float = 0.0
     current_max_a: float = 75.0
@@ -121,6 +126,19 @@ class UserStackConfiguration:
     @property
     def nominal_power_per_cell_w(self) -> float:
         return self.rated_power_w / self.n_cells
+
+    @property
+    def dry_mass_kg(self) -> float:
+        tech = Ballard1020ACSTechnologyReference()
+        return (
+            tech.dry_mass_base_kg
+            + self.n_cells * tech.dry_mass_per_cell_kg
+        )
+
+    @property
+    def thermal_mass_j_k(self) -> float:
+        tech = Ballard1020ACSTechnologyReference()
+        return self.n_cells * tech.thermal_mass_j_k_per_cell
 
     def stack_voltage_v(self, vcell_v: float) -> float:
         return self.n_cells * vcell_v
