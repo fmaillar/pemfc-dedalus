@@ -17,6 +17,7 @@ class ContinuationStage(TypedDict):
     converged: bool
     perturbation_norm_history: list[float]
     min_c_o2_history: list[float]
+    component_norm_history: list[dict[str, float]]
 
 
 class StationaryResult(TypedDict):
@@ -47,7 +48,7 @@ def solve_stationary(
     oxygen_feed_concentration: float | None = None,
     newton_tolerance: float = 1e-8,
     max_newton_iterations: int = 30,
-    newton_damping: float = 1.0,
+    newton_damping: float = 0.25,
     reaction_scales: tuple[float, ...] = (1e-6,),
 ) -> StationaryResult:
     if not 0.0 < newton_damping <= 1.0:
@@ -258,6 +259,7 @@ def solve_stationary(
             "converged": True,
             "perturbation_norm_history": [0.0],
             "min_c_o2_history": [initial_min_c_o2],
+            "component_norm_history": [],
         }
     ]
 
@@ -267,6 +269,7 @@ def solve_stationary(
         perturbation_norm = np.inf
         perturbation_norm_history: list[float] = []
         min_c_o2_history: list[float] = []
+        component_norm_history: list[dict[str, float]] = []
 
         stage_damping = newton_damping
 
@@ -282,6 +285,13 @@ def solve_stationary(
                 )
             )
             perturbation_norm_history.append(perturbation_norm)
+            component_norms: dict[str, float] = {}
+            for index, perturbation in enumerate(solver.perturbations):
+                name = perturbation.name or f"perturbation_{index}"
+                component_norms[name] = float(
+                    perturbation.allreduce_data_norm("c", 2)
+                )
+            component_norm_history.append(component_norms)
             c.change_scales(1)
             min_c_o2_history.append(float(np.min(np.asarray(c["g"]))))
             stage_iterations += 1
@@ -296,6 +306,7 @@ def solve_stationary(
                 "converged": stage_converged,
                 "perturbation_norm_history": perturbation_norm_history,
                 "min_c_o2_history": min_c_o2_history,
+                "component_norm_history": component_norm_history,
             }
         )
         if not stage_converged:
