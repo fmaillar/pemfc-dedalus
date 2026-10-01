@@ -1,7 +1,9 @@
 import pytest
 
 from pemfc_dedalus.thermal import (
+    advance_lumped_stack_temperature_k,
     air_mass_flow_kg_s,
+    ideal_air_cooling_power_w,
     open_cathode_airflow_target,
     outlet_temperature_k,
     required_air_flow_slpm,
@@ -88,3 +90,44 @@ def test_airflow_target_flags_unreachable_ambient_temperature():
     assert result.status == "target_unreachable"
     assert result.active_constraint == "ambient_temperature"
     assert result.target_air_flow_slpm is None
+
+
+def test_ideal_air_cooling_is_zero_at_ambient_temperature():
+    cooling = ideal_air_cooling_power_w(
+        stack_temperature_k=293.15,
+        inlet_temperature_k=293.15,
+        air_flow_slpm=300.0,
+    )
+    assert cooling == pytest.approx(0.0)
+
+
+def test_lumped_temperature_is_stationary_at_exact_heat_balance():
+    inlet = 293.15
+    stack = 313.15
+    heat = 120.0
+    flow = required_air_flow_slpm(
+        heat_rejection_w=heat,
+        inlet_temperature_k=inlet,
+        maximum_outlet_temperature_k=stack,
+    )
+    next_temperature = advance_lumped_stack_temperature_k(
+        stack_temperature_k=stack,
+        inlet_temperature_k=inlet,
+        heat_rejection_w=heat,
+        air_flow_slpm=flow,
+        thermal_mass_j_k=1000.0,
+        dt_s=1.0,
+    )
+    assert next_temperature == pytest.approx(stack)
+
+
+def test_lumped_stack_heats_when_generation_exceeds_cooling():
+    next_temperature = advance_lumped_stack_temperature_k(
+        stack_temperature_k=293.15,
+        inlet_temperature_k=293.15,
+        heat_rejection_w=100.0,
+        air_flow_slpm=300.0,
+        thermal_mass_j_k=1000.0,
+        dt_s=1.0,
+    )
+    assert next_temperature > 293.15
