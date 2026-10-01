@@ -36,6 +36,7 @@ def test_coupled_rhs_preserves_global_water_balance() -> None:
         cathode_total_pressure_pa=101325.0,
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.01,
+        nitrogen_crossover_mol_s=1.0e-8,
         dt_regulator_s=0.01,
     )
 
@@ -144,7 +145,6 @@ def test_predictive_rhs_closes_cell_voltage_from_dynamic_state() -> None:
         cathode_total_pressure_pa=101325.0,
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.01,
-        nitrogen_crossover_mol_s=1.0e-8,
         dt_regulator_s=0.01,
         cathode_platinum_loading_mg_cm2_geo=0.4,
         cathode_ecsa_m2_pt_g_pt=50.0,
