@@ -102,6 +102,11 @@ def main() -> None:
     rows.sort(key=lambda row: float(row["current_a"]))
     successful = [row for row in rows if row["status"] == "ok"]
     if not successful:
+        for row in rows:
+            print(
+                f"I={float(row['current_a']):.3f} A FAILED: {row['error']}",
+                flush=True,
+            )
         raise RuntimeError("all V11 polarization current points failed")
 
     args.output_csv.parent.mkdir(parents=True, exist_ok=True)
