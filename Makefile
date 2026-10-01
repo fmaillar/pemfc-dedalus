@@ -896,3 +896,7 @@ validate-v09-final:
 
 freeze-v09: validate-v09-final
 	@echo "V0.9 baseline validated and frozen"
+
+
+quick-current-closure-v10:
+	$(PYTHON) -m scripts.analyze_v10_current_closure

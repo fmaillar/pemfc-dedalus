@@ -16476,3 +16476,80 @@ V0.9 est donc considérée comme :
   freeze-ready
   frozen.
 
+
+** V1.0 — fermeture électrochimique sous courant imposé
+
+V0.9 a établi une baseline spatiale cathodique thermo-gazeuse validée.
+
+Le verrou suivant est la cohérence entre :
+
+  courant imposé au stack
+
+et :
+
+  courant ORR produit par le solveur électrochimique.
+
+Le solveur actuel utilise :
+
+  V_cell = V_BOL(I)
+
+comme condition électrique puis calcule le courant de réaction résultant.
+
+Il ne résout pas encore V_cell sous la contrainte :
+
+  j_model = j_target.
+
+La première étape V1.0 quantifie cet écart sans modifier la physique.
+
+*** Étape 1 — screening de fermeture en courant
+
+Le courant intégré du domaine représentatif est converti en densité surfacique :
+
+  j_model
+  =
+  I_reaction / (Lx Ly).
+
+La cible est obtenue à partir du point nominal déjà utilisé dans la baseline :
+
+  I_ref = 26.04 A
+  j_ref = 2150 A/m2.
+
+Pour un courant I :
+
+  j_target(I)
+  =
+  j_ref I / I_ref.
+
+Le screening réutilise les résultats V0.9 :
+
+  results/quick-v09-quasi3d-current-map.json
+
+et compare les tranches :
+
+  xi = 0
+  xi = 1
+
+aux courants :
+
+  7.3
+  14.5
+  26.04 A.
+
+Nouvelle cible :
+
+  make quick-current-closure-v10
+
+Sorties :
+
+  results/quick-v10-current-closure.json
+  results/quick-v10-current-closure.csv
+
+*** Critère de décision
+
+Si l'écart entre j_model et j_target reste faible sur tous les courants,
+V_BOL(I) pourra rester une fermeture suffisamment cohérente.
+
+Si l'écart devient important, surtout à faible charge, V1.0 introduira une
+résolution de V_cell telle que le courant électrochimique converge vers la
+densité de courant imposée.
+
