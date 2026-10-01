@@ -230,7 +230,9 @@ def solve_stationary_inverse_bv(
     initial_max_c_o2 = float(np.max(initial_c_values))
     initial_mean_c_o2 = float(np.mean(initial_c_values))
 
-    eta_initial = np.asarray(eta.evaluate()["g"])
+    eta_initial_field = eta.evaluate()
+    eta_initial_field.change_scales(1)
+    eta_initial = np.asarray(eta_initial_field["g"]).copy()
     activity_initial = np.asarray(c["g"]) / c_ref
     exchange_initial = j0_vol * activity_initial**gamma_o2
     q_hat["g"] = (
