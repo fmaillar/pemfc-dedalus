@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "model": "v08-temperature-feedback-screening",
+  "baseline_temperature_k": 312.9612,
+  "baseline_temperature_c": 39.81120000000004,
+  "representative_lambda": 4.0,
+  "motupally_ratio_min": 0.5909484114354818,
+  "motupally_ratio_max": 0.8979094668757903,
+  "dry_n2_permeability_ratio_min": 0.27577114844896494,
+  "dry_n2_permeability_ratio_max": 0.7681948924546388,
+  "water_saturation_pressure_ratio_min": 0.3199543046443817,
+  "water_saturation_pressure_ratio_max": 0.7932267795526979,
+  "inverse_temperature_ratio_min": 1.0138347905778715,
+  "inverse_temperature_ratio_max": 1.0675804195804197,
+  "final": {
+    "time_s": 200.0,
+    "stack_temperature_c": 35.54053114819288,
+    "motupally_diffusivity_m2_s": 6.157612094016699e-11,
+    "motupally_ratio_to_v07": 0.8979094668757903,
+    "dry_n2_permeability_si": 6.234188969305302e-17,
+    "dry_n2_permeability_ratio_to_v07": 0.7681948924546388,
+    "water_saturation_pressure_pa": 5797.183734304867,
+    "water_saturation_pressure_ratio_to_v07": 0.7932267795526979,
+    "inverse_temperature_ratio_to_v07": 1.0138347905778715
+  }
+}
