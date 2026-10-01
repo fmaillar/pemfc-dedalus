@@ -246,3 +246,62 @@ def cathode_air_outlet_temperature_ballard_v11(
         effectiveness=effectiveness,
         outlet_temperature_k=outlet_temperature,
     )
+
+
+
+def ballard_required_coolant_mass_flow_kg_s(
+    *,
+    heat_removed_w: float,
+    stack_temperature_k: float,
+    inlet_temperature_k: float,
+    air_specific_heat_j_kg_k: float = 1005.0,
+    ballard_thermal_resistance_k_w: float = 0.403,
+) -> float:
+    """Invert Ballard MAN5100319-0B Eq. E.23 for required air mass flow."""
+    if heat_removed_w < 0.0:
+        raise ValueError("heat_removed_w must be non-negative")
+    if stack_temperature_k <= inlet_temperature_k:
+        raise ValueError(
+            "stack_temperature_k must exceed inlet_temperature_k"
+        )
+    if air_specific_heat_j_kg_k <= 0.0:
+        raise ValueError("air_specific_heat_j_kg_k must be positive")
+    if ballard_thermal_resistance_k_w < 0.0:
+        raise ValueError("ballard_thermal_resistance_k_w must be non-negative")
+    if heat_removed_w == 0.0:
+        return 0.0
+
+    available_delta_k = (
+        stack_temperature_k
+        - inlet_temperature_k
+        - ballard_thermal_resistance_k_w * heat_removed_w
+    )
+    if available_delta_k <= 0.0:
+        raise ValueError(
+            "requested heat removal is unattainable at this temperature lift"
+        )
+    return heat_removed_w / (
+        air_specific_heat_j_kg_k * available_delta_k
+    )
+
+
+def ballard_required_coolant_air_slpm(
+    *,
+    heat_removed_w: float,
+    stack_temperature_k: float,
+    inlet_temperature_k: float,
+    air_specific_heat_j_kg_k: float = 1005.0,
+    standard_air_density_kg_m3: float = 1.293,
+    ballard_thermal_resistance_k_w: float = 0.403,
+) -> float:
+    """Return required standard volumetric air flow from Ballard Eq. E.23."""
+    if standard_air_density_kg_m3 <= 0.0:
+        raise ValueError("standard_air_density_kg_m3 must be positive")
+    mass_flow = ballard_required_coolant_mass_flow_kg_s(
+        heat_removed_w=heat_removed_w,
+        stack_temperature_k=stack_temperature_k,
+        inlet_temperature_k=inlet_temperature_k,
+        air_specific_heat_j_kg_k=air_specific_heat_j_kg_k,
+        ballard_thermal_resistance_k_w=ballard_thermal_resistance_k_w,
+    )
+    return mass_flow / standard_air_density_kg_m3 * 60.0 * 1.0e3
