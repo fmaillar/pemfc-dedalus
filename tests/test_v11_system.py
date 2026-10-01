@@ -37,7 +37,6 @@ def test_coupled_rhs_preserves_global_water_balance() -> None:
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.01,
         nitrogen_crossover_mol_s=1.0e-8,
-        dt_regulator_s=0.01,
     )
 
     assert diagnostics.water_conservation_residual_mol_s == pytest.approx(
@@ -66,7 +65,6 @@ def test_coupled_rhs_carries_nitrogen_crossover_into_anode_inventory() -> None:
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.005,
         nitrogen_crossover_mol_s=crossover,
-        dt_regulator_s=0.01,
     )
 
     assert derivative.anode_nitrogen_mol_s == pytest.approx(crossover)
@@ -86,7 +84,6 @@ def test_cathode_phase_partition_is_algebraic_diagnostic() -> None:
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.0,
         nitrogen_crossover_mol_s=0.0,
-        dt_regulator_s=0.01,
     )
 
     phase = diagnostics.cathode_phase
@@ -110,7 +107,6 @@ def test_thermal_closure_remains_explicit_in_coupled_rhs() -> None:
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.005,
         nitrogen_crossover_mol_s=0.0,
-        dt_regulator_s=0.01,
     )
     _, warm_out = coupled_v11_rhs(
         state=_nominal_state(),
@@ -124,7 +120,6 @@ def test_thermal_closure_remains_explicit_in_coupled_rhs() -> None:
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.005,
         nitrogen_crossover_mol_s=0.0,
-        dt_regulator_s=0.01,
     )
 
     assert warm_out.thermal.air_cooling_w > cold_out.thermal.air_cooling_w
@@ -144,7 +139,6 @@ def test_predictive_rhs_closes_cell_voltage_from_dynamic_state() -> None:
         cathode_total_pressure_pa=101325.0,
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.01,
-        dt_regulator_s=0.01,
         cathode_platinum_loading_mg_cm2_geo=0.4,
         cathode_ecsa_m2_pt_g_pt=50.0,
     )
@@ -190,7 +184,6 @@ def test_low_level_rhs_conserves_internal_nitrogen_crossover() -> None:
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.005,
         nitrogen_crossover_mol_s=0.0,
-        dt_regulator_s=0.01,
     )
     with_crossover, _ = coupled_v11_rhs(
         state=state,
@@ -204,7 +197,6 @@ def test_low_level_rhs_conserves_internal_nitrogen_crossover() -> None:
         inlet_oxygen_mole_fraction=0.2095,
         inlet_water_mole_fraction=0.005,
         nitrogen_crossover_mol_s=crossover,
-        dt_regulator_s=0.01,
     )
 
     assert (
