@@ -1,0 +1,12 @@
+{
+  "status": "ok",
+  "error": "",
+  "dt_s": 0.01,
+  "rows": 484,
+  "csv_path": "results/v11-reference/v11-reference-dt-0p01.csv",
+  "purge_count": 3,
+  "final_cell_voltage_v": 0.819245223136473,
+  "final_stack_temperature_k": 314.4499950839044,
+  "final_membrane_mean_water_content": 2.393369310211134,
+  "final_anode_nitrogen_mol": 1.1572786247149853e-06
+}
