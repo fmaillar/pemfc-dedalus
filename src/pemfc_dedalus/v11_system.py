@@ -4,10 +4,9 @@ The core assembles the V11 cathode, dead-end anode, membrane hydration,
 equilibrium cathode water partition and thermal balance.
 
 The low-level RHS keeps externally supplied closures explicit for diagnostics.
-The predictive RHS resolves cell voltage, cathode outlet molar flow and
-nitrogen crossover from the dynamic state. Cathode air outlet temperature
-remains external because it is not yet independently resolved for the target
-stack.
+The predictive RHS resolves cell voltage, cathode outlet molar flow, nitrogen
+crossover and cathode air outlet temperature from the dynamic state and
+published channel geometry.
 
 No fitted fallback values are supplied.
 """
@@ -34,6 +33,10 @@ from .v11_cathode import (
     cathode_gas_rhs_per_cell,
     cathode_isobaric_outlet_mol_s,
     standard_litre_per_minute_to_mol_s,
+)
+from .v11_heat_transfer import (
+    V11CathodeHeatTransfer,
+    cathode_air_outlet_temperature_geometry_v11,
 )
 from .v11_membrane import (
     MembraneHydrationDerivative,
@@ -95,6 +98,7 @@ class V11CoupledDiagnostics:
     cathode_outlet_molar_flow_per_cell_mol_s: float
     voltage: V11VoltagePrediction | None = None
     nitrogen_crossover: V11NitrogenCrossover | None = None
+    heat_transfer: V11CathodeHeatTransfer | None = None
 
 
 def _bounded_water_activity(
@@ -319,7 +323,6 @@ def coupled_v11_predictive_rhs(
     current_a: float,
     stack_air_flow_slpm: float,
     inlet_air_temperature_k: float,
-    cathode_air_outlet_temperature_k: float,
     cathode_total_pressure_pa: float,
     inlet_oxygen_mole_fraction: float,
     inlet_water_mole_fraction: float,
@@ -335,9 +338,9 @@ def coupled_v11_predictive_rhs(
 
     Pt loading and ECSA remain mandatory because no defensible
     FCgen-1020ACS-specific roughness factor has been established. Cathode outlet
-    molar flow is closed isobarically and nitrogen crossover is predicted from
-    Catalano Nafion permeability. Cathode-air outlet temperature remains
-    explicit.
+    molar flow is closed isobarically, nitrogen crossover is predicted from
+    Catalano Nafion permeability, and cathode-air outlet temperature is derived
+    from published FCgen-1020ACS channel geometry and a laminar Nusselt law.
     """
     tech = (
         Ballard1020ACSTechnologyReference()
@@ -411,13 +414,19 @@ def coupled_v11_predictive_rhs(
     )
 
     cfg = UserStackConfiguration() if stack is None else stack
+    heat_transfer = cathode_air_outlet_temperature_geometry_v11(
+        stack_temperature_k=state.stack_temperature_k,
+        inlet_temperature_k=inlet_air_temperature_k,
+        stack_air_flow_slpm=stack_air_flow_slpm,
+        n_cells=cfg.n_cells,
+    )
     thermal = stack_temperature_rhs_k_s(
         n_cells=cfg.n_cells,
         current_a=current_a,
         cell_voltage_v=voltage.cell_voltage_v,
         stack_air_flow_slpm=stack_air_flow_slpm,
         inlet_temperature_k=inlet_air_temperature_k,
-        outlet_temperature_k=cathode_air_outlet_temperature_k,
+        outlet_temperature_k=heat_transfer.outlet_temperature_k,
         thermal_mass_j_k_per_cell=tech.thermal_mass_j_k_per_cell,
     )
     inlet_per_cell_mol_s = standard_litre_per_minute_to_mol_s(
@@ -460,7 +469,7 @@ def coupled_v11_predictive_rhs(
         ),
         cell_voltage_v=voltage.cell_voltage_v,
         inlet_air_temperature_k=inlet_air_temperature_k,
-        cathode_air_outlet_temperature_k=cathode_air_outlet_temperature_k,
+        cathode_air_outlet_temperature_k=heat_transfer.outlet_temperature_k,
         cathode_total_pressure_pa=cathode_total_pressure_pa,
         inlet_oxygen_mole_fraction=inlet_oxygen_mole_fraction,
         inlet_water_mole_fraction=inlet_water_mole_fraction,
@@ -474,4 +483,5 @@ def coupled_v11_predictive_rhs(
         diagnostics,
         voltage=voltage,
         nitrogen_crossover=nitrogen_crossover,
+        heat_transfer=heat_transfer,
     )
