@@ -1,0 +1,110 @@
+[
+  {
+    "current_a": 7.3,
+    "vcell_bol_typ_v": 0.83,
+    "heat_rejection_w": 30.878999999999994,
+    "inlet_temperature_c": 10.0,
+    "target_stack_temperature_c": 29.879,
+    "status": "reachable",
+    "active_constraint": "thermal",
+    "stoichiometric_floor_slpm": 60.589999999999996,
+    "thermal_required_slpm": 77.02423533054798,
+    "target_air_flow_slpm": 77.02423533054798
+  },
+  {
+    "current_a": 7.3,
+    "vcell_bol_typ_v": 0.83,
+    "heat_rejection_w": 30.878999999999994,
+    "inlet_temperature_c": 20.0,
+    "target_stack_temperature_c": 29.879,
+    "status": "reachable",
+    "active_constraint": "thermal",
+    "stoichiometric_floor_slpm": 60.589999999999996,
+    "thermal_required_slpm": 154.9918791513272,
+    "target_air_flow_slpm": 154.9918791513272
+  },
+  {
+    "current_a": 7.3,
+    "vcell_bol_typ_v": 0.83,
+    "heat_rejection_w": 30.878999999999994,
+    "inlet_temperature_c": 30.0,
+    "target_stack_temperature_c": 29.879,
+    "status": "target_unreachable",
+    "active_constraint": "ambient_temperature",
+    "stoichiometric_floor_slpm": 60.589999999999996,
+    "thermal_required_slpm": null,
+    "target_air_flow_slpm": null
+  },
+  {
+    "current_a": 14.5,
+    "vcell_bol_typ_v": 0.8,
+    "heat_rejection_w": 65.68499999999997,
+    "inlet_temperature_c": 10.0,
+    "target_stack_temperature_c": 33.695,
+    "status": "reachable",
+    "active_constraint": "thermal",
+    "stoichiometric_floor_slpm": 120.35,
+    "thermal_required_slpm": 137.45742149904174,
+    "target_air_flow_slpm": 137.45742149904174
+  },
+  {
+    "current_a": 14.5,
+    "vcell_bol_typ_v": 0.8,
+    "heat_rejection_w": 65.68499999999997,
+    "inlet_temperature_c": 20.0,
+    "target_stack_temperature_c": 33.695,
+    "status": "reachable",
+    "active_constraint": "thermal",
+    "stoichiometric_floor_slpm": 120.35,
+    "thermal_required_slpm": 237.82793738005077,
+    "target_air_flow_slpm": 237.82793738005077
+  },
+  {
+    "current_a": 14.5,
+    "vcell_bol_typ_v": 0.8,
+    "heat_rejection_w": 65.68499999999997,
+    "inlet_temperature_c": 30.0,
+    "target_stack_temperature_c": 33.695,
+    "status": "reachable",
+    "active_constraint": "thermal",
+    "stoichiometric_floor_slpm": 120.35,
+    "thermal_required_slpm": 881.475941114966,
+    "target_air_flow_slpm": 881.475941114966
+  },
+  {
+    "current_a": 26.04,
+    "vcell_bol_typ_v": 0.7681655172413794,
+    "heat_rejection_w": 126.25089931034476,
+    "inlet_temperature_c": 10.0,
+    "target_stack_temperature_c": 39.8112,
+    "status": "reachable",
+    "active_constraint": "stoichiometric_floor",
+    "stoichiometric_floor_slpm": 216.132,
+    "thermal_required_slpm": 209.99730627578077,
+    "target_air_flow_slpm": 216.132
+  },
+  {
+    "current_a": 26.04,
+    "vcell_bol_typ_v": 0.7681655172413794,
+    "heat_rejection_w": 126.25089931034476,
+    "inlet_temperature_c": 20.0,
+    "target_stack_temperature_c": 39.8112,
+    "status": "reachable",
+    "active_constraint": "thermal",
+    "stoichiometric_floor_slpm": 216.132,
+    "thermal_required_slpm": 315.99659267730163,
+    "target_air_flow_slpm": 315.99659267730163
+  },
+  {
+    "current_a": 26.04,
+    "vcell_bol_typ_v": 0.7681655172413794,
+    "heat_rejection_w": 126.25089931034476,
+    "inlet_temperature_c": 30.0,
+    "target_stack_temperature_c": 39.8112,
+    "status": "reachable",
+    "active_constraint": "thermal",
+    "stoichiometric_floor_slpm": 216.132,
+    "thermal_required_slpm": 638.0740069358042,
+    "target_air_flow_slpm": 638.0740069358042
+  }
+]
