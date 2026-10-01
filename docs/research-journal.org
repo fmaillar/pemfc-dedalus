@@ -13500,3 +13500,129 @@ imposée et conserve temporairement la fermeture hydrique V0.7 inchangée.
 
 Elle constitue un couplage thermique unidirectionnel contrôlé avant le vrai
 couplage bidirectionnel.
+
+
+*** Étape 8 — rétroaction thermique ciblée sur N2 et vapeur d'eau
+
+Le screening montre que les plus fortes sensibilités thermiques concernent :
+
+- perméabilité N2 ;
+- pression de vapeur saturante ;
+- diffusivité Motupally.
+
+Le premier couplage en retour reste volontairement ciblé.
+
+Avant de construire un lookup complet :
+
+  RH x j x T
+
+pour Motupally, on isole l'effet direct de T(t) sur la dynamique N2/gaz.
+
+*** Extension rétrocompatible du simulateur V0.7
+
+La fonction :
+
+  simulate_nitrogen_regime(...)
+
+accepte désormais des hooks optionnels :
+
+  temperature_model_k(t)
+
+  n2_state_temperature_permeance_model(RH,j,T)
+
+  cathode_n2_partial_pressure_model(T).
+
+Lorsque ces hooks sont absents, le comportement V0.7 reste inchangé.
+
+Lorsqu'ils sont fournis :
+
+- les lois gaz parfaits utilisent T(t) ;
+- la thermodynamique de vapeur d'eau utilise T(t) ;
+- la pression partielle cathodique N2 est recalculée via p_sat(T) ;
+- la perméance N2 peut dépendre explicitement de T.
+
+*** Fermeture testée dans ce quick
+
+La trajectoire de température imposée provient de :
+
+  results/quick-v08-lumped-thermal-dynamics.csv.
+
+La fermeture Motupally du lookup reste temporairement calculée à la température
+baseline V0.7.
+
+La perméance N2 du lookup est ensuite multipliée par le rapport Arrhenius :
+
+  P_dry(T)
+  /
+  P_dry(T_V0.7)
+
+avec :
+
+  E_a = 49.6 kJ/mol.
+
+Ainsi, cette étape isole volontairement :
+
+- effet Arrhenius direct sur N2 ;
+- effet p_sat(T) sur le gaz humide cathodique ;
+- effet T sur les bilans gaz/eau.
+
+Elle n'inclut pas encore la rétroaction T sur D_Motupally.
+
+*** Comparaison
+
+Le driver :
+
+  scripts/run_v08_temperature_n2_feedback.py
+
+compare deux simulations identiques :
+
+1. baseline V0.7 à température fixe ;
+2. température prescrite par la trajectoire lumped V0.8.
+
+Régime :
+
+  nominal
+
+Feedback H2 :
+
+  gamma = 1
+
+Horizon :
+
+  200 s
+
+Lookup :
+
+  21 x 21
+
+JOBS :
+
+  8.
+
+Les métriques comparées sont notamment :
+
+- flux N2 moyen ;
+- fraction molaire N2 maximale ;
+- courant moyen ;
+- période moyenne de purge ;
+- N2 crossover cumulé ;
+- N2 purgé cumulé ;
+- RH finale.
+
+Cible :
+
+  make quick-temperature-n2-feedback-v08
+
+Sorties :
+
+  results/quick-v08-temperature-n2-feedback.json
+  results/quick-v08-temperature-n2-feedback.csv
+
+Décision :
+
+  exécuter le gate complet avec && ;
+
+  analyser l'effet net de la température prescrite sur N2 et purge ;
+
+  seulement ensuite décider si le lookup Motupally doit être étendu en
+  température.
