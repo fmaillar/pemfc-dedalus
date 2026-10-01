@@ -343,6 +343,7 @@ def solve_stationary_inverse_bv(
             relative_q_change = float(
                 np.max(np.abs(relaxed_q_hat - old_q_hat) / q_scale)
             )
+            q_hat.change_scales(1)
             q_hat["g"] = relaxed_q_hat
 
             picard_history.append(
