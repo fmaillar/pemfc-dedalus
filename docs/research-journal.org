@@ -22894,3 +22894,63 @@ Un test vérifie désormais l'invariance suivante :
 - q_removed,stack est proportionnel au nombre de cellules.
 
 Le quick airflow-controlled doit être relancé après cette correction.
+
+
+
+*** Étape 25d — quick Ballard E.23 convergé (commit 87ebf57)
+
+Après correction de l'échelle par cellule de la loi Ballard E.23, le quick
+airflow-controlled converge de nouveau proprement.
+
+I = 15 A :
+
+  Q_air = 284.4825 slpm
+  lambda_air = 114.25
+  cycles = 7
+  cycle_state_error = 6.787e-4
+  dominant cycle error = membrane_mean_water_content
+  T_cycle,mean = 307.4024 K = 34.252 degC
+  T_target = 33.960 degC
+  Delta T = +0.292 K
+  lambda_mem,mean = 2.7151
+  V_cycle,mean = 0.782902 V
+  V_Ballard,BOL = 0.798621 V
+  Delta V = -15.72 mV.
+
+I = 26.04 A :
+
+  Q_air = 479.8130 slpm
+  lambda_air = 111.00
+  cycles = 10
+  cycle_state_error = 7.818e-4
+  dominant cycle error = membrane_mean_water_content
+  T_cycle,mean = 312.5542 K = 39.404 degC
+  T_target = 39.811 degC
+  Delta T = -0.407 K
+  lambda_mem,mean = 2.3967
+  V_cycle,mean = 0.706202 V
+  V_Ballard,BOL = 0.768166 V
+  Delta V = -61.96 mV.
+
+Contrôle analytique indépendant avec l'inverse de E.23, évalué à la tension
+moyenne V11 et exactement à Topt :
+
+  I = 15 A:
+    Q_air,analytic ~= 292.84 slpm
+
+  I = 26.04 A:
+    Q_air,analytic ~= 467.16 slpm.
+
+Ces valeurs encadrent étroitement les débits sélectionnés numériquement,
+l'écart étant cohérent avec la tolérance thermique du quick (+0.292 K et
+-0.407 K).
+
+Conclusion :
+
+- la fermeture Ballard est correctement mise à l'échelle ;
+- les grandes stoechiométries ~111--114 sont une conséquence directe du
+  refroidissement open-cathode ;
+- le cycle périodique converge ;
+- la variable la plus lente reste l'hydratation membrane ;
+- la campagne complète peut être lancée avec une tolérance de cycle 1e-4 et
+  thermique 0.1 K.
