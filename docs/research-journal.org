@@ -20666,3 +20666,65 @@ Les tests vérifient :
 Aucune loi de condensation/évaporation n'est encore imposée. Le taux de
 changement de phase reste un terme explicite afin de ne pas introduire un
 coefficient cinétique non sourcé.
+
+
+** V11 étape 14 — changement de phase cathode par équilibre thermodynamique
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_phase_change.py
+
+ferme la répartition vapeur/liquide côté cathode sans introduire de constante
+cinétique de condensation.
+
+Le changement de phase est traité comme une projection algébrique vers
+l'équilibre de saturation.
+
+À pression totale P :
+
+  y_H2O,sat = p_sat(T) / P.
+
+Avec l'inventaire de gaz sec :
+
+  n_dry = n_O2 + n_N2,
+
+on obtient directement l'inventaire de vapeur saturante :
+
+  n_H2O,v,sat
+    = y_sat / (1 - y_sat) * n_dry.
+
+Cette formulation évite d'introduire un volume cathode non sourcé.
+
+Pour un inventaire total d'eau cathodique :
+
+  n_H2O,total,c = n_v + n_l,
+
+la partition d'équilibre est :
+
+  n_v = min(n_total, n_v,sat)
+  n_l = max(n_total - n_v,sat, 0).
+
+Le taux de condensation/évaporation n'est volontairement pas modélisé.
+La fonction equilibrium_phase_change_mol(...) renvoie uniquement le transfert
+algébrique nécessaire pour projeter l'état courant sur l'équilibre :
+
+- valeur positive : condensation ;
+- valeur négative : évaporation.
+
+Ce transfert conserve exactement :
+
+  n_v + n_l.
+
+La pression de vapeur saturante utilise la corrélation de Buck déjà présente
+dans le dépôt.
+
+Les tests vérifient :
+
+- cohérence entre inventaire saturant et fraction molaire p_sat/P ;
+- absence de liquide en sous-saturation ;
+- condensation de l'excès en sursaturation ;
+- conservation exacte de l'eau vapeur + liquide ;
+- possibilité d'évaporation si du liquide est présent sous saturation.
+
+Cette étape ferme la thermodynamique de phase sans supposer de cinétique
+empirique.
