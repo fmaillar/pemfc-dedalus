@@ -50,7 +50,16 @@ def solve_stationary(
     newton_tolerance: float = 1e-8,
     max_newton_iterations: int = 30,
     newton_damping: float = 0.25,
-    reaction_scales: tuple[float, ...] = (1e-6, 1e-5, 1e-4, 1e-3),
+    reaction_scales: tuple[float, ...] = (
+        1e-6,
+        1e-5,
+        1e-4,
+        2e-4,
+        3e-4,
+        5e-4,
+        7e-4,
+        1e-3,
+    ),
 ) -> StationaryResult:
     if not 0.0 < newton_damping <= 1.0:
         raise ValueError("newton_damping must be in (0, 1]")
