@@ -381,6 +381,11 @@ def solve_stationary_inverse_bv(
             ):
                 break
 
+        # The Picard loop updates q_hat after solving the transport equations.
+        # Re-solve once with the final relaxed q_hat so that c, phi_s and phi_m
+        # are consistent with the current source before entering Newton.
+        picard_solver.solve()
+
     problem = d3.NLBVP(
         [
             c,
