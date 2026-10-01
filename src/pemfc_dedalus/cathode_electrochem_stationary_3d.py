@@ -2,10 +2,35 @@
 
 from __future__ import annotations
 
+from typing import TypedDict
+
 import dedalus.public as d3
 import numpy as np
 
 from .parameters import CathodeParameters
+
+
+class ContinuationStage(TypedDict):
+    reaction_scale: float
+    iterations: int
+    perturbation_norm: float
+    converged: bool
+
+
+class StationaryResult(TypedDict):
+    converged: bool
+    newton_iterations: int
+    perturbation_norm: float
+    newton_damping: float
+    continuation_history: list[ContinuationStage]
+    total_reaction_current: float
+    mean_eta_v: float
+    mean_c_o2_mol_m3: float
+    min_c_o2_mol_m3: float
+    min_eta_v: float
+    max_eta_v: float
+    min_j_orr_a_m3: float
+    max_j_orr_a_m3: float
 
 
 def solve_stationary(
@@ -19,7 +44,7 @@ def solve_stationary(
     max_newton_iterations: int = 30,
     newton_damping: float = 0.5,
     reaction_scales: tuple[float, ...] = (0.0, 0.01, 0.03, 0.1, 0.3, 0.6, 1.0),
-) -> dict[str, float | int | bool | list[dict[str, float | int | bool]]]:
+) -> StationaryResult:
     if not 0.0 < newton_damping <= 1.0:
         raise ValueError("newton_damping must be in (0, 1]")
     if not reaction_scales or reaction_scales[-1] != 1.0:
@@ -182,7 +207,7 @@ def solve_stationary(
 
     perturbation_norm = np.inf
     total_iterations = 0
-    continuation_history: list[dict[str, float | int | bool]] = []
+    continuation_history: list[ContinuationStage] = []
 
     for scale in reaction_scales:
         reaction_scale["g"] = scale
