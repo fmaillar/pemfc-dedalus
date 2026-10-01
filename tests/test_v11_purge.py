@@ -6,6 +6,7 @@ import math
 
 import pytest
 
+from pemfc_dedalus.v11_anode import AnodeGasState, ideal_gas_total_pressure_pa
 from pemfc_dedalus.v11_purge import (
     V11PurgeClock,
     advance_ballard_purge_clock,
@@ -75,9 +76,10 @@ def test_default_ballard_purge_exchanges_two_anode_volumes() -> None:
 
     assert event.exchange_volume_m3 == pytest.approx(20.0e-6)
     assert event.anode.purge_fraction == pytest.approx(expected_fraction)
-    assert event.state.anode_hydrogen_mol == pytest.approx(
-        state.anode_hydrogen_mol * (1.0 - expected_fraction)
+    assert event.anode.removed_hydrogen_mol == pytest.approx(
+        state.anode_hydrogen_mol * expected_fraction
     )
+    assert event.hydrogen_refill_mol > 0.0
     assert event.state.anode_nitrogen_mol == pytest.approx(
         state.anode_nitrogen_mol * (1.0 - expected_fraction)
     )
@@ -108,3 +110,20 @@ def test_manual_purge_volume_is_controllable() -> None:
     )
 
     assert one_volume.anode.purge_fraction == pytest.approx(1.0 - math.exp(-1.0))
+
+
+
+def test_purge_refill_recovers_target_anode_pressure() -> None:
+    event = apply_v11_purge_event(state=_state())
+    post_purge = AnodeGasState(
+        hydrogen_mol=event.state.anode_hydrogen_mol,
+        nitrogen_mol=event.state.anode_nitrogen_mol,
+        water_vapour_mol=event.state.anode_water_vapour_mol,
+    )
+    pressure = ideal_gas_total_pressure_pa(
+        state=post_purge,
+        volume_m3=10.0e-6,
+        temperature_k=event.state.stack_temperature_k,
+    )
+
+    assert pressure == pytest.approx(event.target_pressure_pa)
