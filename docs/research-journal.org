@@ -22626,3 +22626,105 @@ La campagne complète conservera :
 
 Les différents courants restent parallélisés par processus ; l'évolution d'un
 cycle individuel reste séquentielle.
+
+
+
+*** Étape 25b — quick contrôlé convergé (commit cf282f0)
+
+Le quick de polarisation avec débit cathodique unique contrôlé par la cible
+thermique converge pour les deux points testés.
+
+I = 15 A :
+
+  Q_air = 235.9275 slpm
+  lambda_air = 94.75
+  cycles = 7
+  cycle_state_error = 7.05e-4
+  T_cycle,mean = 307.562 K = 34.41 degC
+  T_target = 307.110 K = 33.96 degC
+  Delta T = +0.452 K
+  V_cycle,mean = 0.783920 V
+  V_Ballard,BOL = 0.798621 V
+  Delta V = -14.70 mV.
+
+I = 26.04 A :
+
+  Q_air = 395.52156 slpm
+  lambda_air = 91.50
+  cycles = 10
+  cycle_state_error = 7.71e-4
+  T_cycle,mean = 312.759 K = 39.61 degC
+  T_target = 312.961 K = 39.81 degC
+  Delta T = -0.202 K
+  V_cycle,mean = 0.709684 V
+  V_Ballard,BOL = 0.768166 V
+  Delta V = -58.48 mV.
+
+La fermeture thermique sélectionne donc une stoechiométrie d'air proche de
+92--95 sur les deux points. Cette valeur ne doit pas être interprétée comme un
+paramètre ajusté : elle est une sortie du bilan thermique + contrainte O2 du
+modèle réduit.
+
+Le déficit de tension par rapport à la courbe BOL demeure, surtout à 26.04 A.
+Il ne peut pas être utilisé pour ajuster le débit d'air, puisque celui-ci est
+déjà déterminé par la contrainte thermique et la contrainte d'oxygène.
+
+Les valeurs Pt loading = 0.4 mg/cm2 et ECSA = 50 m2/g restent des hypothèses de
+sensibilité génériques et constituent encore une source majeure d'incertitude
+sur la tension absolue.
+
+*** Étape 25c — suppression de la dépendance du régulateur H2 au pas numérique
+
+L'ancien chemin prédictif utilisait :
+
+  regulator_hydrogen_inlet_mol_s(..., dt_s)
+
+qui projetait l'inventaire H2 vers la pression cible sur le pas numérique.
+
+Même si cette fermeture était stable, elle rendait le RHS dépendant du pas de
+temps et mélangeait une contrainte physique algébrique avec la discrétisation
+Euler.
+
+Le chemin V11 prédictif utilise désormais une fermeture isobare continue.
+
+À pression anode cible P et volume V constants :
+
+  n_target = P V / (R T)
+
+donc :
+
+  dn_target/dt = -(n_target/T) dT/dt.
+
+Le bilan molaire total anode donne alors le débit H2 requis :
+
+  n_dot_H2,in
+    = dn_target/dt
+      + n_dot_H2,cons
+      - n_dot_N2,crossover
+      - n_dot_H2O,source.
+
+Le régulateur étant à sens unique :
+
+  n_dot_H2,in = max(n_dot_H2,in,required, 0).
+
+Cette relation ne contient aucun dt numérique.
+
+La dérivée thermique calculée par le même RHS est utilisée dans la contrainte
+isobare, ce qui couple correctement pression, température, consommation H2,
+crossover N2 et échange d'eau.
+
+Si les sources N2/H2O suffisent à augmenter l'inventaire total au-delà du
+besoin isobare, le régulateur H2 ferme simplement son débit et ne retire jamais
+de gaz.
+
+La purge reste un événement discret et remet explicitement l'anode à la
+pression nominale par refill H2 après déplacement du mélange.
+
+Des tests dédiés vérifient :
+
+- la formule isobare continue ;
+- l'absence de dépendance à un pas numérique ;
+- le caractère unidirectionnel du régulateur.
+
+Avant toute campagne de polarisation complète, les tests et le quick contrôlé
+doivent être relancés avec cette fermeture.
