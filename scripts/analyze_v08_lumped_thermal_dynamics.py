@@ -62,19 +62,27 @@ def main() -> None:
     stack_temperature_k = 273.15 + args.initial_stack_temperature_c
     output_rows: list[dict[str, Any]] = []
 
-    previous_time_s = float(rows[0]["time_s"])
     for index, row in enumerate(rows):
         time_s = float(row["time_s"])
-        if index == 0:
-            dt_s = 0.0
-        else:
+
+        if index > 0:
+            previous = rows[index - 1]
+            previous_time_s = float(previous["time_s"])
             dt_s = time_s - previous_time_s
             if dt_s <= 0.0:
                 raise ValueError("input time must be strictly increasing")
 
+            stack_temperature_k = advance_lumped_stack_temperature_k(
+                stack_temperature_k=stack_temperature_k,
+                inlet_temperature_k=inlet_temperature_k,
+                heat_rejection_w=float(previous["heat_rejection_w"]),
+                air_flow_slpm=float(previous["target_air_flow_slpm"]),
+                thermal_mass_j_k=thermal_mass_j_k,
+                dt_s=dt_s,
+            )
+
         heat_rejection_w = float(row["heat_rejection_w"])
         air_flow_slpm = float(row["target_air_flow_slpm"])
-
         cooling_w = ideal_air_cooling_power_w(
             stack_temperature_k=stack_temperature_k,
             inlet_temperature_k=inlet_temperature_k,
@@ -94,18 +102,6 @@ def main() -> None:
                 "net_heat_w": net_heat_w,
             }
         )
-
-        if dt_s > 0.0:
-            stack_temperature_k = advance_lumped_stack_temperature_k(
-                stack_temperature_k=stack_temperature_k,
-                inlet_temperature_k=inlet_temperature_k,
-                heat_rejection_w=heat_rejection_w,
-                air_flow_slpm=air_flow_slpm,
-                thermal_mass_j_k=thermal_mass_j_k,
-                dt_s=dt_s,
-            )
-
-        previous_time_s = time_s
 
     temperatures_c = [
         float(row["stack_temperature_c"]) for row in output_rows
