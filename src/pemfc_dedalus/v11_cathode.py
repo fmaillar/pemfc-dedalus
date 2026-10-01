@@ -12,6 +12,7 @@ immediately becomes vapour.
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 
 from .v11_galvanostatic import faraday_rates_per_cell
 
@@ -93,7 +94,7 @@ def water_saturation_pressure_derivative_pa_k(
         -b / 234.5
         + a * 257.14 / (257.14 + temperature_c) ** 2
     )
-    saturation_pressure = 611.21 * __import__("math").exp(a * b)
+    saturation_pressure = 611.21 * math.exp(a * b)
     return saturation_pressure * dlog_p_dtemperature
 
 
