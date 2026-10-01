@@ -309,6 +309,7 @@ def _periodic_candidate(
     sample_every_s: float,
     max_cycles: int,
     cycle_convergence_tolerance: float,
+    inputs: V11RunnerInputs | None = None,
 ) -> V11PeriodicPolarizationPoint | None:
     """Return a converged periodic point, or None for an unusable airflow.
 
@@ -324,6 +325,7 @@ def _periodic_candidate(
             max_cycles=max_cycles,
             convergence_tolerance=cycle_convergence_tolerance,
             stack_air_flow_slpm=airflow_slpm,
+            inputs=inputs,
         )
     except ValueError:
         return None
@@ -342,6 +344,7 @@ def solve_ballard_airflow_operating_point(
     minimum_oxygen_stoichiometry: float | None = None,
     maximum_oxygen_stoichiometry: float = 150.0,
     feasibility_scan_points: int = 8,
+    inputs: V11RunnerInputs | None = None,
 ) -> V11AirflowControlledPolarizationPoint:
     """Solve the one physical cathode-air stream from the thermal target.
 
@@ -396,6 +399,7 @@ def solve_ballard_airflow_operating_point(
                 max_cycles=max_cycles,
                 convergence_tolerance=cycle_convergence_tolerance,
                 stack_air_flow_slpm=airflow,
+                inputs=inputs,
             )
         except Exception as exc:
             scan_diagnostics.append(
@@ -477,6 +481,7 @@ def solve_ballard_airflow_operating_point(
             sample_every_s=sample_every_s,
             max_cycles=max_cycles,
             cycle_convergence_tolerance=cycle_convergence_tolerance,
+            inputs=inputs,
         )
         if high_point is None:
             raise RuntimeError(
@@ -509,6 +514,7 @@ def solve_ballard_airflow_operating_point(
             sample_every_s=sample_every_s,
             max_cycles=max_cycles,
             cycle_convergence_tolerance=cycle_convergence_tolerance,
+            inputs=inputs,
         )
         if mid_point is None:
             low_flow = mid_flow
