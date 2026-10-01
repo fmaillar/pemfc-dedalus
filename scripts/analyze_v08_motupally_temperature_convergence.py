@@ -8,7 +8,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-
 METRICS = (
     "mean_n2_crossover_flux_mol_m2_s",
     "max_nitrogen_mole_fraction",
