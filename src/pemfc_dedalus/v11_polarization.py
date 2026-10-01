@@ -103,6 +103,7 @@ def simulate_periodic_polarization_point(
     minimum_cycles: int = 3,
     initial_state: V11DynamicState | None = None,
     inputs: V11RunnerInputs | None = None,
+    stack_air_flow_slpm: float | None = None,
 ) -> V11PeriodicPolarizationPoint:
     """Integrate one fixed-current case until successive purge cycles converge."""
     if current_a <= 0.0:
@@ -117,7 +118,13 @@ def simulate_periodic_polarization_point(
         raise ValueError("convergence_tolerance must be positive")
 
     stack = UserStackConfiguration()
-    airflow = stack.cathode_air_target_slpm(current_a)
+    airflow = (
+        stack.cathode_air_target_slpm(current_a)
+        if stack_air_flow_slpm is None
+        else stack_air_flow_slpm
+    )
+    if airflow <= 0.0:
+        raise ValueError("stack_air_flow_slpm must be positive")
     purge_period = stack.purge_period_s(current_a)
     scenario = reference_dynamic_scenario()
     effective_inputs = scenario.inputs if inputs is None else inputs
@@ -218,3 +225,141 @@ def simulate_periodic_polarization_point(
         final_state=state,
     )
 
+
+
+@dataclass(frozen=True)
+class V11AirflowControlledPolarizationPoint:
+    """Polarization point with one cathode-air stream meeting thermal target."""
+
+    polarization: V11PeriodicPolarizationPoint
+    target_temperature_k: float
+    temperature_error_k: float
+    minimum_air_flow_slpm: float
+    selected_air_flow_slpm: float
+    iterations: int
+    thermal_target_bracketed: bool
+
+
+def solve_ballard_airflow_operating_point(
+    *,
+    current_a: float,
+    dt_s: float = 0.01,
+    sample_every_s: float = 1.0,
+    max_cycles: int = 12,
+    cycle_convergence_tolerance: float = 1.0e-4,
+    temperature_tolerance_k: float = 0.10,
+    max_airflow_iterations: int = 8,
+    minimum_oxygen_stoichiometry: float | None = None,
+    maximum_oxygen_stoichiometry: float = 150.0,
+) -> V11AirflowControlledPolarizationPoint:
+    """Solve the unified cathode-air flow from the Ballard thermal target.
+
+    The same air stream supplies oxygen and removes heat. The lower bound is
+    therefore the Ballard minimum recommended oxygen stoichiometry, while the
+    selected operating point is the lowest flow found that reaches the target
+    stack temperature within tolerance.
+    """
+    if current_a <= 0.0:
+        raise ValueError("current_a must be positive")
+    if temperature_tolerance_k <= 0.0:
+        raise ValueError("temperature_tolerance_k must be positive")
+    if max_airflow_iterations < 1:
+        raise ValueError("max_airflow_iterations must be >= 1")
+
+    tech = Ballard1020ACSTechnologyReference()
+    stack = UserStackConfiguration()
+    minimum_stoich = (
+        tech.oxidant_stoich_min_recommended
+        if minimum_oxygen_stoichiometry is None
+        else minimum_oxygen_stoichiometry
+    )
+    if minimum_stoich <= 0.0:
+        raise ValueError("minimum oxygen stoichiometry must be positive")
+    if maximum_oxygen_stoichiometry <= minimum_stoich:
+        raise ValueError(
+            "maximum oxygen stoichiometry must exceed the minimum"
+        )
+
+    stoich_flow = stack.stoichiometric_air_slpm(current_a)
+    low_flow = stoich_flow * minimum_stoich
+    high_flow = stoich_flow * maximum_oxygen_stoichiometry
+    target_temperature = (
+        273.15 + tech.optimum_stack_temperature_c(current_a)
+    )
+
+    low_point = simulate_periodic_polarization_point(
+        current_a=current_a,
+        dt_s=dt_s,
+        sample_every_s=sample_every_s,
+        max_cycles=max_cycles,
+        convergence_tolerance=cycle_convergence_tolerance,
+        stack_air_flow_slpm=low_flow,
+    )
+    low_error = low_point.mean_stack_temperature_k - target_temperature
+
+    if low_error <= temperature_tolerance_k:
+        return V11AirflowControlledPolarizationPoint(
+            polarization=low_point,
+            target_temperature_k=target_temperature,
+            temperature_error_k=low_error,
+            minimum_air_flow_slpm=low_flow,
+            selected_air_flow_slpm=low_flow,
+            iterations=0,
+            thermal_target_bracketed=True,
+        )
+
+    high_point = simulate_periodic_polarization_point(
+        current_a=current_a,
+        dt_s=dt_s,
+        sample_every_s=sample_every_s,
+        max_cycles=max_cycles,
+        convergence_tolerance=cycle_convergence_tolerance,
+        stack_air_flow_slpm=high_flow,
+    )
+    high_error = high_point.mean_stack_temperature_k - target_temperature
+    if high_error > temperature_tolerance_k:
+        return V11AirflowControlledPolarizationPoint(
+            polarization=high_point,
+            target_temperature_k=target_temperature,
+            temperature_error_k=high_error,
+            minimum_air_flow_slpm=low_flow,
+            selected_air_flow_slpm=high_flow,
+            iterations=0,
+            thermal_target_bracketed=False,
+        )
+
+    selected = high_point
+    selected_flow = high_flow
+    iterations = 0
+    for iterations in range(1, max_airflow_iterations + 1):
+        mid_flow = 0.5 * (low_flow + high_flow)
+        mid_point = simulate_periodic_polarization_point(
+            current_a=current_a,
+            dt_s=dt_s,
+            sample_every_s=sample_every_s,
+            max_cycles=max_cycles,
+            convergence_tolerance=cycle_convergence_tolerance,
+            stack_air_flow_slpm=mid_flow,
+        )
+        mid_error = mid_point.mean_stack_temperature_k - target_temperature
+        selected = mid_point
+        selected_flow = mid_flow
+
+        if abs(mid_error) <= temperature_tolerance_k:
+            break
+        if mid_error > 0.0:
+            low_flow = mid_flow
+        else:
+            high_flow = mid_flow
+
+    return V11AirflowControlledPolarizationPoint(
+        polarization=selected,
+        target_temperature_k=target_temperature,
+        temperature_error_k=(
+            selected.mean_stack_temperature_k - target_temperature
+        ),
+        minimum_air_flow_slpm=stoich_flow * minimum_stoich,
+        selected_air_flow_slpm=selected_flow,
+        iterations=iterations,
+        thermal_target_bracketed=True,
+    )
