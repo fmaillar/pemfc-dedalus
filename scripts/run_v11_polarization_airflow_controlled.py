@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from pemfc_dedalus.ballard_1020acs import Ballard1020ACSTechnologyReference
+from pemfc_dedalus.v11_materials import V11MEAReference
 from pemfc_dedalus.v11_polarization import solve_ballard_airflow_operating_point
 
 
@@ -49,6 +50,27 @@ def _run_current(
         row["manual_bol_cell_voltage_v"] = manual_voltage
         row["model_minus_manual_v"] = (
             point.mean_cell_voltage_v - manual_voltage
+        )
+
+        mea = V11MEAReference()
+        current_density = mea.current_density_a_m2(current_a)
+        implied_ohmic = (
+            point.mean_reversible_voltage_v
+            - point.mean_activation_loss_v
+            - point.mean_additional_resolved_loss_v
+            - manual_voltage
+        )
+        row["bol_implied_membrane_ohmic_loss_v"] = implied_ohmic
+        row["model_membrane_asr_ohm_m2"] = (
+            point.mean_membrane_ohmic_loss_v / current_density
+        )
+        row["bol_implied_membrane_asr_ohm_m2"] = (
+            implied_ohmic / current_density
+        )
+        row["bol_implied_effective_membrane_thickness_m"] = (
+            mea.membrane_thickness_m
+            * implied_ohmic
+            / point.mean_membrane_ohmic_loss_v
         )
         return row
     except Exception as exc:
