@@ -132,7 +132,7 @@ def main() -> None:
 
     base = CathodeParameters()
     reference_current_a = base.stack_current_a
-    area_m2 = base.length_x * base.length_y
+    base.length_x * base.length_y
     xis = [0.0, 0.5, 1.0]
 
     rows: list[dict[str, Any]] = []
