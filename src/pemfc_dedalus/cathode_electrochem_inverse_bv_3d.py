@@ -76,6 +76,8 @@ class InverseBVResult(TypedDict):
     residual_components: InverseBVResidualComponents
     pre_newton_residual_merit: float
     pre_newton_residual_components: InverseBVResidualComponents
+    picard_converged: bool
+    picard_fixed_point_residual: float
 
 
 def symmetric_bv_current(
@@ -299,6 +301,8 @@ def solve_stationary_inverse_bv(
     )
 
     picard_history: list[InverseBVPicardStep] = []
+    picard_fixed_point_residual = np.inf
+    picard_converged = False
     if picard_iterations:
         j_orr_forcing = dist.Field(name="j_orr_forcing", bases=bases)
         s_o2_forcing = dist.Field(name="s_o2_forcing", bases=bases)
@@ -370,6 +374,7 @@ def solve_stationary_inverse_bv(
             fixed_point_residual = float(
                 np.max(np.abs(q_bv_hat - old_q_hat) / q_scale)
             )
+            picard_fixed_point_residual = fixed_point_residual
 
             if (
                 not np.all(np.isfinite(q_bv_hat))
@@ -377,7 +382,11 @@ def solve_stationary_inverse_bv(
                 or float(np.min(q_bv_hat)) <= 0.0
             ):
                 break
-            if picard_tolerance > 0.0 and fixed_point_residual <= picard_tolerance:
+            if (
+                picard_tolerance > 0.0
+                and fixed_point_residual <= picard_tolerance
+            ):
+                picard_converged = True
                 break
 
             damping = min(1.0, max(picard_relaxation, 0.5))
@@ -432,6 +441,13 @@ def solve_stationary_inverse_bv(
             )
             q_bv_hat = trial_q_bv
             c_picard = trial_c
+            picard_fixed_point_residual = trial_residual
+
+        if (
+            picard_tolerance > 0.0
+            and picard_fixed_point_residual <= picard_tolerance
+        ):
+            picard_converged = True
 
         update_picard_forcing()
         picard_solver.solve()
@@ -571,7 +587,11 @@ def solve_stationary_inverse_bv(
     iterations = 0
     final_residual_merit = residual_merit()
 
-    if globalized:
+    if picard_converged:
+        c_min, q_min = physical_bounds()
+        converged = c_min > 0.0 and q_min > 0.0
+        final_residual_merit = pre_newton_residual_merit
+    elif globalized:
         while (
             iterations < max_newton_iterations
             and final_residual_merit > residual_tolerance
@@ -743,4 +763,6 @@ def solve_stationary_inverse_bv(
         "residual_components": residual_components,
         "pre_newton_residual_merit": pre_newton_residual_merit,
         "pre_newton_residual_components": pre_newton_residual_components,
+        "picard_converged": picard_converged,
+        "picard_fixed_point_residual": picard_fixed_point_residual,
     }
