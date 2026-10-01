@@ -43,6 +43,7 @@ def test_convergence_metrics_interpolate_candidate_grid() -> None:
             "stack_temperature_k": "300.0",
             "membrane_mean_water_content": "3.0",
             "anode_nitrogen_mol": "0.0",
+            "purge_event": "False",
         },
         {
             "time_s": "0.5",
