@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "model": "v09-final-validation",
+  "status": "pass",
+  "reachable_case_count": 24,
+  "skipped_case_count": 3,
+  "span_min": 0.009648300794606487,
+  "span_max": 0.10673874803568222,
+  "monotonic_with_current": true,
+  "monotonic_with_inlet_temperature": true,
+  "monotonic_with_ntu": true,
+  "freeze_ready": true
+}
