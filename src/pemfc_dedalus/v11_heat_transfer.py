@@ -140,8 +140,6 @@ def cathode_air_outlet_temperature_geometry_v11(
         raise ValueError("stack_air_flow_slpm must be positive")
     if n_cells <= 0:
         raise ValueError("n_cells must be positive")
-    if n_cells <= 0:
-        raise ValueError("n_cells must be positive")
     if air_specific_heat_j_kg_k <= 0.0:
         raise ValueError("air_specific_heat_j_kg_k must be positive")
 
@@ -218,6 +216,8 @@ def cathode_air_outlet_temperature_ballard_v11(
         )
     if stack_air_flow_slpm <= 0.0:
         raise ValueError("stack_air_flow_slpm must be positive")
+    if n_cells <= 0:
+        raise ValueError("n_cells must be positive")
     if air_specific_heat_j_kg_k <= 0.0:
         raise ValueError("air_specific_heat_j_kg_k must be positive")
     if standard_air_density_kg_m3 <= 0.0:
