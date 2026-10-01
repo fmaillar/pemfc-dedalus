@@ -13826,3 +13826,123 @@ Un premier quick utilisera un axe T couvrant :
 
 avec un nombre réduit de plans de température, puis une étude de convergence
 sera réalisée avant le gel du lookup 3D.
+
+
+*** Étape 9 — lookup Motupally dépendant de la température
+
+La rétroaction thermique ciblée sur N2 montre une réduction d'environ 45 % du
+crossover moyen, mais elle conserve encore le lookup Motupally calculé à la
+température fixe V0.7.
+
+Le screening précédent a montré que :
+
+  D_Motupally(lambda,T)
+
+varie suffisamment avec T pour nécessiter un couplage explicite.
+
+*** Extension rétrocompatible du lookup V0.7
+
+La fonction :
+
+  build_motupally_lookup_table(...)
+
+accepte maintenant un argument optionnel :
+
+  stack_temperature_k.
+
+Si cet argument vaut :
+
+  None
+
+la température historique V0.7 est conservée.
+
+La baseline V0.7 reste donc inchangée.
+
+*** Lookup V0.8
+
+Le quick V0.8 construit un volume :
+
+  RH x j x T
+
+avec par défaut :
+
+  11 points RH
+  11 points de densité de courant
+  5 plans de température.
+
+L'axe T couvre :
+
+  min(T_trajectoire, T_V0.7)
+  ...
+  max(T_trajectoire, T_V0.7).
+
+Pour la trajectoire actuelle, cela couvre approximativement :
+
+  293.15 ... 312.96 K.
+
+Chaque plan T recalcule complètement le lookup Motupally :
+
+- profil d'eau membrane ;
+- D_Motupally(lambda,T) ;
+- perméabilité N2 cohérente avec le profil ;
+- dépendance Arrhenius.
+
+Une interpolation :
+
+  bilinéaire en RH/j
+
+puis :
+
+  linéaire en T
+
+est utilisée pendant la dynamique.
+
+Des tests unitaires vérifient :
+
+- interpolation entre deux plans de température ;
+- conservation des valeurs aux bornes ;
+- clipping hors de l'axe T.
+
+*** Comparaison scientifique
+
+Le driver :
+
+  scripts/run_v08_motupally_temperature_lookup.py
+
+compare sous la même trajectoire T(t) :
+
+1. approximation précédente :
+
+   lookup Motupally 2D à T_V0.7
+   x
+   facteur Arrhenius sec P(T)/P(T_V0.7)
+
+2. lookup complet :
+
+   RH x j x T
+
+   avec recalcul Motupally à chaque plan T.
+
+Cette comparaison isole l'effet additionnel de :
+
+  D_Motupally(lambda,T)
+
+et du profil hydrique correspondant, sans réintroduire l'effet Arrhenius déjà
+mesuré.
+
+Cible :
+
+  make quick-motupally-temperature-v08
+
+Sorties :
+
+  results/quick-v08-motupally-temperature-lookup.json
+  results/quick-v08-motupally-temperature-lookup.csv
+
+Décision :
+
+  exécuter le gate complet avec && ;
+
+  mesurer l'écart entre approximation Arrhenius-only et lookup complet ;
+
+  seulement ensuite décider du nombre de plans T requis pour la baseline V0.8.
