@@ -993,7 +993,8 @@ quick-stationary-globalized-v10:
 
 .PHONY: quick-stationary-inverse-bv-v10 quick-stationary-inverse-bv-damping-scan-v10 \
         quick-stationary-inverse-bv-globalized-v10 \
-        quick-stationary-inverse-bv-picard-v10
+        quick-stationary-inverse-bv-picard-v10 \
+        quick-grid-stationary-inverse-bv-picard-v10
 quick-stationary-inverse-bv-v10:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_inverse_bv
 
@@ -1008,3 +1009,14 @@ quick-stationary-inverse-bv-globalized-v10:
 
 quick-stationary-inverse-bv-picard-v10:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_inverse_bv_picard
+
+quick-grid-stationary-inverse-bv-picard-v10:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 V10_NX=4 V10_NY=4 V10_NZ=16 \
+	  V10_OUTPUT=results/quick-v10-stationary-inverse-bv-picard-4x4x16.json \
+	  $(TIME) $(PYTHON) -m scripts.run_v10_stationary_inverse_bv_picard
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 V10_NX=6 V10_NY=6 V10_NZ=24 \
+	  V10_OUTPUT=results/quick-v10-stationary-inverse-bv-picard-6x6x24.json \
+	  $(TIME) $(PYTHON) -m scripts.run_v10_stationary_inverse_bv_picard
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 V10_NX=8 V10_NY=8 V10_NZ=32 \
+	  V10_OUTPUT=results/quick-v10-stationary-inverse-bv-picard-8x8x32.json \
+	  $(TIME) $(PYTHON) -m scripts.run_v10_stationary_inverse_bv_picard
