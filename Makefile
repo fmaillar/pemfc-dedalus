@@ -28,7 +28,7 @@ TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
         analyze-n2-membrane-profiles-v07 analyze-n2-motupally-v07 \
         quick-n2-catalano-motupally-v07 quick-n2-catalano-motupally-33-v07 analyze-n2-catalano-motupally-lookup-v07 n2-catalano-motupally-v07 \
         validate-v07-final \
-        quick-thermal-v08 thermal-envelope-v08 \
+        quick-thermal-v08 thermal-envelope-v08 airflow-control-v08 \
         quick-n2-motupally-ka-v07 n2-motupally-ka-v07 analyze-ge-transfer-v07 \
         analyze-grimaldi-transfer-v07 \
         quick-n2-grimaldi-transfer-v07 n2-grimaldi-transfer-v07 \
@@ -114,6 +114,7 @@ help:
 	  'make validate-v07-final run final V0.7 baseline validation' \
 	  'make quick-thermal-v08 run first V0.8 open-cathode heat balance' \
 	  'make thermal-envelope-v08 map V0.8 stationary thermal envelope' \
+	  'make airflow-control-v08 evaluate V0.8 open-cathode airflow target law' \
 	  'make quick-n2-motupally-ka-v07 preflight Motupally k_a sensitivity' \
 	  'make n2-motupally-ka-v07 run full Motupally k_a sensitivity' \
 	  'make analyze-ge-transfer-v07 compare k_a with Ge et al. 2005' \
@@ -703,3 +704,7 @@ quick-thermal-v08:
 
 thermal-envelope-v08:
 	$(PYTHON) -m scripts.run_v08_open_cathode_thermal_envelope
+
+
+airflow-control-v08:
+	$(PYTHON) -m scripts.run_v08_open_cathode_airflow_control
