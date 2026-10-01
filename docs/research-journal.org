@@ -20071,3 +20071,61 @@ Les paramètres suivants restent non récupérables proprement dans le manuel :
 
 Ils resteront explicitement non résolus jusqu'à obtention d'une source
 indépendante.
+
+
+** V11 étape 3 — potentiel réversible thermodynamique et perte ohmique membrane
+
+Le calcul de tension commence désormais par une base thermodynamique traçable.
+
+Le potentiel réversible standard est calculé à partir des données
+thermochimiques NIST/JANAF via les équations de Shomate pour :
+
+- H2(g) ;
+- O2(g) ;
+- H2O(l).
+
+Pour la réaction :
+
+  H2 + 1/2 O2 -> H2O(l)
+
+on calcule :
+
+  Delta H(T)
+  Delta S(T)
+  Delta G(T) = Delta H(T) - T Delta S(T)
+
+puis :
+
+  E0(T) = -Delta G(T)/(2F).
+
+La correction de Nernst utilise ensuite les pressions partielles explicites :
+
+  Erev = E0(T)
+         + RT/(2F)
+           ln[(p_H2/p0) (p_O2/p0)^(1/2) / a_H2O].
+
+Aucun coefficient ajusté n'est utilisé.
+
+Le test de référence à 298.15 K et 1 bar pour H2/O2 donne environ 1.229 V,
+ce qui sert de contrôle thermodynamique.
+
+La perte ohmique membrane est ajoutée séparément :
+
+  Delta V_mem = j * L_mem / sigma_mem.
+
+Le module ne fournit volontairement aucune épaisseur de membrane par défaut :
+L_mem doit être une propriété physique sourcée.
+
+De même, sigma_mem doit provenir d'une loi matériau explicite, par exemple la
+relation de conductivité déjà présente dans membrane.py à partir de lambda et T.
+
+L'étape suivante sera de construire une première fonction de tension de cellule
+sous la forme :
+
+  Vcell = Erev
+          - eta_activation
+          - Delta V_mem
+          - Delta V_other_resolved
+
+en laissant explicitement absents les termes dont les paramètres ne sont pas
+encore sourcés.
