@@ -22,7 +22,7 @@ def main() -> None:
     ntu = 3.0
     xi = 0.5
     nx, ny, nz = 4, 4, 16
-    max_newton_iterations = 12
+    max_newton_iterations = 8
     newton_tolerance = 1e-6
 
     voltage_v = base.tech.bol_typical_cell_voltage_v(current_a)
@@ -130,7 +130,8 @@ def main() -> None:
     for stage in result["continuation_history"]:
         print(
             f"lambda={stage['reaction_scale']:.3g} "
-            f"norm_history={stage['perturbation_norm_history']}",
+            f"norm_history={stage['perturbation_norm_history']} "
+            f"min_cO2_history={stage['min_c_o2_history']}",
             flush=True,
         )
     print(f"Wrote {output_json}")
