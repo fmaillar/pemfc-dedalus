@@ -42,22 +42,25 @@ def test_loaded_voltage_is_below_reversible_voltage() -> None:
 
 
 def test_more_platinum_reduces_activation_loss() -> None:
-    common = {
-        "current_a": 26.04,
-        "temperature_k": 313.15,
-        "hydrogen_partial_pressure_pa": 136000.0,
-        "oxygen_partial_pressure_pa": 21000.0,
-        "water_activity": 1.0,
-        "membrane_mean_water_content": 5.0,
-        "cathode_ecsa_m2_pt_g_pt": 50.0,
-    }
     low_pt = predict_cell_voltage_v(
+        current_a=26.04,
+        temperature_k=313.15,
+        hydrogen_partial_pressure_pa=136000.0,
+        oxygen_partial_pressure_pa=21000.0,
+        water_activity=1.0,
+        membrane_mean_water_content=5.0,
         cathode_platinum_loading_mg_cm2_geo=0.2,
-        **common,
+        cathode_ecsa_m2_pt_g_pt=50.0,
     )
     high_pt = predict_cell_voltage_v(
+        current_a=26.04,
+        temperature_k=313.15,
+        hydrogen_partial_pressure_pa=136000.0,
+        oxygen_partial_pressure_pa=21000.0,
+        water_activity=1.0,
+        membrane_mean_water_content=5.0,
         cathode_platinum_loading_mg_cm2_geo=0.6,
-        **common,
+        cathode_ecsa_m2_pt_g_pt=50.0,
     )
 
     assert high_pt.activation_loss_v < low_pt.activation_loss_v
