@@ -18759,3 +18759,81 @@ Si le line search s'arrête avant convergence, l'historique des alpha acceptés
 et des backtracks permettra d'identifier si le problème restant vient d'un
 minimum local du mérite ou d'un conditionnement encore insuffisant des
 variables.
+
+
+*** Étape 22 — initialisation Picard transport-cinétique
+
+Le comportement du scan de damping indique que Newton reçoit une direction
+utile, mais depuis un état initial qui n'est pas cohérent simultanément avec
+les PDE chargées et la fermeture cinétique.
+
+L'initialisation précédente faisait :
+
+  LBVP sans réaction
+  -> calcul direct de q par Butler-Volmer
+  -> Newton sur le NLBVP complet.
+
+Le nouveau préconditionnement non linéaire fait au contraire une itération de
+Picard transport-cinétique avant Newton.
+
+À l'itération n :
+
+1. q^(n) est gelé ;
+2. les trois problèmes linéaires sont résolus avec les sources
+   -chi_CL q^(n) et -chi_CL q^(n)/(4F) ;
+3. le nouvel état c, phi_s, phi_m donne eta^(n+1) ;
+4. q_BV^(n+1) est recalculé par la loi de Butler-Volmer symétrique exacte ;
+5. le courant est sous-relaxé :
+
+     q^(n+1) =
+       (1-omega) q^(n) + omega q_BV^(n+1).
+
+Pour le premier screening :
+
+  omega = 0.25
+  maximum Picard = 12 itérations.
+
+La sous-relaxation est convexe. Tant que q^(n) et q_BV restent cathodiques et
+positifs, q^(n+1) reste sur la branche cathodique.
+
+L'itération Picard s'interrompt avant Newton si :
+
+- c_O2 <= 0 ;
+- q_BV <= 0 ;
+- q_BV devient non fini.
+
+Le diagnostic enregistre pour chaque pas :
+
+- min(c_O2) ;
+- min(q_hat) ;
+- max(q_hat) ;
+- variation relative maximale de q_hat.
+
+Après cette pré-initialisation seulement, le Newton globalisé par backtracking
+de l'étape 21 est lancé sans modification.
+
+Nouvelle cible :
+
+  make quick-stationary-inverse-bv-picard-v10
+
+Sortie :
+
+  results/quick-v10-stationary-inverse-bv-picard.json
+
+*** Objectif du test
+
+Ce run ne cherche pas encore à optimiser omega ou le nombre d'itérations
+Picard. Il teste l'hypothèse principale :
+
+  un état déjà cohérent transport-réaction doit entrer dans une meilleure
+  région d'attraction pour Newton que le LBVP sans réaction.
+
+Les quantités décisives seront :
+
+- décroissance de la variation q pendant Picard ;
+- mérite résiduel au premier Newton ;
+- nombre de backtracks ;
+- nombre d'itérations Newton ;
+- maintien de c_O2 > 0 et q_hat > 0 ;
+- fermeture finale inverse-BV ;
+- cohérence du courant surfacique.
