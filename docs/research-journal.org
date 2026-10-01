@@ -22053,3 +22053,66 @@ Les courbes temporelles ne doivent être interprétées qu'après :
 
 L'étape suivante après exécution de cette campagne sera donc l'analyse des
 résultats réels, pas l'ajout immédiat d'une nouvelle physique.
+
+
+
+*** Étape 24 — correctif d'échantillonnage aux discontinuités
+
+La première campagne complète a donné :
+
+  dt = 0.04 s:
+    max |Delta V| ~= 1.02e-1 V
+
+  dt = 0.02 s:
+    max |Delta V| ~= 1.06e-6 V
+
+  dt = 0.01 s:
+    max |Delta V| ~= 7.26e-2 V
+
+  dt = 0.005 s:
+    référence.
+
+Cette non-monotonie apparente n'était pas une instabilité physique.
+
+L'inspection des trajectoires a montré que les maxima de tension provenaient
+exactement des instants de changement de consigne :
+
+- à t = 60 s, la trajectoire dt=0.01 était enregistrée à
+  59.9999999999992 s avec I=5 A, alors que la référence dt=0.005 était
+  enregistrée à 60.0 s avec I=15 A ;
+
+- à t = 360 s, la trajectoire dt=0.04 était enregistrée après le passage
+  26.04 -> 10 A, alors que la référence la plus fine conservait un point
+  numériquement juste avant 360 s.
+
+L'erreur de 72--102 mV correspond donc à la vraie marche instantanée de tension
+entre deux commandes différentes, comparée artificiellement au même temps
+nominal.
+
+Le runner a été corrigé de deux façons.
+
+1. Les frontières de commande sont maintenant résolues avant l'échantillonnage
+   lorsqu'elles coïncident au même temps nominal.
+
+2. Le temps accumulé est explicitement projeté sur les surfaces temporelles
+   programmées lorsqu'il en est à la tolérance machine :
+
+   - changement de commande ;
+   - purge manuelle ;
+   - grille d'échantillonnage ;
+   - fin de simulation.
+
+Ainsi, un point demandé à t=60 s est toujours enregistré exactement à 60 s et
+avec la nouvelle commande.
+
+La convergence a également été rendue hybride :
+
+- les états continus sont comparés uniquement sur la grille régulière
+  d'échantillonnage ;
+- les points de purge, qui sont des sauts discrets, sont exclus de
+  l'interpolation continue ;
+- les temps de purge sont comparés séparément avec
+  purge_time_max_abs_s.
+
+Cette correction doit être validée par une nouvelle campagne complète avant
+toute interprétation des erreurs de convergence en tension.
