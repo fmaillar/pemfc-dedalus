@@ -19646,3 +19646,61 @@ Le solveur Gummel et son line search restent inchangés.
 
 L'objectif du prochain run est de retrouver la convergence en ~7 itérations,
 avec arrêt immédiat lorsque fp_res <= 1e-8.
+
+
+*** Résultat du Gummel globalisé avec arrêt correct (26681a9)
+
+Le solveur s'arrête désormais correctement dès que le défaut de point fixe
+passe sous la tolérance :
+
+  picard_iterations = 13
+  picard_converged = true
+  fixed_point_residual = 8.190e-9
+  newton_iterations = 0
+  temps mur ~= 1.86 s.
+
+Tous les pas sont acceptés avec alpha = 1 et aucun backtracking.
+
+La convergence algorithmique est donc acquise.
+
+Une incohérence de représentation subsiste toutefois entre le dernier itéré
+Gummel et le champ q_hat final :
+
+  historique itération 13 :
+    min(q_hat) ~= 0.277173
+
+  résultat final :
+    min(q_hat) ~= 0.277660.
+
+Cette différence (~1.8e-3 relatif) est beaucoup trop grande pour être attribuée
+au bruit numérique. Elle explique aussi pourquoi le diagnostic final
+Butler-Volmer reste à :
+
+  max_forward_bv_relative_error ~= 1.75e-3
+
+alors que le défaut de point fixe rapporté est ~8e-9.
+
+Le problème n'est donc pas la convergence Gummel, mais la représentation du
+champ q_hat après les transformations grille/coefficient et les évaluations
+déaliasées Dedalus.
+
+*** Étape 35 — projeter explicitement les mises à jour q_hat
+
+Après chaque écriture de q_hat en espace grille, le champ est désormais forcé
+en représentation spectrale résolue :
+
+  q_hat["g"] = ...
+  q_hat.change_layout("c")
+  q_hat.change_scales(1)
+
+Cette projection est appliquée :
+
+- après chaque mise à jour trial_q_hat ;
+- après restauration de old_q_hat lors d'un échec ;
+- après restauration de q_iterate autour de l'évaluation spectrale du forcing.
+
+L'objectif est que l'itéré Gummel utilisé pour le test de point fixe soit
+exactement le même état spectral que celui utilisé ensuite par Dedalus et par
+les diagnostics finaux.
+
+Le solveur Gummel, son line search et ses tolérances restent inchangés.
