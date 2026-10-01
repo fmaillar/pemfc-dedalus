@@ -75,9 +75,9 @@ def main() -> None:
         globalized=True,
         residual_tolerance=1e-8,
         max_backtracks=12,
-        picard_iterations=80,
+        picard_iterations=160,
         picard_relaxation=0.25,
-        picard_tolerance=1e-4,
+        picard_tolerance=1e-8,
     )
 
     area_m2 = params.length_x * params.length_y
