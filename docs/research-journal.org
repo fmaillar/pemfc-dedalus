@@ -17909,3 +17909,84 @@ norme jusqu'au critère, sans rebond tardif.
 Ce choix sera ensuite utilisé pour réintroduire progressivement la continuation
 en lambda.
 
+
+*** Résultat du scan d'amortissement Newton
+
+Au niveau :
+
+  lambda = 1e-6
+
+le facteur :
+
+  damping = 0.25
+
+est le seul des quatre réglages testés qui reste stable et physiquement
+admissible sur 40 itérations.
+
+Sa norme décroît monotoniquement :
+
+  6.62e-1 -> 1.19e-3.
+
+Les facteurs :
+
+  0.50
+  0.75
+  1.00
+
+atteignent un minimum transitoire puis divergent fortement.
+
+Le facteur 0.25 est donc retenu comme base stable.
+
+Cependant, la norme totale semble atteindre un plancher voisin de :
+
+  1e-3
+
+et ne justifie pas encore un critère de convergence physique.
+
+*** Étape 15 — décomposition de la norme Newton
+
+La norme utilisée jusqu'ici est la somme des normes de toutes les perturbations
+du NLBVP.
+
+Elle inclut donc :
+
+- c_O2 ;
+- phi_s ;
+- phi_m ;
+- les six variables tau.
+
+Les variables tau étant auxiliaires et servant à imposer les conditions aux
+limites spectrales, elles peuvent dominer une norme globale sans représenter une
+variation physique importante des champs principaux.
+
+Le nouveau diagnostic conserve :
+
+  lambda = 1e-6
+  damping = 0.25
+  grille = 4 x 4 x 16
+  40 itérations.
+
+À chaque itération, il enregistre séparément la norme de chaque perturbation.
+
+Nouvelle cible :
+
+  make quick-stationary-component-norms-v10
+
+Sortie :
+
+  results/quick-v10-stationary-component-norms.json
+
+*** Critère de décision
+
+Si le plancher de 1e-3 est dominé par les tau tandis que les perturbations de :
+
+  c_O2
+  phi_s
+  phi_m
+
+sont déjà faibles, le critère de convergence sera redéfini sur les champs
+physiques.
+
+Si une variable physique domine encore la norme, il faudra poursuivre le
+diagnostic numérique avant de reprendre la continuation.
+
