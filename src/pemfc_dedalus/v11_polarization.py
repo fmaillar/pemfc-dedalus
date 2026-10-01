@@ -240,6 +240,35 @@ class V11AirflowControlledPolarizationPoint:
     thermal_target_bracketed: bool
 
 
+def _periodic_candidate(
+    *,
+    current_a: float,
+    airflow_slpm: float,
+    dt_s: float,
+    sample_every_s: float,
+    max_cycles: int,
+    cycle_convergence_tolerance: float,
+) -> V11PeriodicPolarizationPoint | None:
+    """Return a converged periodic point, or None for an unusable airflow.
+
+    A candidate can be unusable because the reduced model enters a non-physical
+    state (for example a negative predicted cell voltage) or because the purge
+    cycle has not converged within the configured cycle budget.
+    """
+    try:
+        point = simulate_periodic_polarization_point(
+            current_a=current_a,
+            dt_s=dt_s,
+            sample_every_s=sample_every_s,
+            max_cycles=max_cycles,
+            convergence_tolerance=cycle_convergence_tolerance,
+            stack_air_flow_slpm=airflow_slpm,
+        )
+    except ValueError:
+        return None
+    return point if point.converged else None
+
+
 def solve_ballard_airflow_operating_point(
     *,
     current_a: float,
@@ -251,13 +280,13 @@ def solve_ballard_airflow_operating_point(
     max_airflow_iterations: int = 8,
     minimum_oxygen_stoichiometry: float | None = None,
     maximum_oxygen_stoichiometry: float = 150.0,
+    feasibility_scan_points: int = 8,
 ) -> V11AirflowControlledPolarizationPoint:
-    """Solve the unified cathode-air flow from the Ballard thermal target.
+    """Solve the one physical cathode-air stream from the thermal target.
 
-    The same air stream supplies oxygen and removes heat. The lower bound is
-    therefore the Ballard minimum recommended oxygen stoichiometry, while the
-    selected operating point is the lowest flow found that reaches the target
-    stack temperature within tolerance.
+    The same stream supplies oxygen and removes heat. Candidate airflows are
+    first screened for a physically valid, converged purge-periodic solution.
+    Thermal root finding is then performed only inside that feasible region.
     """
     if current_a <= 0.0:
         raise ValueError("current_a must be positive")
@@ -265,6 +294,8 @@ def solve_ballard_airflow_operating_point(
         raise ValueError("temperature_tolerance_k must be positive")
     if max_airflow_iterations < 1:
         raise ValueError("max_airflow_iterations must be >= 1")
+    if feasibility_scan_points < 2:
+        raise ValueError("feasibility_scan_points must be >= 2")
 
     tech = Ballard1020ACSTechnologyReference()
     stack = UserStackConfiguration()
@@ -281,24 +312,41 @@ def solve_ballard_airflow_operating_point(
         )
 
     stoich_flow = stack.stoichiometric_air_slpm(current_a)
-    low_flow = stoich_flow * minimum_stoich
-    high_flow = stoich_flow * maximum_oxygen_stoichiometry
+    requested_min_flow = stoich_flow * minimum_stoich
+    maximum_flow = stoich_flow * maximum_oxygen_stoichiometry
     target_temperature = (
         273.15 + tech.optimum_stack_temperature_c(current_a)
     )
 
-    low_point = simulate_periodic_polarization_point(
-        current_a=current_a,
-        dt_s=dt_s,
-        sample_every_s=sample_every_s,
-        max_cycles=max_cycles,
-        convergence_tolerance=cycle_convergence_tolerance,
-        stack_air_flow_slpm=low_flow,
+    scan_stoich = np.linspace(
+        minimum_stoich,
+        maximum_oxygen_stoichiometry,
+        feasibility_scan_points,
     )
-    if not low_point.converged:
-        raise RuntimeError(
-            "minimum-airflow purge cycle did not converge before airflow control"
+    feasible: list[tuple[float, V11PeriodicPolarizationPoint]] = []
+    for stoich in scan_stoich:
+        airflow = stoich_flow * float(stoich)
+        point = _periodic_candidate(
+            current_a=current_a,
+            airflow_slpm=airflow,
+            dt_s=dt_s,
+            sample_every_s=sample_every_s,
+            max_cycles=max_cycles,
+            cycle_convergence_tolerance=cycle_convergence_tolerance,
         )
+        if point is not None:
+            feasible.append((airflow, point))
+            if point.mean_stack_temperature_k <= (
+                target_temperature + temperature_tolerance_k
+            ):
+                break
+
+    if not feasible:
+        raise RuntimeError(
+            "no physically valid converged purge cycle found in airflow scan"
+        )
+
+    low_flow, low_point = feasible[0]
     low_error = low_point.mean_stack_temperature_k - target_temperature
 
     if abs(low_error) <= temperature_tolerance_k:
@@ -306,63 +354,77 @@ def solve_ballard_airflow_operating_point(
             polarization=low_point,
             target_temperature_k=target_temperature,
             temperature_error_k=low_error,
-            minimum_air_flow_slpm=low_flow,
+            minimum_air_flow_slpm=requested_min_flow,
             selected_air_flow_slpm=low_flow,
             iterations=0,
             thermal_target_bracketed=True,
         )
+
     if low_error < -temperature_tolerance_k:
         return V11AirflowControlledPolarizationPoint(
             polarization=low_point,
             target_temperature_k=target_temperature,
             temperature_error_k=low_error,
-            minimum_air_flow_slpm=low_flow,
+            minimum_air_flow_slpm=requested_min_flow,
             selected_air_flow_slpm=low_flow,
             iterations=0,
             thermal_target_bracketed=False,
         )
 
-    high_point = simulate_periodic_polarization_point(
-        current_a=current_a,
-        dt_s=dt_s,
-        sample_every_s=sample_every_s,
-        max_cycles=max_cycles,
-        convergence_tolerance=cycle_convergence_tolerance,
-        stack_air_flow_slpm=high_flow,
+    high_pair = next(
+        (
+            (airflow, point)
+            for airflow, point in feasible[1:]
+            if point.mean_stack_temperature_k
+            <= target_temperature + temperature_tolerance_k
+        ),
+        None,
     )
-    if not high_point.converged:
-        raise RuntimeError(
-            "maximum-airflow purge cycle did not converge before airflow control"
+    if high_pair is None:
+        high_flow = maximum_flow
+        high_point = _periodic_candidate(
+            current_a=current_a,
+            airflow_slpm=high_flow,
+            dt_s=dt_s,
+            sample_every_s=sample_every_s,
+            max_cycles=max_cycles,
+            cycle_convergence_tolerance=cycle_convergence_tolerance,
         )
-    high_error = high_point.mean_stack_temperature_k - target_temperature
-    if high_error > temperature_tolerance_k:
-        return V11AirflowControlledPolarizationPoint(
-            polarization=high_point,
-            target_temperature_k=target_temperature,
-            temperature_error_k=high_error,
-            minimum_air_flow_slpm=low_flow,
-            selected_air_flow_slpm=high_flow,
-            iterations=0,
-            thermal_target_bracketed=False,
-        )
+        if high_point is None:
+            raise RuntimeError(
+                "maximum airflow did not produce a converged physical cycle"
+            )
+        high_error = high_point.mean_stack_temperature_k - target_temperature
+        if high_error > temperature_tolerance_k:
+            return V11AirflowControlledPolarizationPoint(
+                polarization=high_point,
+                target_temperature_k=target_temperature,
+                temperature_error_k=high_error,
+                minimum_air_flow_slpm=requested_min_flow,
+                selected_air_flow_slpm=high_flow,
+                iterations=0,
+                thermal_target_bracketed=False,
+            )
+    else:
+        high_flow, high_point = high_pair
 
     selected = high_point
     selected_flow = high_flow
     iterations = 0
-    for _ in range(1, max_airflow_iterations + 1):
+    for iterations in range(1, max_airflow_iterations + 1):
         mid_flow = 0.5 * (low_flow + high_flow)
-        mid_point = simulate_periodic_polarization_point(
+        mid_point = _periodic_candidate(
             current_a=current_a,
+            airflow_slpm=mid_flow,
             dt_s=dt_s,
             sample_every_s=sample_every_s,
             max_cycles=max_cycles,
-            convergence_tolerance=cycle_convergence_tolerance,
-            stack_air_flow_slpm=mid_flow,
+            cycle_convergence_tolerance=cycle_convergence_tolerance,
         )
-        if not mid_point.converged:
-            raise RuntimeError(
-                "candidate-airflow purge cycle did not converge before airflow control"
-            )
+        if mid_point is None:
+            low_flow = mid_flow
+            continue
+
         mid_error = mid_point.mean_stack_temperature_k - target_temperature
         selected = mid_point
         selected_flow = mid_flow
@@ -380,8 +442,9 @@ def solve_ballard_airflow_operating_point(
         temperature_error_k=(
             selected.mean_stack_temperature_k - target_temperature
         ),
-        minimum_air_flow_slpm=stoich_flow * minimum_stoich,
+        minimum_air_flow_slpm=requested_min_flow,
         selected_air_flow_slpm=selected_flow,
         iterations=iterations,
         thermal_target_bracketed=True,
     )
+
