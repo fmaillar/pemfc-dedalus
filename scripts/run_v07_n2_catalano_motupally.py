@@ -253,13 +253,16 @@ def compute_motupally_lookup_row(task: dict[str, Any]) -> tuple[float, list[floa
         DRY_REFERENCE_PERMEABILITY_BARRER
     )
     activation_energy_j_mol = float(task["activation_energy_j_mol"])
+    stack_temperature_k = float(
+        task.get("stack_temperature_k", p.stack_temperature)
+    )
     water_partial_molar_volume_m3_mol = (
         float(task["water_partial_molar_volume_cm3_mol"]) * 1.0e-6
     )
     if transfer_model == "constant":
         model = make_motupally_transport_permeance_model(
             dry_reference_si=dry_reference_si,
-            stack_temperature_k=p.stack_temperature,
+            stack_temperature_k=stack_temperature_k,
             gas_constant_j_mol_k=p.gas_constant,
             faraday_c_mol=p.faraday,
             fixed_charge_mol_m3=fixed_charge,
@@ -278,7 +281,7 @@ def compute_motupally_lookup_row(task: dict[str, Any]) -> tuple[float, list[floa
     elif transfer_model == "grimaldi":
         model = make_motupally_grimaldi_transport_permeance_model(
             dry_reference_si=dry_reference_si,
-            stack_temperature_k=p.stack_temperature,
+            stack_temperature_k=stack_temperature_k,
             gas_constant_j_mol_k=p.gas_constant,
             faraday_c_mol=p.faraday,
             fixed_charge_mol_m3=fixed_charge,
@@ -309,6 +312,7 @@ def build_motupally_lookup_table(
     activation_energy_j_mol: float,
     water_partial_molar_volume_cm3_mol: float,
     anode_transfer_coefficient_m_s: float,
+    stack_temperature_k: float | None = None,
 ) -> np.ndarray:
     """Precompute Motupally permeance on a 2D state grid in parallel."""
     tasks = [
@@ -323,6 +327,11 @@ def build_motupally_lookup_table(
             ),
             "anode_transfer_coefficient_m_s": (
                 anode_transfer_coefficient_m_s
+            ),
+            "stack_temperature_k": (
+                CathodeParameters().stack_temperature
+                if stack_temperature_k is None
+                else stack_temperature_k
             ),
         }
         for relative_humidity in relative_humidity_axis
@@ -430,7 +439,7 @@ def run_simulation_task(task: dict[str, Any]) -> dict[str, Any]:
     if model_kind == "constant_d":
         permeance_model = make_v06_transport_permeance_model(
             dry_reference_si=dry_reference_si,
-            stack_temperature_k=p.stack_temperature,
+            stack_temperature_k=stack_temperature_k,
             gas_constant_j_mol_k=p.gas_constant,
             faraday_c_mol=p.faraday,
             fixed_charge_mol_m3=fixed_charge,
