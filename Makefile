@@ -151,9 +151,15 @@ help:
 install:
 	$(PYTHON) -m pip install -e '.[test]'
 
-test check: unit lint unit typecheck
+test check: unit lint typecheck
+
+test-full: unit-full lint typecheck
 
 unit:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(PYTHON) -m pytest -q \
+	  -n $(PYTEST_WORKERS) --dist=load -m "not slow"
+
+unit-full:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(PYTHON) -m pytest -q \
 	  -n $(PYTEST_WORKERS) --dist=load
 
