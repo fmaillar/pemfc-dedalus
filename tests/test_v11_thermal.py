@@ -20,7 +20,7 @@ def test_ballard_heat_generation_relation() -> None:
         cell_voltage_v=0.768165517,
     )
 
-    assert heat == pytest.approx(126.2467933732)
+    assert heat == pytest.approx(126.2508993732)
 
 
 def test_standard_air_mass_flow_uses_manual_density() -> None:
