@@ -21227,3 +21227,185 @@ est :
   T_air,out cathode.
 
 La fermeture thermique air-stack devient donc le prochain chantier principal.
+
+
+
+** V11 étape 21 — fermeture thermique cathode dérivée de la géométrie
+
+Le dernier terme externe du coeur prédictif V11, T_air,out cathode, est
+désormais fermé sans hA ajusté ni NTU prescrit.
+
+Une revue ciblée de la littérature FCgen-1020ACS a confirmé une géométrie
+publiée des canaux cathode :
+
+- hauteur du canal trapézoïdal : 2.5 mm ;
+- grande base : 2.5 mm ;
+- petite base : 1.5 mm ;
+- longueur : 60 mm ;
+- nombre de canaux : 80 par cellule.
+
+Ces dimensions proviennent des travaux d'Andisheh-Tadbir sur le
+FCgen-1020ACS et sont reprises dans la thèse de Dang (2025).
+
+Pour cette géométrie :
+
+  A_cross = (a + b) h / 2
+          = 5.0 mm2
+
+et le périmètre mouillé vaut environ :
+
+  P_wetted ~= 9.10 mm.
+
+Le diamètre hydraulique est donc :
+
+  D_H = 4 A_cross / P_wetted
+      ~= 2.198 mm.
+
+La corrélation de Sadasivam et al. pour un conduit trapézoïdal à paroi
+isotherme et écoulement laminaire pleinement développé est utilisée :
+
+  Nu
+    = 7.541
+      - 20.183 gamma
+      + 33.483 gamma^2
+      - 26.286 gamma^3
+      + 9.9036 gamma^4
+      - 1.4825 gamma^5
+
+avec :
+
+  gamma = h/a.
+
+Pour la géométrie 1020ACS :
+
+  gamma = 1
+
+et :
+
+  Nu ~= 2.9761.
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_heat_transfer.py
+
+calcule ensuite :
+
+  h_conv = Nu k_air / D_H.
+
+La surface convective par cellule est obtenue directement par :
+
+  A_conv,cell
+    = P_wetted L_channel N_channels
+
+soit environ :
+
+  A_conv,cell ~= 0.04368 m2.
+
+Le produit UA n'est donc pas un paramètre de fermeture :
+
+  UA_stack
+    = h_conv A_conv,cell n_cells.
+
+Il est dérivé de la géométrie, du Nusselt et de la conductivité thermique de
+l'air.
+
+La conductivité de l'air est évaluée par interpolation linéaire entre les
+valeurs littérature :
+
+  k_air(300 K) = 0.0264 W/(m K)
+  k_air(400 K) = 0.0335 W/(m K).
+
+La température de film utilisée est :
+
+  T_film = (T_stack + T_air,in) / 2.
+
+La capacité thermique du débit d'air est :
+
+  C_dot_air = m_dot_air cp.
+
+Le NTU est alors une grandeur calculée :
+
+  NTU = UA_stack / C_dot_air.
+
+Il n'est plus fourni par l'utilisateur ni ajusté.
+
+Pour une paroi isotherme :
+
+  epsilon = 1 - exp(-NTU)
+
+et :
+
+  T_air,out
+    = T_air,in
+      + epsilon (T_stack - T_air,in).
+
+Cette température calculée est transmise au bilan thermique V11 :
+
+  C_stack dT/dt
+    = Q_gen
+      - m_dot_air cp (T_air,out - T_air,in).
+
+Le coeur bas niveau :
+
+  coupled_v11_rhs(...)
+
+conserve T_air,out comme argument explicite afin de rester testable et utilisable
+pour des diagnostics indépendants.
+
+Le coeur prédictif :
+
+  coupled_v11_predictive_rhs(...)
+
+ne demande plus T_air,out. Il calcule successivement :
+
+- la tension ;
+- le transfert thermique géométrique ;
+- T_air,out ;
+- le bilan thermique et dT/dt ;
+- le débit cathode isobare ;
+- le RHS complet.
+
+Le diagnostic contient désormais V11CathodeHeatTransfer avec :
+
+- Nu ;
+- D_H ;
+- surface convective par cellule ;
+- h_conv ;
+- UA_stack ;
+- C_dot_air ;
+- NTU ;
+- efficacité ;
+- T_air,out.
+
+Les tests vérifient :
+
+- A_cross = 5 mm2 ;
+- D_H ~= 2.198 mm ;
+- A_conv,cell ~= 0.04368 m2 ;
+- Nu(gamma=1) ~= 2.9761 ;
+- T_air,in < T_air,out < T_stack ;
+- diminution du NTU lorsque le débit d'air augmente ;
+- identité entre l'efficacité NTU et la température de sortie calculée ;
+- raccord de cette fermeture au coeur prédictif.
+
+Limite explicite :
+
+la fermeture suppose un écoulement laminaire pleinement développé et une
+température de paroi représentée par T_stack lumped. Elle ne remplace pas une
+résolution CFD du champ thermique local.
+
+Contrairement aux études V09, le NTU n'est cependant plus une valeur prescrite :
+il est calculé à partir de paramètres géométriques et thermophysiques
+indépendants des données Ballard utilisées pour validation.
+
+À ce stade, le coeur dynamique prédictif V11 ne contient plus de fermeture
+externe parmi :
+
+- V_cell ;
+- débit de sortie cathode ;
+- crossover N2 ;
+- T_air,out.
+
+Les seuls paramètres encore explicitement non spécifiques au FCgen-1020ACS sont
+le chargement Pt cathode et l'ECSA, déjà identifiés comme verrou de provenance
+du modèle de tension.
