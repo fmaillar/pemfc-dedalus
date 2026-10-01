@@ -106,6 +106,7 @@ def cathode_isobaric_outlet_mol_s(
     inlet_water_mole_fraction: float,
     current_a: float,
     water_source_to_gas_mol_s: float,
+    nitrogen_sink_mol_s: float = 0.0,
     temperature_k: float,
     temperature_rate_k_s: float,
     total_pressure_pa: float,
@@ -124,6 +125,8 @@ def cathode_isobaric_outlet_mol_s(
     """
     if liquid_water_mol < 0.0:
         raise ValueError("liquid_water_mol must be non-negative")
+    if nitrogen_sink_mol_s < 0.0:
+        raise ValueError("nitrogen_sink_mol_s must be non-negative")
     if inlet_air_mol_s < 0.0:
         raise ValueError("inlet_air_mol_s must be non-negative")
     if not 0.0 <= inlet_water_mole_fraction <= 1.0:
@@ -142,6 +145,7 @@ def cathode_isobaric_outlet_mol_s(
         outlet = (
             inlet_air_mol_s
             - faraday.oxygen_consumption_mol_s
+            - nitrogen_sink_mol_s
             + water_source_to_gas_mol_s
             - target_gas_accumulation
         )
@@ -173,6 +177,7 @@ def cathode_isobaric_outlet_mol_s(
             (
                 dry_inlet_mol_s
                 - faraday.oxygen_consumption_mol_s
+                - nitrogen_sink_mol_s
             )
             / dry_fraction
             + saturation_expansion_mol_s
@@ -222,6 +227,7 @@ def cathode_gas_rhs_per_cell(
     inlet_water_mole_fraction: float,
     water_source_to_gas_mol_s: float,
     outlet_molar_flow_per_cell_mol_s: float,
+    nitrogen_sink_mol_s: float = 0.0,
     faraday_c_mol: float = 96485.33212,
 ) -> CathodeGasDerivative:
     """Return one-cell cathode gas species derivatives.
@@ -235,6 +241,8 @@ def cathode_gas_rhs_per_cell(
         raise ValueError("stack_air_flow_slpm must be non-negative")
     if outlet_molar_flow_per_cell_mol_s < 0.0:
         raise ValueError("outlet_molar_flow_per_cell_mol_s must be non-negative")
+    if nitrogen_sink_mol_s < 0.0:
+        raise ValueError("nitrogen_sink_mol_s must be non-negative")
     if not 0.0 <= inlet_oxygen_mole_fraction <= 1.0:
         raise ValueError("inlet_oxygen_mole_fraction must be in [0, 1]")
     if not 0.0 <= inlet_water_mole_fraction <= 1.0:
@@ -261,6 +269,7 @@ def cathode_gas_rhs_per_cell(
         nitrogen_mol_s=(
             inlet_per_cell_mol_s * inlet_nitrogen_mole_fraction
             - outlet_molar_flow_per_cell_mol_s * y_n2
+            - nitrogen_sink_mol_s
         ),
         water_vapour_mol_s=(
             inlet_per_cell_mol_s * inlet_water_mole_fraction
