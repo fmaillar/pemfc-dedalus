@@ -19313,3 +19313,57 @@ La cible reste :
 Le critère décisif du prochain run est la baisse du mérite pré-Newton,
 notamment de la composante oxygen qui devrait alors devenir proche du bruit
 de discrétisation.
+
+
+*** Résultat de la résolution finale Picard (2ad6418)
+
+La résolution LBVP supplémentaire exécutée après convergence Picard ne modifie
+pratiquement pas le mérite pré-Newton :
+
+  pre_newton_residual_merit ~= 3.2486e-2
+
+avec toujours :
+
+  oxygen ~= 3.1801e-2
+  membrane_potential ~= 6.63e-3.
+
+Cela montre que le problème n'est pas simplement l'absence d'une dernière
+résolution avec le q_hat final.
+
+L'explication la plus probable est la réutilisation du même solveur LBVP
+Picard alors que q_hat intervient comme source externe variable.
+
+Dedalus construit et factorise un problème linéaire pour un ensemble
+d'opérateurs donné ; dans ce contexte, la réutilisation du solveur ne garantit
+pas que la dépendance externe en q_hat soit reconstruite exactement comme
+attendu entre deux appels.
+
+*** Étape 30 — reconstruire le LBVP à chaque itération Picard
+
+Pour supprimer cette ambiguïté, le LBVP Picard est désormais reconstruit à
+chaque itération après fixation du q_hat courant.
+
+La séquence devient :
+
+  q_hat^(n)
+  -> construction d'un nouveau LBVP
+  -> résolution transport/potentiels
+  -> recalcul q_BV
+  -> sous-relaxation de q_hat
+  -> itération suivante.
+
+Après convergence, un dernier LBVP est également reconstruit et résolu avec le
+q_hat final.
+
+Cette stratégie est plus coûteuse, mais le screening utilise une grille
+4 x 4 x 16 et le gain de robustesse prévaut sur le coût.
+
+La cible reste :
+
+  make quick-stationary-inverse-bv-picard-v10
+
+Le critère décisif du prochain run reste :
+
+  forte diminution de pre_newton_residual_merit,
+
+en particulier de la composante oxygen.
