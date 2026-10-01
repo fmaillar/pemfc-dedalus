@@ -1,0 +1,11 @@
+{
+  "current_a": 26.04,
+  "vcell_v": 0.768,
+  "heat_rejection_w": 126.29399999999995,
+  "oxidant_inlet_temperature_k": 293.15,
+  "target_stack_temperature_k": 312.96119999999996,
+  "manual_floor_air_flow_slpm": 216.132,
+  "ideal_outlet_temperature_k_at_floor": 322.12492683084196,
+  "required_air_flow_slpm_for_target_outlet": 316.10447049161803,
+  "required_to_floor_flow_ratio": 1.4625528403550516
+}

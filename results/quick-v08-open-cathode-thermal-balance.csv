@@ -1,0 +1,2 @@
+current_a,vcell_v,heat_rejection_w,oxidant_inlet_temperature_k,target_stack_temperature_k,manual_floor_air_flow_slpm,ideal_outlet_temperature_k_at_floor,required_air_flow_slpm_for_target_outlet,required_to_floor_flow_ratio
+26.04,0.768,126.29399999999995,293.15,312.96119999999996,216.132,322.12492683084196,316.10447049161803,1.4625528403550516
