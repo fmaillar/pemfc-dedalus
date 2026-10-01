@@ -117,3 +117,81 @@ def streamwise_oxygen_profile(
         oxygen_stoichiometry=stoichiometry,
         oxygen_utilization=utilization,
     )
+
+
+
+@dataclass(frozen=True)
+class StreamwiseThermalProfile:
+    """One-dimensional sensible-heating profile for cathode air."""
+
+    streamwise_fraction: np.ndarray
+    air_temperature_k: np.ndarray
+    inlet_air_flow_slpm_per_cell: float
+    heat_rejection_w_per_cell: float
+
+    @property
+    def inlet_temperature_k(self) -> float:
+        return float(self.air_temperature_k[0])
+
+    @property
+    def outlet_temperature_k(self) -> float:
+        return float(self.air_temperature_k[-1])
+
+    @property
+    def temperature_rise_k(self) -> float:
+        return self.outlet_temperature_k - self.inlet_temperature_k
+
+
+def streamwise_air_temperature_profile(
+    *,
+    inlet_temperature_k: float,
+    total_air_flow_slpm: float,
+    n_cells: int,
+    total_heat_rejection_w: float,
+    points: int = 101,
+    air_density_kg_m3: float = 1.204,
+    air_specific_heat_j_kg_k: float = 1005.0,
+) -> StreamwiseThermalProfile:
+    """Return the plug-flow sensible-heating profile of cathode air."""
+    if inlet_temperature_k <= 0.0:
+        raise ValueError("inlet_temperature_k must be positive")
+    if n_cells < 1:
+        raise ValueError("n_cells must be >= 1")
+    if total_heat_rejection_w < 0.0:
+        raise ValueError("total_heat_rejection_w must be non-negative")
+    if points < 2:
+        raise ValueError("points must be >= 2")
+    if air_density_kg_m3 <= 0.0:
+        raise ValueError("air_density_kg_m3 must be positive")
+    if air_specific_heat_j_kg_k <= 0.0:
+        raise ValueError("air_specific_heat_j_kg_k must be positive")
+
+    per_cell_air_flow_slpm = total_air_flow_slpm / n_cells
+    volumetric_flow_m3_s = per_cell_air_flow_slpm * 1.0e-3 / 60.0
+    mass_flow_kg_s = volumetric_flow_m3_s * air_density_kg_m3
+    heat_rejection_w_per_cell = total_heat_rejection_w / n_cells
+
+    if mass_flow_kg_s <= 0.0:
+        if heat_rejection_w_per_cell == 0.0:
+            coordinate = np.linspace(0.0, 1.0, points)
+            temperature = np.full(points, inlet_temperature_k)
+            return StreamwiseThermalProfile(
+                streamwise_fraction=coordinate,
+                air_temperature_k=temperature,
+                inlet_air_flow_slpm_per_cell=per_cell_air_flow_slpm,
+                heat_rejection_w_per_cell=heat_rejection_w_per_cell,
+            )
+        raise ValueError("airflow must be positive when heat is rejected")
+
+    total_rise_k = heat_rejection_w_per_cell / (
+        mass_flow_kg_s * air_specific_heat_j_kg_k
+    )
+    coordinate = np.linspace(0.0, 1.0, points)
+    temperature = inlet_temperature_k + total_rise_k * coordinate
+
+    return StreamwiseThermalProfile(
+        streamwise_fraction=coordinate,
+        air_temperature_k=temperature,
+        inlet_air_flow_slpm_per_cell=per_cell_air_flow_slpm,
+        heat_rejection_w_per_cell=heat_rejection_w_per_cell,
+    )

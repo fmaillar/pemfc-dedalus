@@ -14792,3 +14792,151 @@ cathodique avant de raffiner la thermique spatiale.
 Le résultat du screening décidera donc de l'ordre des deux prochains blocs
 physiques.
 
+
+*** Résultats du screening spatial O2
+
+Le premier screening V0.9 a été exécuté sur les neuf combinaisons :
+
+  I =
+    7.3
+    14.5
+    26.04 A
+
+et :
+
+  T_air,in =
+    10
+    20
+    30 degC.
+
+Un cas est thermiquement non atteignable :
+
+  7.3 A / 30 degC,
+
+car la température d'air d'entrée dépasse légèrement la température cible de
+pile :
+
+  30.0 degC
+  >
+  29.879 degC.
+
+Les huit autres cas sont atteignables.
+
+La baisse relative maximale de fraction molaire O2 est :
+
+  1.5908 %
+
+au point :
+
+  I = 26.04 A
+  T_air,in = 10 degC.
+
+Dans ce cas :
+
+  débit d'air :
+    216.132 slpm
+
+  contrainte active :
+    plancher stoechiométrique
+
+  stoechiométrie O2 effective :
+    49.90
+
+  utilisation O2 :
+    2.004 %
+
+  y_O2 entrée :
+    0.2095
+
+  y_O2 sortie :
+    0.20617.
+
+Aux autres points atteignables, la baisse de fraction molaire O2 reste comprise
+entre environ :
+
+  0.216 %
+
+et :
+
+  1.392 %.
+
+*** Interprétation du screening O2
+
+Avec la loi de débit d'air V0.8, l'oxygène est très largement suralimenté par
+rapport à sa consommation faradique.
+
+Le débit d'air est principalement dimensionné par la contrainte thermique, et
+même lorsque le plancher stoechiométrique devient actif à 26.04 A / 10 degC,
+la stoechiométrie O2 effective reste proche de 50.
+
+L'appauvrissement streamwise O2 reste donc faible dans tous les régimes
+atteignables étudiés.
+
+La spatialisation O2 n'est pas le prochain couplage dominant de V0.9.
+
+Une future PDE d'advection-diffusion O2 reste nécessaire pour reconnecter le
+modèle au solveur cathodique 3D, mais elle peut être introduite après avoir
+caractérisé le gradient thermique et la distribution d'air.
+
+*** Décision après screening O2
+
+La priorité V0.9 devient la spatialisation thermique streamwise de l'air.
+
+L'étape suivante doit quantifier :
+
+- la montée de température de l'air entre entrée et sortie ;
+- le gradient thermique normalisé le long de l'écoulement ;
+- l'écart entre température d'air de sortie et température cible de pile ;
+- l'influence de la contrainte active de débit.
+
+Le même jeu de courants et de températures d'entrée est conservé pour permettre
+une comparaison directe avec le screening O2.
+
+
+*** Étape 2 — screening thermique streamwise de l'air cathodique
+
+On utilise le débit d'air issu de la loi V0.8 et on répartit la chaleur totale
+du stack uniformément entre les cellules.
+
+Pour une cellule :
+
+  Q_dot_cell = Q_dot_stack / N_cells.
+
+Dans une approximation plug-flow adiabatique hors échange avec la pile, la
+température d'air augmente suivant :
+
+  T_air(xi)
+  =
+  T_in
+  +
+  xi Q_dot_cell / (m_dot_cell c_p).
+
+Cette fermeture ne représente pas encore le transfert convectif local
+pile-air ; elle fournit la limite de bilan sensible correspondant à une
+absorption progressive uniforme de la chaleur rejetée.
+
+L'objectif est de mesurer l'amplitude du gradient streamwise avant
+d'introduire une équation d'énergie spatiale dans Dedalus.
+
+Nouvelle cible :
+
+  make quick-spatial-thermal-v09
+
+Sorties :
+
+  results/quick-v09-cathode-thermal-profile.json
+  results/quick-v09-cathode-thermal-profile.csv
+
+Le critère de décision sera fondé principalement sur :
+
+- Delta T_air entrée-sortie ;
+- T_air,out - T_stack,target ;
+- contrainte active sur le débit ;
+- variation du gradient avec le courant et T_air,in.
+
+Si le gradient thermique est faible, V0.9 pourra passer directement à une
+première distribution de vitesse / advection imposée dans Dedalus.
+
+S'il est important, la prochaine PDE devra coupler explicitement l'équation
+d'énergie de l'air au transport d'O2.
+
