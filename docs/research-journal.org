@@ -17774,3 +17774,63 @@ L'objectif est de distinguer :
 Aucune modification supplémentaire de la physique ni de la grille n'est faite
 avant ce diagnostic.
 
+
+*** Résultat du diagnostic LBVP / Newton amorti
+
+Le LBVP sans réaction est physiquement cohérent :
+
+  min(c_O2) = 6.915 mol/m3
+  mean(c_O2) = 7.572 mol/m3
+  max(c_O2) = 8.228 mol/m3.
+
+Le problème initial n'est donc pas le LBVP.
+
+À :
+
+  lambda = 1e-6
+
+la norme des perturbations Newton décroît régulièrement :
+
+  0.662
+  0.444
+  0.341
+  0.286
+  0.238
+  0.197
+  0.162
+  0.133
+  0.109
+  0.089
+  0.073
+  0.059.
+
+Cette évolution est compatible avec un Newton fortement amorti.
+
+Cependant, le champ O2 final devient légèrement négatif, alors que pour une
+source multipliée par 1e-6 la solution physique devrait rester très proche de
+l'état LBVP.
+
+*** Étape 13 — Newton complet au premier niveau
+
+Le diagnostic est donc ramené à un seul niveau :
+
+  lambda = 1e-6.
+
+On utilise désormais :
+
+  damping = 1
+  maximum = 8 Newton.
+
+À chaque itération sont enregistrés simultanément :
+
+  perturbation_norm
+  min(c_O2).
+
+L'objectif est de vérifier directement si la correction Newton complète :
+
+- converge rapidement vers une solution proche du LBVP ;
+- ou pousse systématiquement le champ O2 hors du domaine physique.
+
+Aucune continuation vers des lambda plus élevés n'est effectuée pendant ce
+diagnostic.
+
