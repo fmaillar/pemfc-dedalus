@@ -22564,3 +22564,65 @@ Commande :
 
 La campagne complète utilisera ensuite six courants, dt = 0.01 s et une
 tolérance thermique de 0.1 K.
+
+
+
+*** Étape 25b — robustification après échec du premier quick contrôlé
+
+Le premier quick de contrôle du débit cathodique a échoué de deux façons :
+
+  I = 15 A:
+    le candidat à lambda_air = 20 n'a pas atteint la tolérance de cycle 1e-4
+    en 12 cycles ;
+
+  I = 26.04 A:
+    le candidat à lambda_air = 20 a conduit à un état non physique avec
+    V_cell < 0.
+
+Ces deux cas ne doivent pas être confondus.
+
+- Un candidat non convergé dans le budget de cycles est *non résolu* au budget
+  numérique courant, mais n'est pas déclaré physiquement impossible.
+
+- Un candidat qui mène à un état non physique est *infeasible* pour le modèle
+  réduit à ce débit.
+
+La recherche de débit a donc été modifiée.
+
+Avant toute dichotomie thermique, le solveur effectue désormais un balayage
+croissant de stoechiométrie d'air entre :
+
+  lambda_air,min = 20
+
+et :
+
+  lambda_air,max = 150.
+
+Seuls les candidats qui :
+
+1. restent physiquement valides ;
+2. atteignent un cycle de purge convergé dans le budget ;
+
+sont admissibles pour la recherche thermique.
+
+La dichotomie est ensuite réalisée uniquement dans cette région admissible.
+
+Le quick est volontairement moins strict que la campagne finale afin de tester
+la fermeture sans surcoût excessif :
+
+  max_cycles = 20
+  cycle_tolerance = 1e-3
+  temperature_tolerance = 0.5 K
+  feasibility_scan_points = 6
+  max_airflow_iterations = 4.
+
+La campagne complète conservera :
+
+  max_cycles = 30
+  cycle_tolerance = 1e-4
+  temperature_tolerance = 0.1 K
+  feasibility_scan_points = 10
+  max_airflow_iterations = 8.
+
+Les différents courants restent parallélisés par processus ; l'évolution d'un
+cycle individuel reste séquentielle.
