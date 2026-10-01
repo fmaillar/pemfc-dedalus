@@ -529,3 +529,40 @@ Status: RESOLVED DIRECTLY FROM BALLARD MANUFACTURER MANUAL.
 
 The former geometry/Nusselt/NTU closure remains available only as a historical
 or comparison model. It is no longer the predictive V11 thermal closure.
+
+
+
+* FCgen-1020ACS self-humidifying MEA limitation
+
+Ballard product literature describes the FCgen-1020ACS as using a
+self-humidifying membrane-electrode assembly that eliminates external
+humidification.
+
+Independent FCgen-1020ACS-specific hygrothermal work:
+
+  Andisheh-Tadbir et al.,
+  International Journal of Hydrogen Energy 39 (2014) 14993--15004,
+  "Cell level modeling of the hygrothermal characteristics of open cathode
+  polymer electrolyte membrane fuel cells"
+
+was validated using experimental data from the FCgen-1020ACS. At high current
+density, the reported local relative-humidity range is approximately 5--35 %.
+
+Therefore the V11 high-current cathode RH around 22 % is not by itself
+inconsistent with published FCgen-1020ACS hygrothermal behavior.
+
+Important provenance distinction:
+
+- Springer water sorption/conductivity is a generic Nafion constitutive model;
+- L_mem = 80 um is literature-model provenance, not a Ballard-manual
+  measurement;
+- neither has been established as the constitutive law of Ballard's
+  self-humidifying FCgen-1020ACS MEA.
+
+Status:
+
+  FCgen-1020ACS-specific proton conductivity / membrane ASR remains UNRESOLVED.
+
+The current Springer closure must therefore be treated as a surrogate for
+sensitivity and mechanism studies, not as a fully predictive manufacturer-level
+MEA closure.
