@@ -1,0 +1,213 @@
+{
+  "schema_version": 1,
+  "model": "v09-quasi3d-thermal-map",
+  "current_a": 26.04,
+  "grid": [
+    8,
+    8,
+    32
+  ],
+  "stop_time": 0.001,
+  "span_min": 0.02476699592381323,
+  "span_max": 0.10673274953616924,
+  "rows": [
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 9.016582641706563,
+      "total_reaction_current": 0.004701371420168787,
+      "mean_j_orr_vol_a_m3": 11088140.14190752,
+      "mean_eta_v": -0.4123261160078618,
+      "reaction_current_span": 0.07562807154931969
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.319684867181676,
+      "total_reaction_current": 0.004345815766024335,
+      "mean_j_orr_vol_a_m3": 10249565.48590645,
+      "mean_eta_v": -0.4123011583853016,
+      "reaction_current_span": 0.07562807154931969
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 9.01629682907591,
+      "total_reaction_current": 0.004701225852612251,
+      "mean_j_orr_vol_a_m3": 11087796.8221987,
+      "mean_eta_v": -0.41232610578031204,
+      "reaction_current_span": 0.1031557653968026
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.066370697413715,
+      "total_reaction_current": 0.004216267301482798,
+      "mean_j_orr_vol_a_m3": 9944026.654440554,
+      "mean_eta_v": -0.41229207673583124,
+      "reaction_current_span": 0.1031557653968026
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 9.016011120624656,
+      "total_reaction_current": 0.004701080337908609,
+      "mean_j_orr_vol_a_m3": 11087453.627142947,
+      "mean_eta_v": -0.4123260955564816,
+      "reaction_current_span": 0.10673274953616924
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 10.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.033258637846092,
+      "total_reaction_current": 0.0041993211076531995,
+      "mean_j_orr_vol_a_m3": 9904059.216163209,
+      "mean_eta_v": -0.412290889234457,
+      "reaction_current_span": 0.10673274953616924
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.709062917537644,
+      "total_reaction_current": 0.004544628243919075,
+      "mean_j_orr_vol_a_m3": 10718462.839431785,
+      "mean_eta_v": -0.4123151078515721,
+      "reaction_current_span": 0.050274578915748304
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.261647036768872,
+      "total_reaction_current": 0.004316148972627427,
+      "mean_j_orr_vol_a_m3": 10179596.63355526,
+      "mean_eta_v": -0.41229907811751476,
+      "reaction_current_span": 0.050274578915748304
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.708885712418018,
+      "total_reaction_current": 0.0045445378528956035,
+      "mean_j_orr_vol_a_m3": 10718249.653055662,
+      "mean_eta_v": -0.41231510150601464,
+      "reaction_current_span": 0.0690389950396892
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.094746926638376,
+      "total_reaction_current": 0.004230787526611864,
+      "mean_j_orr_vol_a_m3": 9978272.468424203,
+      "mean_eta_v": -0.41229309432376215,
+      "reaction_current_span": 0.0690389950396892
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.70870856786908,
+      "total_reaction_current": 0.004544447492688891,
+      "mean_j_orr_vol_a_m3": 10718036.539360598,
+      "mean_eta_v": -0.4123150951626245,
+      "reaction_current_span": 0.07150636137407476
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 20.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.072669472296795,
+      "total_reaction_current": 0.004219490588031171,
+      "mean_j_orr_vol_a_m3": 9951628.745356549,
+      "mean_eta_v": -0.41229230261925365,
+      "reaction_current_span": 0.07150636137407476
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.421828914346374,
+      "total_reaction_current": 0.004398007028490436,
+      "mean_j_orr_vol_a_m3": 10372658.086062342,
+      "mean_eta_v": -0.41230481889501397,
+      "reaction_current_span": 0.02476699592381323
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 1.0,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.208709295042093,
+      "total_reaction_current": 0.004289081606342912,
+      "mean_j_orr_vol_a_m3": 10115758.50552573,
+      "mean_eta_v": -0.41229718041264884,
+      "reaction_current_span": 0.02476699592381323
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.421746848617373,
+      "total_reaction_current": 0.00439796510713275,
+      "mean_j_orr_vol_a_m3": 10372559.214935722,
+      "mean_eta_v": -0.41230481595438656,
+      "reaction_current_span": 0.03429355452515027
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 3.0,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.126715050092653,
+      "total_reaction_current": 0.004247143250931585,
+      "mean_j_orr_vol_a_m3": 10016847.289932983,
+      "mean_eta_v": -0.41229424063969217,
+      "reaction_current_span": 0.03429355452515027
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.421664809199935,
+      "total_reaction_current": 0.004397923199199215,
+      "mean_j_orr_vol_a_m3": 10372460.375469843,
+      "mean_eta_v": -0.4123048130147056,
+      "reaction_current_span": 0.03556096899688038
+    },
+    {
+      "current_a": 26.04,
+      "inlet_temperature_c": 30.0,
+      "ntu": 5.0,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.115740707947209,
+      "total_reaction_current": 0.004241528788661831,
+      "mean_j_orr_vol_a_m3": 10003605.633636398,
+      "mean_eta_v": -0.4122938471301958,
+      "reaction_current_span": 0.03556096899688038
+    }
+  ]
+}
