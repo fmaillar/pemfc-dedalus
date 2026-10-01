@@ -46,6 +46,8 @@ class V11PeriodicPolarizationPoint:
     max_cell_voltage_v: float
     mean_stack_temperature_k: float
     mean_membrane_water_content: float
+    mean_anode_water_activity: float
+    mean_cathode_water_activity: float
     mean_anode_nitrogen_mol: float
     mean_stack_power_w: float
     target_stack_temperature_k: float
@@ -237,6 +239,14 @@ def simulate_periodic_polarization_point(
         [point.state.anode_nitrogen_mol for point in final_cycle],
         dtype=float,
     )
+    anode_water_activity = np.asarray(
+        [point.diagnostics.anode_water_activity for point in final_cycle],
+        dtype=float,
+    )
+    cathode_water_activity = np.asarray(
+        [point.diagnostics.cathode_water_activity for point in final_cycle],
+        dtype=float,
+    )
 
     mean_voltage = float(np.mean(voltages))
     mean_temperature = float(np.mean(temperatures))
@@ -266,6 +276,8 @@ def simulate_periodic_polarization_point(
         max_cell_voltage_v=float(np.max(voltages)),
         mean_stack_temperature_k=mean_temperature,
         mean_membrane_water_content=float(np.mean(hydration)),
+        mean_anode_water_activity=float(np.mean(anode_water_activity)),
+        mean_cathode_water_activity=float(np.mean(cathode_water_activity)),
         mean_anode_nitrogen_mol=float(np.mean(anode_n2)),
         mean_stack_power_w=stack.stack_power_w(current_a, mean_voltage),
         target_stack_temperature_k=target_temperature,
