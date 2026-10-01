@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from pemfc_dedalus.cathode_airflow import ideal_gas_species_concentration_mol_m3
-from pemfc_dedalus.cathode_airflow_1d import solve_streamwise_finite_thermal_profile
+from pemfc_dedalus.cathode_airflow_1d import (\n    solve_streamwise_finite_thermal_profile,\n)
 from pemfc_dedalus.parameters import CathodeParameters
 from pemfc_dedalus.thermal import open_cathode_airflow_target
 
@@ -17,7 +17,7 @@ from pemfc_dedalus.thermal import open_cathode_airflow_target
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ntu-values", nargs="+", type=float, default=[1.0, 3.0, 5.0])
-    parser.add_argument("--currents-a", nargs="+", type=float, default=[7.3, 14.5, 26.04])
+    parser.add_argument(\n        "--currents-a", nargs="+", type=float, default=[7.3, 14.5, 26.04]\n    )
     parser.add_argument(
         "--inlet-temperatures-c",
         nargs="+",
@@ -101,7 +101,7 @@ def main() -> None:
 
                 iso_inlet_c = float(isothermal_concentration[0])
                 iso_outlet_c = float(isothermal_concentration[-1])
-                composition_only_drop = (iso_inlet_c - iso_outlet_c) / iso_inlet_c
+                composition_only_drop = (\n                    iso_inlet_c - iso_outlet_c\n                ) / iso_inlet_c
 
                 summaries.append(
                     {
@@ -140,8 +140,8 @@ def main() -> None:
                         }
                     )
 
-    reachable = [row for row in summaries if "relative_o2_concentration_drop" in row]
-    max_drop = max(float(row["relative_o2_concentration_drop"]) for row in reachable)
+    reachable = [\n        row for row in summaries if "relative_o2_concentration_drop" in row\n    ]
+    max_drop = max(\n        float(row["relative_o2_concentration_drop"]) for row in reachable\n    )
     max_thermal = max(float(row["additional_thermal_drop"]) for row in reachable)
 
     output = {
