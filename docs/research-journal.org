@@ -20430,3 +20430,70 @@ Les tests vérifient :
   simple sans N2/H2O ;
 - fraction de purge pour deux volumes échangés ;
 - conservation de la composition pendant une purge parfaitement mélangée.
+
+
+** V11 étape 10 — transport d'eau membrane réduit
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_membrane.py
+
+introduit une fermeture réduite du transport d'eau à travers la membrane.
+
+Convention :
+
+  flux positif = anode -> cathode.
+
+Le flux électro-osmotique est :
+
+  N_EOD = n_d(lambda_bar) * j / F
+
+avec la relation existante :
+
+  n_d = lambda / 22.
+
+Le back-diffusion est :
+
+  N_diff = - D_lambda(lambda_bar,T)
+             * c_fixed
+             * (lambda_c - lambda_a) / L_m.
+
+Les teneurs en eau de bord sont obtenues par la relation activité -> lambda
+de Springer.
+
+La diffusivité D_lambda est évaluée avec la corrélation de Motupally au point :
+
+  lambda_bar = (lambda_a + lambda_c) / 2.
+
+Cette moyenne est une réduction explicite à un point de quadrature. Aucun
+coefficient de transport libre n'est ajouté.
+
+Le flux net est :
+
+  N_net = N_EOD + N_diff.
+
+Le débit molaire traversant par cellule est ensuite :
+
+  n_dot_H2O,mem = A_cell * N_net.
+
+Les paramètres géométriques et matière proviennent exclusivement de
+V11MEAReference :
+
+- A_cell = 0.0145 m2 ;
+- L_mem = 80 um ;
+- rho_mem,dry = 1980 kg/m3 ;
+- EW = 1.10 kg/mol.
+
+Les tests vérifient :
+
+- back-diffusion nul à hydratation égale ;
+- retour cathode -> anode si la cathode est plus humide à courant nul ;
+- identité exacte du débit EOD :
+    n_dot_EOD = n_d * I/F ;
+- augmentation du back-diffusion avec le gradient d'hydratation ;
+- dépendance inverse au carré? non : dépendance inverse linéaire au
+  diamètre d'épaisseur, vérifiée via L_mem double -> flux diffusif moitié.
+
+La dynamique de l'inventaire moyen de membrane et les échanges interfacials
+restent à introduire séparément ; cette étape établit uniquement la fermeture
+through-plane du flux.
