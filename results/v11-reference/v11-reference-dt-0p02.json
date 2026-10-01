@@ -5,8 +5,8 @@
   "rows": 484,
   "csv_path": "results/v11-reference/v11-reference-dt-0p02.csv",
   "purge_count": 3,
-  "final_cell_voltage_v": 0.8192449670858607,
-  "final_stack_temperature_k": 314.4500924513548,
-  "final_membrane_mean_water_content": 2.393354647886694,
-  "final_anode_nitrogen_mol": 1.1572784343573592e-06
+  "final_cell_voltage_v": 0.8192449567192678,
+  "final_stack_temperature_k": 314.45009245258603,
+  "final_membrane_mean_water_content": 2.393354647839463,
+  "final_anode_nitrogen_mol": 1.1572784343787872e-06
 }
