@@ -12520,3 +12520,100 @@ Décision :
 
   vérifier que le changement de contrainte dominante est cohérent avant toute
   dynamique thermique.
+
+
+*** Résultats de la loi minimale de commande d'air
+
+Le diagnostic de commande est terminé sur les neuf états de l'enveloppe.
+
+Les résultats confirment les trois modes prévus.
+
+À 7.3 A :
+
+  T_in = 10 °C :
+    contrainte active = thermal
+    Q_air,target = 77.02 slpm
+
+  T_in = 20 °C :
+    contrainte active = thermal
+    Q_air,target = 154.99 slpm
+
+  T_in = 30 °C :
+    status = target_unreachable
+    contrainte = ambient_temperature.
+
+À 14.5 A :
+
+  T_in = 10 °C :
+    contrainte active = thermal
+    Q_air,target = 137.46 slpm
+
+  T_in = 20 °C :
+    contrainte active = thermal
+    Q_air,target = 237.83 slpm
+
+  T_in = 30 °C :
+    contrainte active = thermal
+    Q_air,target = 881.48 slpm.
+
+À 26.04 A :
+
+  T_in = 10 °C :
+    contrainte active = stoichiometric_floor
+    Q_air,target = 216.132 slpm
+
+  T_in = 20 °C :
+    contrainte active = thermal
+    Q_air,target = 315.997 slpm
+
+  T_in = 30 °C :
+    contrainte active = thermal
+    Q_air,target = 638.074 slpm.
+
+*** Interprétation
+
+La loi :
+
+  max(plancher stoechiométrique, besoin thermique)
+
+se comporte comme attendu et ne nécessite aucun paramètre ajustable supplémentaire.
+
+Elle distingue proprement :
+
+- le débit minimal lié au besoin en O2 ;
+- le débit supplémentaire lié au refroidissement ;
+- l'impossibilité de rejoindre T_opt lorsque l'air entrant est déjà trop chaud.
+
+La contrainte thermique domine dans 7 états sur 9.
+
+Le plancher stoechiométrique ne domine que pour :
+
+  I = 26.04 A
+  T_in = 10 °C.
+
+Un état est thermodynamiquement inaccessible :
+
+  I = 7.3 A
+  T_in = 30 °C.
+
+*** Décision après commande statique
+
+Ne pas ajouter encore d'inertie thermique.
+
+La prochaine étape couple cette loi aux trajectoires temporelles déjà validées
+de V0.7.
+
+Pour chaque pas de temps de la dynamique anode/purge :
+
+1. récupérer I_cell(t) ;
+2. interpoler V_cell(I) sur la courbe BOL ;
+3. calculer Q_dot(t) ;
+4. calculer T_opt(I(t)) ;
+5. calculer Q_air,target(t) à température d'entrée imposée ;
+6. observer les variations synchronisées avec les purges.
+
+Objectif :
+
+déterminer si les événements V0.7 génèrent une modulation significative de la
+demande d'air avant d'introduire une capacité thermique ou une dynamique de
+ventilateur.
