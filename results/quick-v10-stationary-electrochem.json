@@ -17,22 +17,22 @@
   "relative_current_error": -1.0,
   "converged": false,
   "newton_iterations": 10,
-  "perturbation_norm": 0.024877879555309554,
+  "perturbation_norm": 0.0004007394467987972,
   "newton_damping": 0.5,
   "continuation_history": [
     {
       "reaction_scale": 0.0,
       "iterations": 10,
-      "perturbation_norm": 0.024877879555309554,
+      "perturbation_norm": 0.0004007394467987972,
       "converged": false
     }
   ],
   "total_reaction_current": 0.0,
-  "mean_eta_v": -0.41183448275862033,
-  "mean_c_o2_mol_m3": 7.572171843357739,
-  "min_c_o2_mol_m3": -0.18699828031347743,
-  "min_eta_v": -0.41183448275862045,
-  "max_eta_v": -0.41183448275862045,
+  "mean_eta_v": -0.4118344827586205,
+  "mean_c_o2_mol_m3": 7.571528880647087,
+  "min_c_o2_mol_m3": -0.18720217250187962,
+  "min_eta_v": -0.41183448275862056,
+  "max_eta_v": -0.41183448275862056,
   "min_j_orr_a_m3": 0.0,
   "max_j_orr_a_m3": 0.0
 }
