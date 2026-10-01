@@ -32,6 +32,20 @@ def test_stack_power_scales_with_cell_count():
     assert np.isclose(stack.stack_power_w(29.0, 0.76), 220.4)
 
 
+
+def test_bol_typical_voltage_interpolates_manual_curve():
+    tech = Ballard1020ACSTechnologyReference()
+
+    assert np.isclose(tech.bol_typical_cell_voltage_v(14.5), 0.80)
+    assert np.isclose(tech.bol_typical_cell_voltage_v(21.75), 0.78)
+
+
+def test_bol_typical_voltage_rejects_out_of_range_current():
+    tech = Ballard1020ACSTechnologyReference()
+
+    with np.testing.assert_raises(ValueError):
+        tech.bol_typical_cell_voltage_v(-1.0)
+
 def test_optimum_temperature_reference():
     tech = Ballard1020ACSTechnologyReference()
     assert np.isclose(tech.optimum_stack_temperature_c(65.3), 60.619, atol=0.1)
