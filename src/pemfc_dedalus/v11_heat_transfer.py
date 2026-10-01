@@ -59,6 +59,15 @@ class V11CathodeChannelGeometry:
             * self.channels_per_cell
         )
 
+    @property
+    def gas_volume_per_cell_m3(self) -> float:
+        """Return the published cathode-channel gas volume per cell."""
+        return (
+            self.cross_section_m2
+            * self.length_m
+            * self.channels_per_cell
+        )
+
 
 @dataclass(frozen=True)
 class V11CathodeHeatTransfer:
