@@ -288,3 +288,61 @@ def test_isobaric_outlet_preserves_pressure_with_saturated_vapour() -> None:
         -state.total_mol * temperature_rate / temperature,
         abs=1.0e-15,
     )
+
+
+
+def test_nitrogen_crossover_is_a_cathode_sink() -> None:
+    state = CathodeGasState(
+        oxygen_mol=0.21,
+        nitrogen_mol=0.78,
+        water_vapour_mol=0.01,
+    )
+    sink = 2.5e-8
+
+    rhs = cathode_gas_rhs_per_cell(
+        state=state,
+        stack_air_flow_slpm=0.0,
+        n_cells=10,
+        current_a=0.0,
+        inlet_oxygen_mole_fraction=0.21,
+        inlet_water_mole_fraction=0.01,
+        water_source_to_gas_mol_s=0.0,
+        outlet_molar_flow_per_cell_mol_s=0.0,
+        nitrogen_sink_mol_s=sink,
+    )
+
+    assert rhs.nitrogen_mol_s == pytest.approx(-sink)
+
+
+def test_isobaric_outlet_accounts_for_nitrogen_crossover_sink() -> None:
+    state = CathodeGasState(
+        oxygen_mol=0.21e-3,
+        nitrogen_mol=0.78e-3,
+        water_vapour_mol=0.01e-3,
+    )
+    sink = 2.5e-8
+    without_sink = cathode_isobaric_outlet_mol_s(
+        state=state,
+        liquid_water_mol=0.0,
+        inlet_air_mol_s=1.0e-3,
+        inlet_water_mole_fraction=0.01,
+        current_a=10.0,
+        water_source_to_gas_mol_s=2.0e-5,
+        temperature_k=313.15,
+        temperature_rate_k_s=0.0,
+        total_pressure_pa=101325.0,
+    )
+    with_sink = cathode_isobaric_outlet_mol_s(
+        state=state,
+        liquid_water_mol=0.0,
+        inlet_air_mol_s=1.0e-3,
+        inlet_water_mole_fraction=0.01,
+        current_a=10.0,
+        water_source_to_gas_mol_s=2.0e-5,
+        nitrogen_sink_mol_s=sink,
+        temperature_k=313.15,
+        temperature_rate_k_s=0.0,
+        total_pressure_pa=101325.0,
+    )
+
+    assert without_sink - with_sink == pytest.approx(sink)
