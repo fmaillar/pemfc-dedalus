@@ -14271,3 +14271,143 @@ Le choix doit suivre le principe déjà retenu :
 
   fermeture simple, stable et quantifiée
   plutôt que complexité peu influente sur les observables.
+
+
+*** Résultats de convergence de l'axe température Motupally
+
+La convergence du lookup RH x j x T est terminée avec :
+
+  N_T =
+    3
+    5
+    7
+    9
+
+et :
+
+  N_T = 9
+
+comme référence interne.
+
+Écart relatif maximal sur les métriques suivies :
+
+  N_T = 3 :
+    3.461 %
+
+  N_T = 5 :
+    0.687 %
+
+  N_T = 7 :
+    0.185 %
+
+  N_T = 9 :
+    0 %.
+
+*** Détail des principaux écarts
+
+Pour N_T = 3 :
+
+  flux N2 moyen :
+    +3.461 %
+
+  x_N2,max :
+    +2.956 %
+
+  N2 cumulé traversé :
+    +3.461 %
+
+  N2 purgé :
+    +3.202 %.
+
+Cette résolution est insuffisante.
+
+Pour N_T = 5 :
+
+  flux N2 moyen :
+    +0.550 %
+
+  x_N2,max :
+    +0.665 %
+
+  N2 cumulé traversé :
+    +0.550 %
+
+  N2 purgé :
+    +0.687 %.
+
+Cette résolution est acceptable pour un screening mais pas suffisamment
+convergée pour représenter proprement un effet physique total d'environ 1 %.
+
+Pour N_T = 7 :
+
+  flux N2 moyen :
+    +0.185 %
+
+  x_N2,max :
+    +0.122 %
+
+  N2 cumulé traversé :
+    +0.185 %
+
+  N2 purgé :
+    +0.143 %.
+
+Cette résolution est convergée à l'échelle de quelques dixièmes de pourcent.
+
+La période de purge est pratiquement indépendante de N_T.
+
+*** Décision de baseline thermique
+
+Le lookup Motupally complet RH x j x T ne modifie les observables système que
+d'environ 1 % par rapport à l'approximation Arrhenius-only.
+
+Pour représenter cet effet avec une erreur numérique nettement plus faible que
+l'effet lui-même, il faut environ :
+
+  N_T = 7.
+
+Ce surcoût n'est pas justifié pour la baseline système V0.8 au régime nominal.
+
+La fermeture thermique principale retenue devient donc :
+
+- trajectoire thermique lumped T(t) ;
+- états gaz calculés avec T(t) ;
+- p_sat(T) explicite ;
+- pression partielle cathodique N2 recalculée avec T(t) ;
+- perméabilité N2 avec dépendance Arrhenius explicite ;
+- lookup Motupally RH x j conservé à la température baseline V0.7.
+
+Le lookup complet :
+
+  RH x j x T
+
+est conservé comme validation de sensibilité.
+
+Son effet additionnel nominal est documenté comme environ :
+
+  1 %
+
+sur les métriques de crossover N2.
+
+*** Dernière vérification avant gel de V0.8
+
+La trajectoire T(t) utilisée jusqu'ici provient d'un calcul thermique construit
+à partir de la dynamique précédente.
+
+Il faut encore vérifier la cohérence bidirectionnelle :
+
+  T
+  -> propriétés gaz et N2
+  -> courant
+  -> chaleur rejetée
+  -> débit d'air
+  -> T.
+
+Comme l'effet thermique ciblé n'a modifié le courant moyen que d'environ :
+
+  +0.14 %
+
+on s'attend à une correction faible.
+
+Cette hypothèse doit toutefois être vérifiée quantitativement avant de geler
+V0.8.
