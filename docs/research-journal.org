@@ -23245,3 +23245,63 @@ Ainsi :
 
 La BOL Ballard reste une validation et ne doit pas servir à ajuster directement
 la conductivité.
+
+
+
+*** Étape 25i — sensibilité de la conductivité protonique de membrane
+
+La fermeture protonique FCgen-1020ACS restant non résolue, une analyse de
+sensibilité dédiée est ajoutée sans calibration sur la courbe BOL.
+
+Le paramètre introduit est :
+
+  membrane_conductivity_multiplier
+
+avec valeur nominale :
+
+  1.0 = loi Springer inchangée.
+
+La perte ohmique est alors évaluée comme :
+
+  eta_ohm(multiplier)
+    = eta_ohm,Springer / multiplier.
+
+Ce facteur n'affecte ni :
+
+- le bilan d'eau ;
+- la loi de sorption Springer ;
+- les échanges Ge ;
+- la cinétique ORR.
+
+Il représente uniquement l'incertitude sur la conductivité protonique effective
+de la MEA Ballard auto-humidifiante par rapport au surrogate Nafion/Springer.
+
+Le sweep quick couvre volontairement :
+
+  1.0
+  1.5
+  2.0
+
+aux courants :
+
+  15 A
+  26.04 A.
+
+Chaque cas recalcule entièrement :
+
+- le cycle limite purge-périodique ;
+- la tension ;
+- la chaleur ;
+- le débit Ballard requis pour Topt.
+
+La BOL constructeur est enregistrée uniquement comme observable de validation.
+Elle n'est jamais utilisée pour sélectionner automatiquement le multiplicateur.
+
+Target :
+
+  make quick-membrane-conductivity-sensitivity-v11
+
+Sorties :
+
+  results/v11-membrane-conductivity-sensitivity-quick.csv
+  results/v11-membrane-conductivity-sensitivity-quick.json.
