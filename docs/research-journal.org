@@ -19498,3 +19498,70 @@ et terminer idéalement avec :
 
   picard_converged=True
   newton=0.
+
+
+*** Résultat du Gummel globalisé (edad28d)
+
+Le solveur de point fixe converge désormais rapidement et sans Newton :
+
+  picard_iterations = 7
+  picard_converged = true
+  fixed_point_residual = 1.694e-9
+  newton_iterations = 0
+  temps mur ~= 1.89 s.
+
+La décroissance du défaut de point fixe est monotone :
+
+  2.071e-1
+  -> 2.108e-2
+  -> 1.137e-3
+  -> 5.027e-5
+  -> 1.911e-6
+  -> 6.274e-8
+  -> 1.694e-9.
+
+Tous les pas ont été acceptés avec alpha = 1 et sans backtracking.
+
+Le problème de convergence algorithmique du couple transport--Butler-Volmer
+est donc résolu pour ce point nominal.
+
+L'état obtenu reste physique et proche de la cible :
+
+  j = 2144.56 A/m2
+  erreur courant ~= -0.253 %
+  min(c_O2) ~= 6.91478 mol/m3.
+
+Cependant, le résidu PDE explicite reste élevé :
+
+  residual_merit ~= 3.218e-2
+  oxygen ~= 3.179e-2
+  membrane_potential ~= 5.01e-3.
+
+Ce résidu ne provient plus d'un échec de convergence du point fixe.
+
+*** Étape 33 — rendre le forcing Picard identique au produit spectral Dedalus
+
+Le forcing explicite était calculé par multiplication pointwise à l'échelle 1 :
+
+  chi_cl["g"] * q_hat["g"].
+
+Or l'expression NLBVP de référence utilise :
+
+  j_orr = chi_cl * q,
+
+évaluée par Dedalus avec son produit spectral/déaliasé avant projection.
+
+Ces deux discrétisations ne sont pas strictement identiques.
+
+Le forcing Picard est donc désormais construit en évaluant directement
+l'expression Dedalus :
+
+  current_field = j_orr.evaluate()
+  current_field.change_scales(1)
+
+puis en recopiant ce champ projeté dans j_orr_forcing.
+
+Ainsi, le LBVP Picard et le diagnostic NLBVP utilisent exactement la même
+source réactionnelle discrète.
+
+Le solveur Gummel globalisé lui-même reste inchangé.
