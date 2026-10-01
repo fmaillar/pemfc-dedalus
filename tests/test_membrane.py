@@ -153,6 +153,7 @@ def test_grimaldi_diffusivity_matches_published_form():
     assert actual > 0.0
 
 
+@pytest.mark.slow
 def test_two_interface_solver_recovers_symmetric_equilibrium_without_drag():
     z = np.linspace(0.0, 50.0e-6, 129)
 
@@ -168,6 +169,7 @@ def test_two_interface_solver_recovers_symmetric_equilibrium_without_drag():
     assert np.allclose(profile, 4.0, rtol=0.0, atol=2.0e-5)
 
 
+@pytest.mark.slow
 def test_grimaldi_consistent_profile_is_physical():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 129)
@@ -301,6 +303,7 @@ def test_positive_drag_biases_water_profile_toward_anode_value():
 
 
 
+@pytest.mark.slow
 def test_variable_diffusivity_solver_recovers_constant_diffusivity_profile():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 129)
@@ -329,6 +332,7 @@ def test_variable_diffusivity_solver_recovers_constant_diffusivity_profile():
     assert np.allclose(actual, expected, rtol=2.0e-5, atol=2.0e-6)
 
 
+@pytest.mark.slow
 def test_motupally_profile_hits_cathode_boundary_and_stays_physical():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 129)
@@ -348,6 +352,7 @@ def test_motupally_profile_hits_cathode_boundary_and_stays_physical():
     assert profile[0] > profile[-1]
 
 
+@pytest.mark.slow
 def test_motupally_profile_handles_dry_anode_startup():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 129)
@@ -370,6 +375,7 @@ def test_motupally_profile_handles_dry_anode_startup():
     assert profile[-1] == pytest.approx(lambda_cathode, abs=1.0e-8)
 
 
+@pytest.mark.slow
 def test_motupally_profile_brackets_nominal_transition_state():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 129)
@@ -397,6 +403,7 @@ def test_motupally_profile_brackets_nominal_transition_state():
     assert profile[-1] == pytest.approx(3.4855, abs=1.0e-8)
 
 
+@pytest.mark.slow
 def test_motupally_profile_handles_equal_anode_cathode_equilibrium():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 129)
@@ -425,6 +432,7 @@ def test_motupally_profile_handles_equal_anode_cathode_equilibrium():
     assert profile[-1] == pytest.approx(lambda_equilibrium, abs=1.0e-8)
 
 
+@pytest.mark.slow
 def test_variable_transfer_solver_recovers_constant_transfer_solution():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 129)
@@ -454,6 +462,7 @@ def test_variable_transfer_solver_recovers_constant_transfer_solution():
     assert np.allclose(actual, expected, rtol=3.0e-4, atol=3.0e-6)
 
 
+@pytest.mark.slow
 def test_motupally_grimaldi_profile_hits_cathode_boundary():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 129)
@@ -472,6 +481,7 @@ def test_motupally_grimaldi_profile_hits_cathode_boundary():
     assert profile[-1] == pytest.approx(3.4855, abs=1.0e-8)
 
 
+@pytest.mark.slow
 def test_grimaldi_profile_handles_wet_high_lambda_state():
     p = CathodeParameters()
     z = np.linspace(0.0, p.membrane_thickness, 129)
