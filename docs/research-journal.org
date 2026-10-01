@@ -19704,3 +19704,53 @@ exactement le même état spectral que celui utilisé ensuite par Dedalus et par
 les diagnostics finaux.
 
 Le solveur Gummel, son line search et ses tolérances restent inchangés.
+
+
+*** Résultat après projection explicite de q_hat (cc35bbb)
+
+La projection spectrale de q_hat a rendu l'état final cohérent avec l'espace
+résolu, mais a fait réapparaître une boucle Picard de 160 itérations.
+
+Le point important est le suivant : le test de point fixe comparait désormais
+un q_hat projeté dans l'espace spectral résolu à un q_BV calculé point par point
+sans projection.
+
+Or q_BV contient des modes hors de l'espace spectral 4 x 4 x 16. Il n'est donc
+pas possible, à résolution finie, d'imposer exactement :
+
+  q_hat = q_BV
+
+dans l'espace des inconnues Dedalus.
+
+Le vrai problème discret est :
+
+  q_hat = P[q_BV],
+
+où P désigne la projection sur l'espace spectral résolu.
+
+*** Étape 36 — projeter la fermeture Butler-Volmer
+
+Un champ auxiliaire q_bv_projection est ajouté avec les mêmes bases que q_hat.
+
+Après calcul pointwise de q_BV :
+
+  q_bv_projection["g"] = q_bv_hat
+  q_bv_projection.change_layout("c")
+  q_bv_projection.change_scales(1)
+
+Le Gummel utilise ensuite le champ projeté comme application de point fixe :
+
+  G(q_hat) = P[q_BV].
+
+Le critère fp_res mesure donc maintenant le défaut du véritable problème
+discret représentable par Dedalus.
+
+Cette correction doit réconcilier :
+
+- l'itéré Gummel ;
+- l'état spectral final ;
+- le critère d'arrêt.
+
+Le résidu fort pointwise Butler-Volmer pourra rester non nul à résolution finie
+car il contient précisément la composante hors espace spectral ; ce n'est plus
+un critère pertinent de convergence du problème discret.
