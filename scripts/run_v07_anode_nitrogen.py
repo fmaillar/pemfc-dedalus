@@ -88,6 +88,7 @@ def simulate_nitrogen_regime(
     cathode_n2_partial_pressure_pa: float | None = None,
     n2_permeance_model: Callable[[float], float] | None = None,
     n2_state_permeance_model: Callable[[float, float], float] | None = None,
+    temperature_model_k: Callable[[float], float] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Integrate H2/N2/H2O inventories with charge-triggered standard purges."""
     if stop_time_s <= 0.0 or dt_s <= 0.0:
@@ -119,10 +120,18 @@ def simulate_nitrogen_regime(
         if cathode_n2_partial_pressure_pa <= 0.0:
             raise ValueError("cathode N2 partial pressure must be positive")
 
+    initial_temperature_k = (
+        temperature_k
+        if temperature_model_k is None
+        else float(temperature_model_k(0.0))
+    )
+    if initial_temperature_k <= 0.0:
+        raise ValueError("temperature model must return positive values")
+
     initial_water = water_vapor_moles_from_relative_humidity(
         initial_rh,
         volume_m3=volume_m3,
-        temperature_k=temperature_k,
+        temperature_k=initial_temperature_k,
         gas_constant_j_mol_k=gas_constant_j_mol_k,
     )
     water_state = AnodeWaterState(
@@ -135,7 +144,7 @@ def simulate_nitrogen_regime(
         nitrogen_mol=0.0,
         water_vapor_mol=initial_water,
         volume_m3=volume_m3,
-        temperature_k=temperature_k,
+        temperature_k=initial_temperature_k,
         gas_constant_j_mol_k=gas_constant_j_mol_k,
     )
     initial_hydrogen_mol = hydrogen_mol
@@ -181,6 +190,13 @@ def simulate_nitrogen_regime(
 
     for step in range(n_steps + 1):
         time_s = min(step * dt_s, stop_time_s)
+        step_step_temperature_k = (
+            temperature_k
+            if temperature_model_k is None
+            else float(temperature_model_k(time_s))
+        )
+        if step_step_temperature_k <= 0.0:
+            raise ValueError("temperature model must return positive values")
         flux_lambda, patch_current_a = interpolate_flux_and_current(
             water_state.relative_humidity,
             closure,
@@ -193,7 +209,7 @@ def simulate_nitrogen_regime(
         hydrogen_partial_pressure_pa = (
             hydrogen_mol
             * gas_constant_j_mol_k
-            * temperature_k
+            * step_temperature_k
             / volume_m3
         )
         reference_hydrogen_mol = hydrogen_moles_for_pressure_with_nitrogen(
@@ -201,13 +217,13 @@ def simulate_nitrogen_regime(
             nitrogen_mol=0.0,
             water_vapor_mol=water_state.vapor_mol,
             volume_m3=volume_m3,
-            temperature_k=temperature_k,
+            step_temperature_k=step_temperature_k,
             gas_constant_j_mol_k=gas_constant_j_mol_k,
         )
         reference_hydrogen_partial_pressure_pa = (
             reference_hydrogen_mol
             * gas_constant_j_mol_k
-            * temperature_k
+            * step_temperature_k
             / volume_m3
         )
         hydrogen_feedback_factor = hydrogen_partial_pressure_feedback_factor(
@@ -223,7 +239,7 @@ def simulate_nitrogen_regime(
             nitrogen_mol,
             water_state.vapor_mol,
             volume_m3=volume_m3,
-            temperature_k=temperature_k,
+            step_temperature_k=step_temperature_k,
             gas_constant_j_mol_k=gas_constant_j_mol_k,
         )
         min_total_pressure_pa = min(min_total_pressure_pa, total_pressure)
@@ -240,6 +256,7 @@ def simulate_nitrogen_regime(
                 {
                     "regime": regime,
                     "time_s": time_s,
+                    "temperature_k": step_temperature_k,
                     "purge_open": purge_remaining_s > 0.0,
                     "purge_count": len(purge_events),
                     "anode_relative_humidity": water_state.relative_humidity,
@@ -273,7 +290,7 @@ def simulate_nitrogen_regime(
             water_source_mol_s=water_source,
             dt_s=actual_dt,
             volume_m3=volume_m3,
-            temperature_k=temperature_k,
+            step_temperature_k=step_temperature_k,
             gas_constant_j_mol_k=gas_constant_j_mol_k,
         )
         cumulative_water_transfer_mol += water_source * actual_dt
@@ -305,7 +322,7 @@ def simulate_nitrogen_regime(
             anode_n2_partial_pressure_pa = (
                 nitrogen_mol
                 * gas_constant_j_mol_k
-                * temperature_k
+                * step_temperature_k
                 / volume_m3
             )
             n2_flux = nitrogen_pressure_driven_flux(
@@ -337,7 +354,7 @@ def simulate_nitrogen_regime(
                 nitrogen_mol,
                 water_state.vapor_mol,
                 volume_m3=volume_m3,
-                temperature_k=temperature_k,
+                step_temperature_k=step_temperature_k,
                 gas_constant_j_mol_k=gas_constant_j_mol_k,
             )
             outflow_rate = pressure_driven_purge_molar_rate(
@@ -354,7 +371,7 @@ def simulate_nitrogen_regime(
                 gas_state,
                 gas_outflow_mol=outflow_rate * actual_dt,
                 volume_m3=volume_m3,
-                temperature_k=temperature_k,
+                step_temperature_k=step_temperature_k,
                 gas_constant_j_mol_k=gas_constant_j_mol_k,
             )
             hydrogen_mol = gas_state.hydrogen_mol
@@ -369,7 +386,7 @@ def simulate_nitrogen_regime(
                 nitrogen_mol,
                 water_state.vapor_mol,
                 volume_m3=volume_m3,
-                temperature_k=temperature_k,
+                step_temperature_k=step_temperature_k,
                 gas_constant_j_mol_k=gas_constant_j_mol_k,
             )
             min_total_pressure_pa = min(
@@ -394,7 +411,7 @@ def simulate_nitrogen_regime(
             nitrogen_mol=nitrogen_mol,
             water_vapor_mol=water_state.vapor_mol,
             volume_m3=volume_m3,
-            temperature_k=temperature_k,
+            step_temperature_k=step_temperature_k,
             gas_constant_j_mol_k=gas_constant_j_mol_k,
         )
         refill_h2 = max(target_hydrogen - hydrogen_mol, 0.0)
@@ -413,7 +430,7 @@ def simulate_nitrogen_regime(
                         nitrogen_mol,
                         water_state.vapor_mol,
                         volume_m3=volume_m3,
-                        temperature_k=temperature_k,
+                        step_temperature_k=step_temperature_k,
                         gas_constant_j_mol_k=gas_constant_j_mol_k,
                     )
                 )
@@ -440,7 +457,7 @@ def simulate_nitrogen_regime(
                     nitrogen_mol,
                     water_state.vapor_mol,
                     volume_m3=volume_m3,
-                    temperature_k=temperature_k,
+                    step_temperature_k=step_temperature_k,
                     gas_constant_j_mol_k=gas_constant_j_mol_k,
                 ),
                 "pressure_after_pa": None,
