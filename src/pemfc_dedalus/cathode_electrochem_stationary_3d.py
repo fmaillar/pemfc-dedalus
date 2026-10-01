@@ -42,8 +42,23 @@ def solve_stationary(
     oxygen_feed_concentration: float | None = None,
     newton_tolerance: float = 1e-8,
     max_newton_iterations: int = 30,
-    newton_damping: float = 0.5,
-    reaction_scales: tuple[float, ...] = (0.01, 0.03, 0.1, 0.3, 0.6, 1.0),
+    newton_damping: float = 0.25,
+    reaction_scales: tuple[float, ...] = (
+        1e-6,
+        3e-6,
+        1e-5,
+        3e-5,
+        1e-4,
+        3e-4,
+        1e-3,
+        3e-3,
+        1e-2,
+        3e-2,
+        1e-1,
+        3e-1,
+        6e-1,
+        1.0,
+    ),
 ) -> StationaryResult:
     if not 0.0 < newton_damping <= 1.0:
         raise ValueError("newton_damping must be in (0, 1]")

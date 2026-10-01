@@ -17672,3 +17672,62 @@ n'utilise plus Newton.
 Cette séparation est cohérente avec la formulation Dedalus : les LBVP sont
 résolus directement, tandis que les NLBVP utilisent Newton-Kantorovich.
 
+
+*** Résultat du premier niveau non linéaire
+
+L'initialisation linéaire est désormais résolue séparément.
+
+La première étape non linéaire :
+
+  lambda = 0.01
+
+échoue cependant après 10 itérations Newton :
+
+  perturbation_norm = 6.26e7.
+
+L'état sort du domaine physique et le courant devient négatif.
+
+La marche de continuation de 0 à 0.01 est donc encore trop grande pour cette
+cinétique fortement non linéaire.
+
+*** Étape 11 — continuation géométrique fine
+
+La continuation est raffinée de plusieurs ordres de grandeur :
+
+  1e-6
+  3e-6
+  1e-5
+  3e-5
+  1e-4
+  3e-4
+  1e-3
+  3e-3
+  1e-2
+  3e-2
+  1e-1
+  3e-1
+  6e-1
+  1.
+
+L'amortissement Newton est abaissé à :
+
+  damping = 0.25.
+
+Le maximum est légèrement augmenté à :
+
+  12 itérations par niveau.
+
+La grille reste volontairement minimale :
+
+  4 x 4 x 16
+  xi = 0.5.
+
+*** Critère de décision
+
+Si la continuation progresse sur plusieurs décades de lambda, le NLBVP est
+accessible mais raide.
+
+Si elle échoue dès 1e-6 ou 3e-6, le problème n'est plus un simple choix de pas
+de continuation : il faudra réexaminer la formulation stationnaire/Jacobienne
+elle-même.
+

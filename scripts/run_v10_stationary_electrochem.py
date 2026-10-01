@@ -22,7 +22,7 @@ def main() -> None:
     ntu = 3.0
     xi = 0.5
     nx, ny, nz = 4, 4, 16
-    max_newton_iterations = 10
+    max_newton_iterations = 12
     newton_tolerance = 1e-6
 
     voltage_v = base.tech.bol_typical_cell_voltage_v(current_a)
