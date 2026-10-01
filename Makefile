@@ -977,3 +977,7 @@ quick-polarization-dt-stability-v10:
 
 quick-stationary-electrochem-v10:
 	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_electrochem
+
+
+quick-stationary-damping-scan-v10:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v10_stationary_damping_scan
