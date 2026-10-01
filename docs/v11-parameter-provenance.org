@@ -439,3 +439,42 @@ Caveat: the Catalano water-content dependence is a material relation, while
 V11 currently represents membrane hydration by one mean lambda. A dynamic
 through-plane lambda(z) state would be required to replace this one-point
 reduction by a resistance integral without inventing an internal profile.
+
+
+
+* Cathode heat-transfer closure from published channel geometry
+
+V11 does not use the fitted fan-speed-dependent effective convection
+coefficient reported in reduced-order experimental models.
+
+Instead, it uses published FCgen-1020ACS cathode-channel dimensions reported
+by Andisheh-Tadbir and reproduced in Dang (2025):
+
+- trapezoid height: 2.5 mm;
+- trapezoid bases: 2.5 mm and 1.5 mm;
+- channel length: 60 mm;
+- 80 channels per cell.
+
+For this geometry, the hydraulic diameter is approximately 2.198 mm.
+
+The Sadasivam trapezoidal-duct correlation for isothermal, fully developed
+laminar flow gives Nu = 2.9761 at aspect ratio h/a = 1.
+
+V11 derives the convection coefficient from:
+
+  h_conv = Nu k_air / D_H
+
+and derives the convective area directly from the wetted perimeter, channel
+length and channel count.
+
+The resulting UA and NTU are calculated quantities, not fitted parameters.
+
+Air thermal conductivity uses independent literature values of 0.0264 W/(m K)
+at 300 K and 0.0335 W/(m K) at 400 K with linear interpolation at film
+temperature.
+
+Status: RESOLVED FROM PUBLISHED GEOMETRY + HEAT-TRANSFER CORRELATION.
+
+Caveat: the closure assumes a lumped isothermal stack wall and fully developed
+laminar channel flow. A spatial thermal model would be required to resolve
+local wall-temperature and entrance effects.
