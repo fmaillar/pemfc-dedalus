@@ -381,3 +381,29 @@ Status:
 
 - Pt/C intrinsic ORR kinetics: RESOLVED FROM LITERATURE;
 - FCgen-1020ACS catalyst roughness factor: UNRESOLVED.
+
+
+* FCgen-1020ACS catalyst-layer roughness audit
+
+A targeted search was performed for FCgen-1020ACS / FCgen-1020AVS catalyst
+loading and electrochemically active surface area.
+
+Findings:
+
+- FCgen-1020ACS/1020AVS publications identify porous carbon electrodes and
+  Pt-based catalyst layers but do not report a defensible stack-specific ECSA
+  or cathode Pt loading suitable for direct use in V11.
+- Historical Ballard/Johnson-Matthey work reports cathode loadings around
+  0.55--0.60 mgPt/cm2 for earlier Ballard stack hardware.
+- Those historical values are not sufficient evidence that the FCgen-1020ACS
+  uses the same cathode loading, and they therefore SHALL NOT become V11
+  defaults.
+
+Status remains:
+
+- cathode Pt loading for FCgen-1020ACS: UNRESOLVED;
+- FCgen-1020ACS catalyst ECSA: UNRESOLVED;
+- roughness factor: UNRESOLVED.
+
+V11 voltage prediction must continue to require Pt loading and ECSA as explicit
+inputs until a product-specific source is found.
