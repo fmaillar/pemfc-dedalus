@@ -14018,3 +14018,170 @@ Aucune physique V0.8 n'est modifiée.
 
 Le paramétrage en température reste limité au chemin de construction explicite
 du lookup V0.8.
+
+
+*** Résultats du lookup Motupally RH x j x T
+
+Le quick avec lookup tridimensionnel est terminé.
+
+Lookup :
+
+  T x RH x j =
+    5 x 11 x 11
+
+avec :
+
+  T =
+    293.15
+    298.1028
+    303.0556
+    308.0084
+    312.9612 K.
+
+La comparaison porte sur :
+
+1. approximation Arrhenius-only :
+
+   lookup Motupally 2D à T_V0.7
+   x
+   facteur Arrhenius sec ;
+
+2. lookup complet :
+
+   RH x j x T
+
+   avec recalcul du profil hydrique et de D_Motupally à chaque plan T.
+
+*** Effet additionnel du lookup complet
+
+Flux N2 moyen :
+
+  Arrhenius-only :
+    9.38679e-7 mol/m2/s
+
+  lookup complet :
+    9.29983e-7 mol/m2/s
+
+  variation :
+    -0.926 %.
+
+Fraction molaire N2 maximale :
+
+  0.00263867
+  ->
+  0.00261566
+
+  variation :
+    -0.872 %.
+
+N2 cumulé traversé :
+
+  4.94285e-6
+  ->
+  4.89706e-6 mol
+
+  variation :
+    -0.926 %.
+
+N2 cumulé purgé :
+
+  2.41820e-6
+  ->
+  2.39006e-6 mol
+
+  variation :
+    -1.164 %.
+
+Courant moyen :
+
+  28.55616
+  ->
+  28.55660 A
+
+  variation :
+    +0.0015 %.
+
+Période moyenne de purge :
+
+  80.57
+  ->
+  80.56 s
+
+  variation :
+    -0.0124 %.
+
+RH finale :
+
+  identique à la précision numérique reportée.
+
+*** Interprétation
+
+Le screening constitutif montrait une forte variation de :
+
+  D_Motupally(lambda,T)
+
+sur la trajectoire thermique.
+
+Cependant, une fois la dépendance thermique dominante de la perméabilité N2
+déjà introduite par la loi d'Arrhenius, le recalcul complet du profil Motupally
+en température ne change les observables système que d'environ 1 % ou moins
+dans le régime nominal étudié.
+
+La hiérarchie des effets est donc :
+
+1. effet direct Arrhenius sur N2 :
+     majeur, environ -45 % sur le crossover moyen ;
+
+2. p_sat(T) et états gaz :
+     nécessaires pour cohérence thermodynamique ;
+
+3. effet additionnel de D_Motupally(lambda,T) :
+     secondaire au niveau système dans ce régime,
+     environ -1 % sur le crossover N2.
+
+La forte sensibilité constitutive de D_Motupally ne se propage donc pas
+linéairement jusqu'aux observables globales.
+
+*** Décision
+
+Ne pas augmenter immédiatement la complexité du couplage.
+
+Avant de choisir la baseline V0.8 entre :
+
+  approximation Arrhenius-only
+
+et :
+
+  lookup Motupally complet RH x j x T
+
+il faut vérifier la convergence sur l'axe température.
+
+Étude suivante :
+
+  N_T =
+    3
+    5
+    7
+    9
+
+avec :
+
+  RH = 11 points
+  j = 11 points
+
+et même trajectoire T(t).
+
+Comparer principalement :
+
+- flux N2 moyen ;
+- x_N2,max ;
+- N2 cumulé traversé ;
+- N2 purgé ;
+- période de purge.
+
+Si 3 ou 5 plans reproduisent les résultats à mieux que quelques dixièmes de
+pourcent, le coût supplémentaire du lookup 3D restera faible.
+
+Si l'effet complet reste inférieur à environ 1 % et que la convergence est
+rapide, l'approximation Arrhenius-only pourra être retenue comme fermeture
+thermique principale, le lookup 3D restant une validation de sensibilité.
