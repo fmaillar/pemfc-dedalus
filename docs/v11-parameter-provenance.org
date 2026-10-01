@@ -1,0 +1,117 @@
+#+title: V11 parameter provenance audit
+
+* Purpose
+
+This file classifies parameters before they are allowed into the V11 dynamic
+model. V11 does not inherit historical defaults merely because they exist in
+CathodeParameters.
+
+* Accepted without calibration
+
+** Fundamental constants
+
+- Faraday constant F = 96485.33212 C/mol.
+- Universal gas constant R = 8.31446261815324 J/mol/K.
+
+** Ballard manual / stack specification
+
+Source module:
+
+  src/pemfc_dedalus/ballard_1020acs.py
+
+Currently admissible examples include:
+
+- cell count when explicitly tied to the user's stack configuration;
+- thermal mass per cell from the manual;
+- bus-plate resistance;
+- current and cell-voltage operating limits;
+- oxidant temperature and humidity limits;
+- hydrogen pressure range;
+- purge volume per cell;
+- purge interval in A.s;
+- purge duration/rate limits.
+
+The manual BOL polarization curve is VALIDATION DATA, not a constitutive law
+for predicting V11 voltage.
+
+* Literature constitutive relations already present
+
+The following relations may be used when their material assumptions match the
+membrane actually modelled and their validity range is respected:
+
+- Springer water-content/activity relation;
+- Springer proton conductivity;
+- Motupally Nafion water diffusivity;
+- electro-osmotic drag relation n_d = lambda/22;
+- Ge et al. interfacial water-transfer relation at its stated temperature;
+- Grimaldi/Olesen water-transport relations where their stated material model
+  is applicable.
+
+Their literature constants are not to be re-fitted against Ballard voltage,
+temperature or purge trajectories.
+
+* Not admissible as V11 physical defaults
+
+The following historical CathodeParameters values must NOT silently enter V11:
+
+- k_reaction = 250 1/s;
+- equilibrium_potential = 1.18 V as a fixed universal cell value;
+- cathode_solid_potential = 0.768 V as imposed operating voltage;
+- j0_vol = 1e5 A/m3;
+- sigma_s_gdl = 1e3 S/m;
+- sigma_s_cl = 3e2 S/m;
+- sigma_m_cl = 5 S/m;
+- sigma_m_floor = 1e-2 S/m;
+- pseudo-capacitances;
+- membrane_water_diffusivity = 2e-10 m2/s when used instead of a sourced
+  state-dependent law;
+- membrane_conductivity_floor;
+- anode_water_transfer_coefficient = 2e-6 m/s;
+- anode_gas_volume_m3 = 20 mL per representative cell;
+- n2_crossover_flux_mol_m2_s = 1e-6.
+
+These values may remain available for historical V0--V10 reproduction, but
+V11 must not use them as predictive parameters without independent physical
+justification.
+
+* Currently unresolved quantities needed for full voltage prediction
+
+** Active electrochemical area
+
+Required to convert imposed stack current I into current density j = I/A.
+
+The representative Dedalus domain area is not automatically the real Ballard
+active cell area.
+
+Status: UNRESOLVED.
+
+** Exchange-current density / catalyst kinetic parameters
+
+Required by Butler-Volmer activation kinetics.
+
+The historical volumetric j0 is explicitly a calibration parameter and is not
+accepted.
+
+Status: UNRESOLVED pending independently sourced electrode/catalyst data.
+
+** Reversible potential model
+
+A fixed E_eq is not sufficient for the dynamic model. V11 requires a
+thermodynamic reversible-potential relation based on temperature and species
+activities/partial pressures.
+
+Status: TO IMPLEMENT from thermodynamics.
+
+** Electronic/contact resistances
+
+Bus-plate resistance is available from the Ballard manual. Other cell,
+bipolar-plate, GDL and contact resistances require geometry/material data or
+published independently applicable properties.
+
+Status: PARTLY RESOLVED.
+
+* Rule
+
+If one of these unresolved quantities is required by a calculation, V11 should
+raise an explicit error or require it as an argument. It must not substitute a
+historical fitted default.
