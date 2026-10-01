@@ -19918,3 +19918,51 @@ Le log indique désormais pour chaque pas :
 
 L'objectif est de débloquer 6x6x24 et 8x8x32 sans réintroduire le coût du
 Newton complet.
+
+
+* V11 — modèle dynamique galvanostatique
+
+Une nouvelle branche est ouverte :
+
+  v11-galvanostatic-dynamic
+
+Objectif :
+
+  [ I_stack(t), Q_air(t), u_purge(t) ]
+  -> modèle PEMFC dynamique
+  -> [ V_stack(t), T_stack(t), eau liquide anode/cathode, états gaz/membrane ].
+
+Le courant devient une entrée imposée ; la tension devient une sortie prédite.
+
+La contrainte scientifique de V11 est volontairement stricte : aucun
+coefficient libre ne sera introduit uniquement pour ajuster le modèle à des
+données expérimentales.
+
+Chaque paramètre devra avoir une provenance explicite parmi :
+
+- constante physique fondamentale ;
+- paramètre géométrique ou constructeur ;
+- propriété matériau mesurée ;
+- loi constitutive ou corrélation publiée avec source et domaine de validité ;
+- grandeur dérivée des éléments précédents.
+
+Une quantité inconnue restera marquée comme non résolue plutôt que remplacée
+par un coefficient de réglage.
+
+Le document :
+
+  docs/v11-galvanostatic-dynamic.org
+
+définit l'architecture, les états candidats, les mécanismes physiques requis
+et la philosophie de validation.
+
+La trajectoire initiale est :
+
+1. électrochimie galvanostatique ;
+2. bilans espèces cathode pilotés par le débit d'air ;
+3. bilan thermique dynamique ;
+4. anode dead-end et purge explicite ;
+5. transport d'eau membrane ;
+6. inventaires d'eau liquide anode/cathode ;
+7. validation des conservations et des cas limites avant toute comparaison aux
+   données stack.
