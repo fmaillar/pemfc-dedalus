@@ -120,6 +120,7 @@ def solve_stationary_inverse_bv(
     picard_iterations: int = 0,
     picard_relaxation: float = 0.25,
     picard_tolerance: float = 0.0,
+    newton_fallback: bool = True,
 ) -> InverseBVResult:
     """Solve the stationary cathode with q as an algebraic inverse-BV unknown."""
     if not 0.0 < newton_damping <= 1.0:
@@ -605,6 +606,10 @@ def solve_stationary_inverse_bv(
     if picard_converged:
         c_min, q_min = physical_bounds()
         converged = c_min > 0.0 and q_min > 0.0
+        final_residual_merit = pre_newton_residual_merit
+    elif not newton_fallback:
+        c_min, q_min = physical_bounds()
+        converged = False
         final_residual_merit = pre_newton_residual_merit
     elif globalized:
         while (
