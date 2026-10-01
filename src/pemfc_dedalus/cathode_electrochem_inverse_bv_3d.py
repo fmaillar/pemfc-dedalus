@@ -20,6 +20,14 @@ class InverseBVBacktrack(TypedDict):
     min_q_hat: float
 
 
+class InverseBVPicardStep(TypedDict):
+    iteration: int
+    min_c_o2_mol_m3: float
+    min_q_hat: float
+    max_q_hat: float
+    relative_q_change: float
+
+
 class InverseBVResult(TypedDict):
     converged: bool
     newton_iterations: int
@@ -46,6 +54,9 @@ class InverseBVResult(TypedDict):
     globalized: bool
     residual_merit: float
     globalization_history: list[InverseBVBacktrack]
+    picard_iterations: int
+    picard_relaxation: float
+    picard_history: list[InverseBVPicardStep]
 
 
 def symmetric_bv_current(
@@ -85,6 +96,8 @@ def solve_stationary_inverse_bv(
     globalized: bool = False,
     residual_tolerance: float = 1e-8,
     max_backtracks: int = 10,
+    picard_iterations: int = 0,
+    picard_relaxation: float = 0.25,
 ) -> InverseBVResult:
     """Solve the stationary cathode with q as an algebraic inverse-BV unknown."""
     if not 0.0 < newton_damping <= 1.0:
@@ -97,6 +110,10 @@ def solve_stationary_inverse_bv(
         raise ValueError("residual_tolerance must be positive")
     if max_backtracks < 1:
         raise ValueError("max_backtracks must be positive")
+    if picard_iterations < 0:
+        raise ValueError("picard_iterations must be non-negative")
+    if not 0.0 < picard_relaxation <= 1.0:
+        raise ValueError("picard_relaxation must be in (0, 1]")
 
     beta_a = params.beta_anodic
     beta_c = params.beta_cathodic
@@ -258,6 +275,85 @@ def solve_stationary_inverse_bv(
     q_hat["g"] = (
         2.0 * exchange_initial * np.sinh(-beta * eta_initial) / q_reference
     )
+
+    picard_history: list[InverseBVPicardStep] = []
+    if picard_iterations:
+        picard_problem = d3.LBVP(
+            [
+                c,
+                phi_s,
+                phi_m,
+                tau_c1,
+                tau_c2,
+                tau_s1,
+                tau_s2,
+                tau_m1,
+                tau_m2,
+            ],
+            namespace=locals(),
+        )
+        picard_problem.add_equation(
+            "-div(diffusivity*grad_c) + lift(tau_c2, -1) = -s_o2"
+        )
+        picard_problem.add_equation(
+            "-div(sigma_s*grad_phi_s) + lift(tau_s2, -1) = -j_orr"
+        )
+        picard_problem.add_equation(
+            "-div(sigma_m*grad_phi_m) + lift(tau_m2, -1) = -j_orr"
+        )
+        picard_problem.add_equation("c(z=0) = inlet")
+        picard_problem.add_equation("ez @ grad_c(z=Lz) = 0")
+        picard_problem.add_equation("phi_s(z=0) = phi_s_bc")
+        picard_problem.add_equation("ez @ grad_phi_s(z=Lz) = 0")
+        picard_problem.add_equation("ez @ grad_phi_m(z=0) = 0")
+        picard_problem.add_equation("phi_m(z=Lz) = phi_m_bc")
+        picard_solver = picard_problem.build_solver()
+
+        for picard_iteration in range(1, picard_iterations + 1):
+            q_hat.change_scales(1)
+            old_q_hat = np.asarray(q_hat["g"]).copy()
+
+            picard_solver.solve()
+
+            c.change_scales(1)
+            eta_picard_field = eta.evaluate()
+            eta_picard_field.change_scales(1)
+            eta_picard = np.asarray(eta_picard_field["g"]).copy()
+            c_picard = np.asarray(c["g"]).copy()
+            exchange_picard = j0_vol * (c_picard / c_ref) ** gamma_o2
+            q_bv_hat = (
+                2.0
+                * exchange_picard
+                * np.sinh(-beta * eta_picard)
+                / q_reference
+            )
+
+            if (
+                not np.all(np.isfinite(q_bv_hat))
+                or float(np.min(c_picard)) <= 0.0
+                or float(np.min(q_bv_hat)) <= 0.0
+            ):
+                break
+
+            relaxed_q_hat = (
+                (1.0 - picard_relaxation) * old_q_hat
+                + picard_relaxation * q_bv_hat
+            )
+            q_scale = np.maximum(np.abs(old_q_hat), 1e-12)
+            relative_q_change = float(
+                np.max(np.abs(relaxed_q_hat - old_q_hat) / q_scale)
+            )
+            q_hat["g"] = relaxed_q_hat
+
+            picard_history.append(
+                {
+                    "iteration": picard_iteration,
+                    "min_c_o2_mol_m3": float(np.min(c_picard)),
+                    "min_q_hat": float(np.min(relaxed_q_hat)),
+                    "max_q_hat": float(np.max(relaxed_q_hat)),
+                    "relative_q_change": relative_q_change,
+                }
+            )
 
     problem = d3.NLBVP(
         [
@@ -494,4 +590,7 @@ def solve_stationary_inverse_bv(
         "globalized": globalized,
         "residual_merit": final_residual_merit,
         "globalization_history": globalization_history,
+        "picard_iterations": len(picard_history),
+        "picard_relaxation": picard_relaxation,
+        "picard_history": picard_history,
     }
