@@ -17,7 +17,16 @@ def solve_stationary(
     oxygen_feed_concentration: float | None = None,
     newton_tolerance: float = 1e-8,
     max_newton_iterations: int = 30,
-) -> dict[str, float | int | bool]:
+    newton_damping: float = 0.5,
+    reaction_scales: tuple[float, ...] = (0.0, 0.01, 0.03, 0.1, 0.3, 0.6, 1.0),
+) -> dict[str, float | int | bool | list[dict[str, float | int | bool]]]:
+    if not 0.0 < newton_damping <= 1.0:
+        raise ValueError("newton_damping must be in (0, 1]")
+    if not reaction_scales or reaction_scales[-1] != 1.0:
+        raise ValueError("reaction_scales must be non-empty and end at 1.0")
+    if any(scale < 0.0 or scale > 1.0 for scale in reaction_scales):
+        raise ValueError("reaction scales must lie in [0, 1]")
+
     coords = d3.CartesianCoordinates("x", "y", "z")
     dist = d3.Distributor(coords, dtype=np.float64)
 
@@ -122,11 +131,15 @@ def solve_stationary(
     cathodic_arg = bv_exp_limit * np.tanh(cathodic_arg_raw / bv_exp_limit)
     anodic_arg = bv_exp_limit * np.tanh(anodic_arg_raw / bv_exp_limit)
 
+    reaction_scale = dist.Field(name="reaction_scale")
+    reaction_scale["g"] = reaction_scales[0]
+
     # In the intended cathodic operating branch eta is negative and the net
     # Butler-Volmer source is positive. Avoid abs() here so the NLBVP has a
     # differentiable source for Newton linearisation.
     j_orr = (
-        chi_cl
+        reaction_scale
+        * chi_cl
         * j0_vol
         * oxygen_activity**gamma_o2
         * (np.exp(cathodic_arg) - np.exp(anodic_arg))
@@ -168,16 +181,39 @@ def solve_stationary(
     solver = problem.build_solver()
 
     perturbation_norm = np.inf
-    iteration = 0
-    while iteration < max_newton_iterations and perturbation_norm > newton_tolerance:
-        solver.newton_iteration()
-        perturbation_norm = float(
-            sum(
-                perturbation.allreduce_data_norm("c", 2)
-                for perturbation in solver.perturbations
+    total_iterations = 0
+    continuation_history: list[dict[str, float | int | bool]] = []
+
+    for scale in reaction_scales:
+        reaction_scale["g"] = scale
+        stage_iterations = 0
+        perturbation_norm = np.inf
+
+        while (
+            stage_iterations < max_newton_iterations
+            and perturbation_norm > newton_tolerance
+        ):
+            solver.newton_iteration(damping=newton_damping)
+            perturbation_norm = float(
+                sum(
+                    perturbation.allreduce_data_norm("c", 2)
+                    for perturbation in solver.perturbations
+                )
             )
+            stage_iterations += 1
+            total_iterations += 1
+
+        stage_converged = perturbation_norm <= newton_tolerance
+        continuation_history.append(
+            {
+                "reaction_scale": scale,
+                "iterations": stage_iterations,
+                "perturbation_norm": perturbation_norm,
+                "converged": stage_converged,
+            }
         )
-        iteration += 1
+        if not stage_converged:
+            break
 
     c.change_scales(1)
     phi_s.change_scales(1)
@@ -192,9 +228,14 @@ def solve_stationary(
     mean_c_o2 = float(d3.Average(c).evaluate()["g"].ravel()[0])
 
     return {
-        "converged": perturbation_norm <= newton_tolerance,
-        "newton_iterations": iteration,
+        "converged": (
+            len(continuation_history) == len(reaction_scales)
+            and bool(continuation_history[-1]["converged"])
+        ),
+        "newton_iterations": total_iterations,
         "perturbation_norm": perturbation_norm,
+        "newton_damping": newton_damping,
+        "continuation_history": continuation_history,
         "total_reaction_current": total_reaction_current,
         "mean_eta_v": mean_eta,
         "mean_c_o2_mol_m3": mean_c_o2,

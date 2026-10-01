@@ -17498,3 +17498,71 @@ de répondre à trois questions :
 La reconstruction des trois tranches et le raffinement spatial ne seront
 réintroduits que si ce screening minimal réussit.
 
+
+*** Échec du Newton direct et continuation homotopique
+
+Le screening minimal :
+
+  xi = 0.5
+  grille = 4 x 4 x 16
+
+ne converge pas lorsqu'il est initialisé directement à la réaction complète.
+
+Après 10 itérations Newton :
+
+  perturbation_norm = 5.89e20
+
+et l'état devient non physique :
+
+  min(c_O2) = -706.38 mol/m3
+  mean(eta) = +58.51 V
+  min(eta) = -1861.89 V
+  max(eta) = +5022.38 V.
+
+Le courant calculé n'a alors aucune signification physique.
+
+*** Étape 10 — continuation homotopique du NLBVP
+
+Le problème stationnaire est conservé, mais le terme réactionnel est multiplié
+par un paramètre de continuation lambda :
+
+  j_ORR(lambda) = lambda j_ORR.
+
+Les niveaux successifs sont :
+
+  0
+  0.01
+  0.03
+  0.10
+  0.30
+  0.60
+  1.00.
+
+La solution convergée d'un niveau sert directement d'initialisation au suivant.
+
+Chaque Newton utilise en plus un amortissement :
+
+  damping = 0.5.
+
+Le screening reste volontairement minimal :
+
+  xi = 0.5
+  grille = 4 x 4 x 16
+  tolérance = 1e-6
+  maximum = 10 Newton par niveau.
+
+La sortie enregistre l'historique de convergence pour chaque valeur de lambda.
+
+*** Critère de décision
+
+Si la continuation atteint :
+
+  lambda = 1
+
+avec un état physique, le NLBVP est viable et la suite pourra tester le
+raffinement spatial.
+
+Si la continuation échoue à un lambda intermédiaire, le niveau d'échec
+identifiera la zone de raideur et permettra d'affiner la continuation sans
+augmenter inutilement la grille.
+
