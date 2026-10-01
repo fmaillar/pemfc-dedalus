@@ -140,7 +140,6 @@ def test_predictive_rhs_closes_cell_voltage_from_dynamic_state() -> None:
         state=_nominal_state(),
         current_a=current,
         stack_air_flow_slpm=216.1,
-        cathode_outlet_molar_flow_per_cell_mol_s=1.5e-2,
         inlet_air_temperature_k=293.15,
         cathode_air_outlet_temperature_k=303.15,
         cathode_total_pressure_pa=101325.0,
@@ -153,6 +152,7 @@ def test_predictive_rhs_closes_cell_voltage_from_dynamic_state() -> None:
     )
 
     assert diagnostics.voltage is not None
+    assert diagnostics.cathode_outlet_molar_flow_per_cell_mol_s > 0.0
     assert diagnostics.voltage.cell_voltage_v > 0.0
     assert diagnostics.voltage.cell_voltage_v < diagnostics.voltage.reversible_v
     assert diagnostics.thermal.heat_generation_w == pytest.approx(
