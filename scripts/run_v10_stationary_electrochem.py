@@ -1,13 +1,10 @@
-"""Run nominal V1.0 stationary electrochemistry on three streamwise slices."""
+"""Run a cheap nominal screening of the V1.0 stationary electrochemistry solve."""
 
 from __future__ import annotations
 
-import csv
 import json
-from concurrent.futures import ProcessPoolExecutor
 from dataclasses import replace
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 
@@ -18,37 +15,16 @@ from pemfc_dedalus.parameters import CathodeParameters
 from pemfc_dedalus.thermal import open_cathode_airflow_target
 
 
-def simpson_mean(values: list[float]) -> float:
-    if len(values) != 3:
-        raise ValueError("Simpson mean requires exactly three values")
-    return (values[0] + 4.0 * values[1] + values[2]) / 6.0
-
-
-def run_slice_task(
-    args: tuple[CathodeParameters, float, float],
-) -> dict[str, Any]:
-    params, xi, oxygen_feed_concentration = args
-    result = solve_stationary(
-        params=params,
-        nx=8,
-        ny=8,
-        nz=32,
-        oxygen_feed_concentration=oxygen_feed_concentration,
-        newton_tolerance=1e-8,
-        max_newton_iterations=30,
-    )
-    return {
-        "slice_xi": xi,
-        "oxygen_feed_concentration_mol_m3": oxygen_feed_concentration,
-        **result,
-    }
-
-
 def main() -> None:
     base = CathodeParameters()
     current_a = 26.04
     inlet_temperature_c = 20.0
     ntu = 3.0
+    xi = 0.5
+    nx, ny, nz = 4, 4, 16
+    max_newton_iterations = 10
+    newton_tolerance = 1e-6
+
     voltage_v = base.tech.bol_typical_cell_voltage_v(current_a)
     target_temperature_k = 273.15 + base.tech.optimum_stack_temperature_c(current_a)
     inlet_temperature_k = 273.15 + inlet_temperature_c
@@ -87,83 +63,64 @@ def main() -> None:
         temperature_k=profile.air_temperature_k,
         gas_constant_j_mol_k=params.gas_constant,
     )
+    oxygen_feed = float(
+        np.interp(xi, profile.streamwise_fraction, concentration)
+    )
 
-    xis = [0.0, 0.5, 1.0]
-    local_feed = {
-        xi: float(np.interp(xi, profile.streamwise_fraction, concentration))
-        for xi in xis
-    }
+    result = solve_stationary(
+        params=params,
+        nx=nx,
+        ny=ny,
+        nz=nz,
+        oxygen_feed_concentration=oxygen_feed,
+        newton_tolerance=newton_tolerance,
+        max_newton_iterations=max_newton_iterations,
+    )
 
-    tasks = [
-        (params, xi, local_feed[xi])
-        for xi in xis
-    ]
-    with ProcessPoolExecutor(max_workers=3) as executor:
-        rows = list(executor.map(run_slice_task, tasks))
-
-    rows.sort(key=lambda row: float(row["slice_xi"]))
     area_m2 = params.length_x * params.length_y
-    local_current_density = [
-        float(row["total_reaction_current"]) / area_m2 for row in rows
-    ]
-    mean_current_density = simpson_mean(local_current_density)
+    current_density = float(result["total_reaction_current"]) / area_m2
     target_current_density = base.membrane_current_density
+    relative_current_error = (
+        current_density - target_current_density
+    ) / target_current_density
 
     output = {
         "schema_version": 1,
-        "model": "v10-stationary-electrochemistry",
+        "model": "v10-stationary-electrochemistry-screening",
         "current_a": current_a,
         "voltage_v": voltage_v,
+        "slice_xi": xi,
+        "grid": [nx, ny, nz],
+        "newton_tolerance": newton_tolerance,
+        "max_newton_iterations": max_newton_iterations,
+        "oxygen_feed_concentration_mol_m3": oxygen_feed,
         "target_current_density_a_m2": target_current_density,
-        "mean_current_density_a_m2": mean_current_density,
-        "relative_current_error": (
-            mean_current_density - target_current_density
-        ) / target_current_density,
-        "all_converged": all(bool(row["converged"]) for row in rows),
-        "all_positive_o2": all(float(row["min_c_o2_mol_m3"]) > 0.0 for row in rows),
-        "all_positive_orr": all(float(row["min_j_orr_a_m3"]) >= 0.0 for row in rows),
-        "rows": rows,
+        "current_density_a_m2": current_density,
+        "relative_current_error": relative_current_error,
+        **result,
     }
 
     output_json = Path("results/quick-v10-stationary-electrochem.json")
-    output_csv = Path("results/quick-v10-stationary-electrochem.csv")
     output_json.parent.mkdir(parents=True, exist_ok=True)
     output_json.write_text(json.dumps(output, indent=2) + "\n")
 
-    csv_rows = []
-    for row, current_density in zip(rows, local_current_density, strict=True):
-        csv_rows.append(
-            {
-                **row,
-                "current_density_a_m2": current_density,
-            }
-        )
-    with output_csv.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(csv_rows[0]))
-        writer.writeheader()
-        writer.writerows(csv_rows)
-
     print(
-        f"all_converged={output['all_converged']} "
-        f"all_positive_o2={output['all_positive_o2']} "
-        f"all_positive_orr={output['all_positive_orr']}",
+        f"converged={result['converged']} "
+        f"newton={result['newton_iterations']} "
+        f"norm={float(result['perturbation_norm']):.3e}",
         flush=True,
     )
-    relative_current_error = (
-        mean_current_density - target_current_density
-    ) / target_current_density
     print(
-        f"j_bar={mean_current_density:.2f} A/m2 "
+        f"cO2_min={float(result['min_c_o2_mol_m3']):.6g} mol/m3 "
+        f"jORR_min={float(result['min_j_orr_a_m3']):.6g} A/m3",
+        flush=True,
+    )
+    print(
+        f"j={current_density:.2f} A/m2 "
         f"error={100.0 * relative_current_error:+.3f}%",
         flush=True,
     )
-    for row in rows:
-        print(
-            f"xi={row['slice_xi']:.1f} "
-            f"newton={row['newton_iterations']} "
-            f"norm={row['perturbation_norm']:.3e}",
-            flush=True,
-        )
+    print(f"Wrote {output_json}")
 
 
 if __name__ == "__main__":

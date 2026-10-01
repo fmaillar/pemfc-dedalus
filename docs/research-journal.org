@@ -17467,3 +17467,34 @@ physiquement admissible, il remplacera le pseudo-transitoire comme fermeture
 
 Le solveur IVP restera conservé uniquement comme outil historique / diagnostic.
 
+
+*** Réduction du coût du screening NLBVP
+
+Le premier essai du NLBVP en trois tranches sur la grille :
+
+  8 x 8 x 32
+
+s'est révélé beaucoup trop coûteux pour un simple test de faisabilité.
+
+Le coût dominant provient de la reconstruction des matrices du sous-problème à
+chaque itération Newton.
+
+La stratégie est donc changée avant toute campagne complète.
+
+Le screening stationnaire est réduit à :
+
+  xi = 0.5
+  grille = 4 x 4 x 16
+  max Newton = 10
+  tolérance Newton = 1e-6.
+
+L'objectif n'est plus de produire une valeur finale de courant mais uniquement
+de répondre à trois questions :
+
+1. le NLBVP converge-t-il ;
+2. la solution reste-t-elle physiquement admissible ;
+3. le coût par résolution est-il acceptable.
+
+La reconstruction des trois tranches et le raffinement spatial ne seront
+réintroduits que si ce screening minimal réussit.
+
