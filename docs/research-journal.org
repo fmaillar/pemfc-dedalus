@@ -19565,3 +19565,30 @@ Ainsi, le LBVP Picard et le diagnostic NLBVP utilisent exactement la même
 source réactionnelle discrète.
 
 Le solveur Gummel globalisé lui-même reste inchangé.
+
+
+*** Correctif d'échelle après forcing spectral
+
+Le run suivant l'étape 33 a échoué avant de produire des résultats avec :
+
+  ValueError: operands could not be broadcast together
+  shapes (6,6,24) (4,4,16)
+
+La cause est l'évaluation spectrale de :
+
+  j_orr.evaluate()
+
+qui fait passer certains champs impliqués dans l'expression, notamment q_hat,
+à l'échelle déaliasée 3/2 :
+
+  4 x 4 x 16 -> 6 x 6 x 24.
+
+Le calcul suivant de dq_rel comparait alors q_hat à cette échelle déaliasée avec
+old_q_hat enregistré à l'échelle 1.
+
+Le correctif est minimal : à la fin de picard_map(), q_hat est explicitement
+ramené à l'échelle 1 avant tout calcul de différence ou mise à jour :
+
+  q_hat.change_scales(1)
+
+La logique du solveur Gummel globalisé reste inchangée.
