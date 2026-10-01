@@ -15240,3 +15240,180 @@ Si la sensibilité devient faible dès NTU environ 3 à 5, une fermeture
 d'efficacité simple pourra être utilisée avant la spatialisation complète de la
 vitesse d'air.
 
+
+*** Résultats de la sensibilité NTU
+
+Le screening d'efficacité thermique finie confirme que l'hypothèse idéale :
+
+  epsilon = 1
+
+de V0.8 est sensible au niveau de transfert local.
+
+Pour :
+
+  NTU = 0.5
+
+on obtient :
+
+  epsilon = 0.3935
+
+soit un déficit de refroidissement de :
+
+  60.65 %
+
+et un multiplicateur de débit idéal de :
+
+  2.541.
+
+Pour :
+
+  NTU = 1
+
+on obtient :
+
+  epsilon = 0.6321
+
+soit encore :
+
+  36.79 %
+
+de déficit et un multiplicateur de débit de :
+
+  1.582.
+
+Pour :
+
+  NTU = 2
+
+l'efficacité vaut :
+
+  0.8647
+
+et le déficit reste de l'ordre de :
+
+  13.53 %.
+
+Pour :
+
+  NTU = 3
+
+l'efficacité atteint :
+
+  0.9502
+
+avec un déficit proche de :
+
+  4.98 %
+
+et un facteur de débit :
+
+  1.0524.
+
+Pour :
+
+  NTU = 5
+
+l'efficacité vaut :
+
+  0.9933
+
+et le déficit tombe à environ :
+
+  0.67 %.
+
+Au point 26.04 A / 10 degC, où le plancher stoechiométrique est actif, le débit
+V0.8 fournit une petite marge thermique supplémentaire. Le déficit observé y est
+donc légèrement inférieur à 1 - epsilon et disparaît à NTU = 5.
+
+*** Interprétation de la sensibilité NTU
+
+La fermeture thermique idéale V0.8 n'est pas robuste pour des NTU faibles ou
+modérés.
+
+Un NTU de l'ordre de 1 à 2 modifierait fortement le débit nécessaire et ne peut
+pas être traité comme une petite correction.
+
+À partir de :
+
+  NTU ~= 3
+
+l'erreur devient de l'ordre de quelques pourcents.
+
+À :
+
+  NTU ~= 5
+
+l'approximation idéale devient très proche de la limite de transfert fini.
+
+Le NTU réel du stack n'est pas identifié ici. Le screening établit seulement
+l'échelle à laquelle la fermeture idéale devient acceptable.
+
+*** Décision après sensibilité NTU
+
+Le transfert thermique local fini doit maintenant être introduit explicitement
+dans la formulation streamwise Dedalus.
+
+Pour une température de pile uniforme T_stack et un NTU total imposé :
+
+  dT_air / d xi
+  =
+  NTU (T_stack - T_air).
+
+La solution analytique est :
+
+  T_air(xi)
+  =
+  T_stack
+  -
+  (T_stack - T_in) exp(-NTU xi).
+
+Cette équation sera résolue conjointement avec le bilan O2 déjà validé.
+
+La campagne utilisera :
+
+  NTU =
+    1
+    3
+    5
+
+afin de représenter respectivement :
+
+- un échange modéré ;
+- le seuil où l'erreur idéale devient de l'ordre de 5 % ;
+- un régime proche de la fermeture idéale.
+
+*** Étape 5 — Dedalus streamwise à transfert thermique fini
+
+Le solveur :
+
+  src/pemfc_dedalus/cathode_airflow_1d.py
+
+est étendu avec une fermeture thermique locale finie.
+
+Nouveau driver :
+
+  scripts/run_v09_dedalus_finite_thermal.py
+
+Nouvelle cible :
+
+  make quick-dedalus-finite-thermal-v09
+
+Les sorties sont :
+
+  results/quick-v09-dedalus-finite-thermal.json
+  results/quick-v09-dedalus-finite-thermal.csv
+
+Les métriques principales seront :
+
+- erreur Dedalus / solution exponentielle analytique ;
+- T_air,out ;
+- fraction de la chaleur transférable ;
+- écart à la fermeture idéale ;
+- effet indirect sur les états gazeux via la température locale.
+
+Le critère de décision est double :
+
+1. vérifier la formulation spectrale du transfert fini ;
+2. déterminer si un NTU de référence peut être retenu sans calibration directe,
+   ou si V0.9 doit conserver NTU comme paramètre de sensibilité explicite.
+

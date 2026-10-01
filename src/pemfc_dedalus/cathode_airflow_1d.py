@@ -128,3 +128,87 @@ def solve_streamwise_coupled_profile(
         air_temperature_k=temperature_values[order],
         oxygen_mole_fraction=local_oxygen_fraction[order],
     )
+
+
+
+def solve_streamwise_finite_thermal_profile(
+    *,
+    current_a: float,
+    total_air_flow_slpm: float,
+    n_cells: int,
+    oxygen_mole_fraction: float,
+    faraday_c_mol: float,
+    inlet_temperature_k: float,
+    stack_temperature_k: float,
+    ntu: float,
+    points: int = 64,
+) -> DedalusStreamwiseProfile:
+    """Solve O2 balance and finite-NTU streamwise air heating."""
+    if ntu < 0.0:
+        raise ValueError("ntu must be non-negative")
+    if stack_temperature_k <= 0.0:
+        raise ValueError("stack_temperature_k must be positive")
+
+    per_cell_air_flow_slpm = total_air_flow_slpm / n_cells
+    inlet_total_molar_flow = molar_flow_from_slpm(per_cell_air_flow_slpm)
+    inlet_oxygen_flow = oxygen_mole_fraction * inlet_total_molar_flow
+    inlet_inert_flow = (1.0 - oxygen_mole_fraction) * inlet_total_molar_flow
+    oxygen_consumption = oxygen_consumption_mol_s(
+        current_a,
+        faraday_c_mol=faraday_c_mol,
+    )
+    if oxygen_consumption > inlet_oxygen_flow:
+        raise ValueError("airflow cannot supply the requested oxygen consumption")
+
+    coords = d3.CartesianCoordinates("xi")
+    dist = d3.Distributor(coords, dtype=np.float64)
+    basis = d3.ChebyshevT(
+        coords["xi"],
+        size=points,
+        bounds=(0.0, 1.0),
+        dealias=3 / 2,
+    )
+
+    oxygen_flow = dist.Field(name="oxygen_flow", bases=basis)
+    temperature = dist.Field(name="temperature", bases=basis)
+    tau_oxygen = dist.Field(name="tau_oxygen")
+    tau_temperature = dist.Field(name="tau_temperature")
+
+    lift_basis = basis.derivative_basis(1)
+
+    def lift(field):
+        return d3.Lift(field, lift_basis, -1)
+
+    def dxi(field):
+        return d3.Differentiate(field, coords["xi"])
+
+    problem = d3.LBVP(
+        [oxygen_flow, temperature, tau_oxygen, tau_temperature],
+        namespace=locals(),
+    )
+    problem.add_equation(
+        "dxi(oxygen_flow) + lift(tau_oxygen) = -oxygen_consumption"
+    )
+    problem.add_equation("oxygen_flow(xi=0) = inlet_oxygen_flow")
+    problem.add_equation(
+        "dxi(temperature) + ntu*temperature + lift(tau_temperature) "
+        "= ntu*stack_temperature_k"
+    )
+    problem.add_equation("temperature(xi=0) = inlet_temperature_k")
+
+    solver = problem.build_solver()
+    solver.solve()
+
+    xi = np.asarray(dist.local_grid(basis), dtype=float)
+    oxygen_values = np.asarray(oxygen_flow["g"], dtype=float).copy()
+    temperature_values = np.asarray(temperature["g"], dtype=float).copy()
+    total_molar_flow = oxygen_values + inlet_inert_flow
+    local_oxygen_fraction = oxygen_values / total_molar_flow
+
+    order = np.argsort(xi)
+    return DedalusStreamwiseProfile(
+        streamwise_fraction=xi[order],
+        oxygen_molar_flow_mol_s=oxygen_values[order],
+        air_temperature_k=temperature_values[order],
+        oxygen_mole_fraction=local_oxygen_fraction[order],
+    )
