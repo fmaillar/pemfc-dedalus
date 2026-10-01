@@ -22954,3 +22954,117 @@ Conclusion :
 - la variable la plus lente reste l'hydratation membrane ;
 - la campagne complète peut être lancée avec une tolérance de cycle 1e-4 et
   thermique 0.1 K.
+
+
+
+*** Étape 25e — campagne complète de polarisation Ballard E.23 (commit 5103826)
+
+La campagne complète a été exécutée avec :
+
+  I = 5, 10, 15, 20, 26.04, 30 A
+  dt = 0.01 s
+  max_cycles = 30
+  cycle_tolerance = 1e-4
+  temperature_tolerance = 0.1 K
+  feasibility_scan_points = 10
+  max_airflow_iterations = 8.
+
+Les six points convergent.
+
+La variable dominante de l'erreur cycle-à-cycle est, pour les six courants :
+
+  membrane_mean_water_content.
+
+Résultats principaux :
+
+  I = 5 A
+    Q_air = 115.508 slpm
+    lambda_air = 139.17
+    cycles = 7
+    cycle_error = 4.20e-5
+    T - Topt = +0.061 K
+    lambda_mem = 3.011
+    V_V11 = 0.85667 V
+    V_Ballard,BOL = 0.88041 V
+    Delta V = -23.74 mV
+
+  I = 10 A
+    Q_air = 211.535 slpm
+    lambda_air = 127.43
+    cycles = 8
+    cycle_error = 4.87e-5
+    T - Topt = -0.032 K
+    lambda_mem = 2.869
+    V_V11 = 0.81677 V
+    V_Ballard,BOL = 0.81875 V
+    Delta V = -1.98 mV
+
+  I = 15 A
+    Q_air = 290.327 slpm
+    lambda_air = 116.60
+    cycles = 10
+    cycle_error = 9.26e-5
+    T - Topt = +0.097 K
+    lambda_mem = 2.721
+    V_V11 = 0.78276 V
+    V_Ballard,BOL = 0.79862 V
+    Delta V = -15.86 mV
+
+  I = 20 A
+    Q_air = 372.117 slpm
+    lambda_air = 112.08
+    cycles = 13
+    cycle_error = 5.59e-5
+    T - Topt = -0.049 K
+    lambda_mem = 2.575
+    V_V11 = 0.74922 V
+    V_Ballard,BOL = 0.78483 V
+    Delta V = -35.61 mV
+
+  I = 26.04 A
+    Q_air = 468.886 slpm
+    lambda_air = 108.47
+    cycles = 16
+    cycle_error = 6.34e-5
+    T - Topt = -0.032 K
+    lambda_mem = 2.378
+    V_V11 = 0.70561 V
+    V_Ballard,BOL = 0.76817 V
+    Delta V = -62.56 mV
+
+  I = 30 A
+    Q_air = 542.440 slpm
+    lambda_air = 108.92
+    cycles = 18
+    cycle_error = 7.64e-5
+    T - Topt = -0.100 K
+    lambda_mem = 2.243
+    V_V11 = 0.67327 V
+    V_Ballard,BOL = 0.75736 V
+    Delta V = -84.08 mV.
+
+Interprétation immédiate :
+
+- la fermeture thermique Ballard atteint Topt sur toute la plage à moins de
+  0.1 K ;
+- le débit cathodique requis augmente régulièrement avec le courant ;
+- la stoechiométrie d'air est élevée mais diminue avec le courant, de ~139 à
+  ~109, ce qui est cohérent avec un débit piloté principalement par le
+  refroidissement ;
+- l'hydratation membrane décroît progressivement avec le courant ;
+- la tension V11 est très proche de la BOL Ballard autour de 10 A mais devient
+  progressivement trop faible aux courants élevés ;
+- cet écart ne doit pas être corrigé par la thermique ou le débit d'air, qui
+  sont désormais contraints par la loi constructeur.
+
+La prochaine étape est donc de décomposer la tension moyenne du cycle en :
+
+  E_rev
+  eta_ORR
+  eta_ohm,membrane
+  eta_additional
+
+pour identifier la fermeture responsable du déficit haute intensité.
+
+Le solveur périodique et le script de campagne ont été étendus pour enregistrer
+et afficher cette décomposition moyenne.
