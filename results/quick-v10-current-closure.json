@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "model": "v10-electrochemical-current-closure-screening",
+  "reference_current_a": 26.04,
+  "reference_current_density_a_m2": 2150.0,
+  "representative_area_m2": 2e-06,
+  "max_abs_relative_current_density_error": 0.5016927655881097,
+  "rows": [
+    {
+      "current_a": 7.3,
+      "slice_xi": 0.0,
+      "cell_voltage_v": 0.83,
+      "oxygen_feed_concentration_mol_m3": 8.709025070766495,
+      "reaction_current_a": 0.0018102202731110123,
+      "representative_area_m2": 2e-06,
+      "model_current_density_a_m2": 905.1101365555062,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_current_density_error": 0.5016927655881097
+    },
+    {
+      "current_a": 7.3,
+      "slice_xi": 1.0,
+      "cell_voltage_v": 0.83,
+      "oxygen_feed_concentration_mol_m3": 8.386605088257605,
+      "reaction_current_a": 0.0017438313164158867,
+      "representative_area_m2": 2e-06,
+      "model_current_density_a_m2": 871.9156582079434,
+      "target_current_density_a_m2": 602.726574500768,
+      "relative_current_density_error": 0.4466189066412772
+    },
+    {
+      "current_a": 14.5,
+      "slice_xi": 0.0,
+      "cell_voltage_v": 0.8,
+      "oxygen_feed_concentration_mol_m3": 8.708971475646017,
+      "reaction_current_a": 0.00290892587226502,
+      "representative_area_m2": 2e-06,
+      "model_current_density_a_m2": 1454.46293613251,
+      "target_current_density_a_m2": 1197.1966205837175,
+      "relative_current_density_error": 0.21489061289143732
+    },
+    {
+      "current_a": 14.5,
+      "slice_xi": 1.0,
+      "cell_voltage_v": 0.8,
+      "oxygen_feed_concentration_mol_m3": 8.27201968979831,
+      "reaction_current_a": 0.00276507517554115,
+      "representative_area_m2": 2e-06,
+      "model_current_density_a_m2": 1382.5375877705749,
+      "target_current_density_a_m2": 1197.1966205837175,
+      "relative_current_density_error": 0.15481247106802776
+    },
+    {
+      "current_a": 26.04,
+      "slice_xi": 0.0,
+      "cell_voltage_v": 0.7681655172413794,
+      "oxygen_feed_concentration_mol_m3": 8.708885712418018,
+      "reaction_current_a": 0.0045315215913977235,
+      "representative_area_m2": 2e-06,
+      "model_current_density_a_m2": 2265.760795698862,
+      "target_current_density_a_m2": 2150.0,
+      "relative_current_density_error": 0.05384223055761013
+    },
+    {
+      "current_a": 26.04,
+      "slice_xi": 1.0,
+      "cell_voltage_v": 0.7681655172413794,
+      "oxygen_feed_concentration_mol_m3": 8.094746926638376,
+      "reaction_current_a": 0.004218652147751612,
+      "representative_area_m2": 2e-06,
+      "model_current_density_a_m2": 2109.3260738758063,
+      "target_current_density_a_m2": 2150.0,
+      "relative_current_density_error": -0.018918105174043586
+    }
+  ]
+}
