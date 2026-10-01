@@ -29,6 +29,14 @@ output-electrochem-*/
 .v05-sweep/
 .v06-continuity-nominal/
 .v06-coupling/
+.quick-v06-grid/
+ .quick-v06-ka/
+.quick-v06-rha/
+.v06-dry-high-load/
+.v06-grid-study/
+.v06-ka-sensitivity/
+.v06-rha-sensitivity/
+.v06-wet-low-load/
 
 # Local simulation logs
 overnight-v04.log
