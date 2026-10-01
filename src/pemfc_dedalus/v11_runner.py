@@ -41,6 +41,7 @@ class V11RunnerInputs:
     inlet_water_mole_fraction: float
     cathode_platinum_loading_mg_cm2_geo: float
     cathode_ecsa_m2_pt_g_pt: float
+    membrane_conductivity_multiplier: float = 1.0
     additional_resolved_loss_v: float = 0.0
 
 
@@ -179,6 +180,9 @@ def _diagnostics(
             inputs.cathode_platinum_loading_mg_cm2_geo
         ),
         cathode_ecsa_m2_pt_g_pt=inputs.cathode_ecsa_m2_pt_g_pt,
+        membrane_conductivity_multiplier=(
+            inputs.membrane_conductivity_multiplier
+        ),
         additional_resolved_loss_v=inputs.additional_resolved_loss_v,
     )
 
