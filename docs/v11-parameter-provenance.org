@@ -407,3 +407,35 @@ Status remains:
 
 V11 voltage prediction must continue to require Pt loading and ECSA as explicit
 inputs until a product-specific source is found.
+
+
+
+* N2 crossover literature closure
+
+The FCgen-1020ACS manual does not provide N2 permeability. V11 therefore uses
+an independently published Nafion 117 gas-permeability relation rather than the
+historical fitted crossover flux.
+
+Accepted reference: Catalano et al. (2012), International Journal of Hydrogen
+Energy 37(7), 6308-6316, DOI 10.1016/j.ijhydene.2011.07.047.
+
+V11 uses the following literature anchors already audited in the V07 studies:
+
+- dry N2 permeability at 35 degC: 0.18 Barrer;
+- dry-Nafion N2 permeation activation energy: 49.6 kJ/mol;
+- approximately 95x permeability increase at water activity 0.75;
+- reported high-humidity enhancement bounded at approximately 100x;
+- partial molar water volume: 17 cm3/mol.
+
+These values are not fitted to FCgen-1020ACS behavior.
+
+The V11 closure combines them with the V11 membrane thickness, active area,
+density, equivalent weight, mean membrane water content and instantaneous N2
+partial-pressure gradient.
+
+Status: RESOLVED FROM LITERATURE AS A LUMPED-MEMBRANE CLOSURE.
+
+Caveat: the Catalano water-content dependence is a material relation, while
+V11 currently represents membrane hydration by one mean lambda. A dynamic
+through-plane lambda(z) state would be required to replace this one-point
+reduction by a resistance integral without inventing an internal profile.
