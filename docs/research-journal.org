@@ -15417,3 +15417,112 @@ Le critère de décision est double :
 2. déterminer si un NTU de référence peut être retenu sans calibration directe,
    ou si V0.9 doit conserver NTU comme paramètre de sensibilité explicite.
 
+
+*** Résultats du solveur Dedalus à transfert thermique fini
+
+Le solveur streamwise à transfert thermique fini reproduit la solution
+exponentielle analytique avec une erreur numérique négligeable.
+
+Erreur absolue maximale sur T_air :
+
+  2.274e-13 K.
+
+La formulation :
+
+  dT_air / d xi
+  =
+  NTU (T_stack - T_air)
+
+est donc validée pour :
+
+  NTU =
+    1
+    3
+    5.
+
+Exemple au point :
+
+  I = 26.04 A
+  T_air,in = 20 degC
+  T_stack,target = 39.8112 degC
+
+on obtient :
+
+  NTU = 1 :
+    T_air,out = 32.5231 degC
+    approche à la pile = 7.288 K
+
+  NTU = 3 :
+    T_air,out = 38.8249 degC
+    approche à la pile = 0.986 K
+
+  NTU = 5 :
+    T_air,out = 39.6777 degC
+    approche à la pile = 0.133 K.
+
+*** Décision sur la baseline NTU
+
+Le solveur est numériquement validé, mais aucun résultat expérimental ou
+paramètre géométrique fiable ne permet d'identifier un NTU unique du stack.
+
+Il serait donc artificiel de figer NTU = 3 ou NTU = 5 comme valeur physique de
+référence.
+
+Dans V0.9, NTU reste un paramètre de sensibilité explicite.
+
+Les valeurs 1, 3 et 5 sont conservées comme régimes représentatifs d'échange
+modéré, fort et presque idéal.
+
+*** Étape 6 — état gazeux O2 local thermo-couplé
+
+Le screening O2 précédent montrait une faible variation de fraction molaire,
+inférieure à environ 1.6 %, mais le champ thermique local peut varier de
+plusieurs dizaines de kelvins.
+
+La concentration molaire réellement imposée au milieu cathodique dépend de :
+
+  c_O2(x)
+  =
+  y_O2(x) p / (R T_air(x)).
+
+Même avec une faible variation de y_O2, le facteur 1/T_air peut donc produire
+une variation de concentration plus importante.
+
+Cette grandeur reconnecte directement V0.9 au modèle cathodique 3D historique.
+
+Nouvelle cible :
+
+  make quick-local-o2-state-v09
+
+Sorties :
+
+  results/quick-v09-local-o2-state.json
+  results/quick-v09-local-o2-state.csv
+
+La campagne conserve :
+
+  NTU =
+    1
+    3
+    5
+
+et les mêmes régimes courant / température d'entrée.
+
+Les métriques suivies seront :
+
+- c_O2 à l'entrée ;
+- c_O2 à la sortie ;
+- baisse relative de c_O2 ;
+- contribution de la variation de composition ;
+- contribution supplémentaire du champ thermique ;
+- comparaison avec l'hypothèse isotherme à T_stack.
+
+*** Critère de décision
+
+Si la variation de concentration O2 reste faible, la spatialisation O2 pourra
+rester secondaire dans V0.9.
+
+Si elle devient nettement supérieure à la variation de y_O2 seule, le prochain
+incrément devra injecter explicitement la concentration thermo-couplée comme
+condition d'entrée spatiale du solveur cathodique Dedalus.
+
