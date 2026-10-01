@@ -19255,3 +19255,61 @@ Le prochain run doit répondre à une question décisive :
 Si le mérite pré-Newton est inférieur au mérite final, Picard deviendra le
 solveur stationnaire de référence et Newton ne sera plus utilisé comme étape
 obligatoire.
+
+
+*** Diagnostic pré-Newton (213ee5d)
+
+Le diagnostic pré-Newton montre que l'état issu de Picard n'est pas encore
+cohérent au sens des PDE, malgré une variation relative q_hat ~= 8.5e-9.
+
+Le mérite avant Newton vaut :
+
+  pre_newton_residual_merit = 3.2486e-2.
+
+La composante dominante est :
+
+  oxygen = 3.1801e-2,
+
+puis :
+
+  membrane_potential = 6.63e-3
+  inverse_bv = 1.33e-5.
+
+Ce résultat révèle un défaut dans l'ordre des opérations de Picard.
+
+À chaque itération :
+
+1. les PDE sont résolues avec q^(n) ;
+2. q est mis à jour vers q^(n+1) ;
+3. le critère de convergence est testé ;
+4. la boucle peut s'arrêter immédiatement.
+
+Ainsi, lors de la dernière itération, les champs c, phi_s et phi_m
+correspondent encore à q^(n), alors que q_hat contient déjà q^(n+1).
+
+Même si q^(n+1)-q^(n) est très petit relativement, le résidu des PDE est
+évalué avec une source différente de celle utilisée lors de leur dernière
+résolution.
+
+*** Étape 29 — résolution de cohérence après Picard
+
+Après la sortie de la boucle Picard, une résolution LBVP supplémentaire est
+désormais exécutée avec le q_hat final.
+
+Cette étape ne modifie plus q_hat. Elle remet uniquement :
+
+  c
+  phi_s
+  phi_m
+
+en cohérence avec la source finale.
+
+Newton démarre ensuite depuis cet état.
+
+La cible reste :
+
+  make quick-stationary-inverse-bv-picard-v10
+
+Le critère décisif du prochain run est la baisse du mérite pré-Newton,
+notamment de la composante oxygen qui devrait alors devenir proche du bruit
+de discrétisation.
