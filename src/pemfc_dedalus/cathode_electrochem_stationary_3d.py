@@ -367,6 +367,7 @@ def solve_stationary(
             and attempt_count < max_continuation_attempts
         ):
             attempt_count += 1
+            lambda_start = current_lambda
             lambda_target = min(1.0, current_lambda + lambda_step)
             reaction_scale["g"] = lambda_target
             residual_start = residual_merit()
@@ -420,7 +421,7 @@ def solve_stationary(
                 final_residual_merit = current_residual
                 globalization_history.append(
                     {
-                        "lambda_start": current_lambda - lambda_step,
+                        "lambda_start": lambda_start,
                         "lambda_target": lambda_target,
                         "lambda_step": lambda_step,
                         "accepted": True,
