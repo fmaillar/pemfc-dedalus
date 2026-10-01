@@ -18511,3 +18511,119 @@ Correction :
   défaut après Newton.
 
 Le prochain lancement est donc le premier test effectif du NLBVP inverse-BV.
+
+
+*** Résultat du premier NLBVP inverse Butler-Volmer
+
+Le premier calcul effectif de la formulation inverse-BV, poussé dans :
+
+  results/quick-v10-stationary-inverse-bv.json
+
+ne converge pas avec un pas de Newton complet :
+
+  damping = 1
+  iterations = 5
+  converged = false.
+
+Le comportement est divergent dès les premières itérations.
+
+La norme physique évolue approximativement comme :
+
+  1.73
+  10.76
+  304.7
+  2.08e4
+  1.68e5.
+
+La composante dominante est q_hat :
+
+  ||delta q_hat|| =
+    1.54
+    9.47
+    294
+    2.08e4
+    1.67e5.
+
+La concentration en oxygène quitte ensuite le domaine physique :
+
+  min(c_O2) =
+    6.9147
+    6.9147
+    5.2711
+    0.4442
+    -118.447 mol/m3.
+
+Les potentiels divergent également, mais plus tard que q_hat.
+
+Le point essentiel est que la pathologie numérique a changé de nature.
+
+Dans l'ancienne formulation, la cinétique directe injectait une source
+exponentielle très raide dans les PDE.
+
+Dans la formulation inverse, cette exponentielle n'est plus présente dans la
+source. Néanmoins, Newton non amorti produit une correction trop grande de
+q_hat, puis entraîne les champs couplés hors de la branche physique.
+
+La transformation inverse-BV améliore donc la structure du problème, mais elle
+ne rend pas automatiquement admissible un pas Newton de longueur 1.
+
+Le courant final du run divergent :
+
+  j ~= 1.51e5 A/m2
+
+et les valeurs finales de eta, q_hat et c_O2 sont non physiques ; elles ne
+doivent pas être interprétées scientifiquement.
+
+*** Étape 20 — scan du damping Newton sur la formulation inverse-BV
+
+Avant de réintroduire une globalisation adaptative, on teste si un damping fixe
+suffit maintenant à stabiliser la formulation inverse.
+
+Les valeurs testées sont :
+
+  0.5
+  0.25
+  0.125
+  0.0625.
+
+Pour chaque valeur :
+
+  grille = 4 x 4 x 16
+  I = 26.04 A
+  xi = 0.5
+  maximum = 60 itérations
+  tolérance physique = 1e-7.
+
+Aucune continuation en reaction_scale n'est utilisée.
+
+Les diagnostics conservés sont :
+
+- convergence ;
+- nombre d'itérations ;
+- historique de norme physique ;
+- normes par composante ;
+- min(c_O2) ;
+- courant surfacique ;
+- résidu inverse-BV ;
+- erreur de round-trip BV.
+
+Nouvelle cible :
+
+  make quick-stationary-inverse-bv-damping-scan-v10
+
+Sortie :
+
+  results/quick-v10-stationary-inverse-bv-damping-scan.json
+
+*** Critère de décision
+
+Si une valeur de damping converge tout en maintenant c_O2 > 0, elle devient
+le point de départ pour une globalisation simple ou pour le solveur
+stationnaire nominal.
+
+Si plusieurs valeurs convergent, on retiendra la plus grande valeur stable,
+afin de conserver la convergence la plus rapide.
+
+Si aucune valeur ne converge, l'étape suivante sera un vrai backtracking sur
+la formulation inverse-BV, avec critère de mérite recalculé à chaque essai de
+pas et contrainte explicite c_O2 > 0.
