@@ -7,7 +7,7 @@ continuous numerical update.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 
 from .v11_purge import (
     V11PurgeClock,
@@ -108,26 +108,40 @@ def advance_state_euler(
     if dt_s <= 0.0:
         raise ValueError("dt_s must be positive")
 
-    values: dict[str, float] = {}
-    derivative_names = {
-        "stack_temperature_k": "stack_temperature_k_s",
-        "membrane_mean_water_content": "membrane_mean_water_content_s",
-        "anode_hydrogen_mol": "anode_hydrogen_mol_s",
-        "anode_nitrogen_mol": "anode_nitrogen_mol_s",
-        "anode_water_vapour_mol": "anode_water_vapour_mol_s",
-        "cathode_oxygen_mol": "cathode_oxygen_mol_s",
-        "cathode_nitrogen_mol": "cathode_nitrogen_mol_s",
-        "cathode_total_water_mol": "cathode_total_water_mol_s",
-    }
-    for field in fields(V11DynamicState):
-        name = field.name
-        rate_name = derivative_names[name]
-        values[name] = getattr(state, name) + dt_s * getattr(
-            derivative,
-            rate_name,
-        )
-
-    updated = V11DynamicState(**values)
+    updated = V11DynamicState(
+        stack_temperature_k=(
+            state.stack_temperature_k
+            + dt_s * derivative.stack_temperature_k_s
+        ),
+        membrane_mean_water_content=(
+            state.membrane_mean_water_content
+            + dt_s * derivative.membrane_mean_water_content_s
+        ),
+        anode_hydrogen_mol=(
+            state.anode_hydrogen_mol
+            + dt_s * derivative.anode_hydrogen_mol_s
+        ),
+        anode_nitrogen_mol=(
+            state.anode_nitrogen_mol
+            + dt_s * derivative.anode_nitrogen_mol_s
+        ),
+        anode_water_vapour_mol=(
+            state.anode_water_vapour_mol
+            + dt_s * derivative.anode_water_vapour_mol_s
+        ),
+        cathode_oxygen_mol=(
+            state.cathode_oxygen_mol
+            + dt_s * derivative.cathode_oxygen_mol_s
+        ),
+        cathode_nitrogen_mol=(
+            state.cathode_nitrogen_mol
+            + dt_s * derivative.cathode_nitrogen_mol_s
+        ),
+        cathode_total_water_mol=(
+            state.cathode_total_water_mol
+            + dt_s * derivative.cathode_total_water_mol_s
+        ),
+    )
     if updated.stack_temperature_k <= 0.0:
         raise ValueError("integration produced non-positive stack temperature")
     if updated.membrane_mean_water_content < 0.0:
