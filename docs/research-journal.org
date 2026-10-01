@@ -12977,3 +12977,100 @@ Avant d'introduire un coefficient convectif réel, il faut encore vérifier :
 
 Si ces vérifications passent, le modèle lumped idéal peut devenir la baseline
 thermique V0.8 avant couplage en retour de T vers électrochimie et membrane.
+
+
+*** Étape 6 — validation analytique du modèle thermique lumped
+
+La dynamique lumped idéale est maintenant comparée explicitement à sa solution
+analytique.
+
+Pour conditions constantes :
+
+  C_th dT/dt =
+    Q_dot
+    - m_dot c_p (T - T_in)
+
+la solution est :
+
+  T(t) =
+    T_eq
+    + [T(0) - T_eq]
+      exp(-t/tau)
+
+avec :
+
+  T_eq =
+    T_in + Q_dot/(m_dot c_p)
+
+et :
+
+  tau =
+    C_th/(m_dot c_p).
+
+Le module thermique ajoute :
+
+  lumped_thermal_time_constant_s(...)
+  lumped_equilibrium_temperature_k(...)
+  lumped_temperature_analytic_k(...).
+
+Des tests unitaires vérifient :
+
+- la définition de tau ;
+- l'égalité entre T_eq et la cible lorsque le débit requis est utilisé ;
+- la convergence de l'intégrateur Euler explicite vers la solution analytique.
+
+Un diagnostic dédié est ajouté :
+
+  scripts/analyze_v08_lumped_thermal_validation.py
+
+Cible :
+
+  make validate-lumped-thermal-v08.
+
+Le diagnostic utilise le point nominal Ballard et balaie :
+
+  T_in =
+    10
+    20
+    30 °C
+
+  offset initial T_stack - T_in =
+    0
+    10 K
+
+  pas de temps =
+    2
+    1
+    0.5
+    0.25 s
+
+sur :
+
+  600 s.
+
+Pour chaque cas, il calcule :
+
+- débit d'air cible ;
+- constante de temps thermique ;
+- température finale analytique ;
+- température finale numérique ;
+- erreur signée ;
+- erreur absolue.
+
+Sorties :
+
+  results/v08-lumped-thermal-validation.json
+  results/v08-lumped-thermal-validation.csv
+
+Décision :
+
+  exécuter make test ;
+
+  puis make validate-lumped-thermal-v08 ;
+
+  vérifier que l'erreur temporelle décroît avec dt et reste négligeable devant
+  les écarts thermiques physiques.
+
+Si cette validation est concluante, le modèle lumped idéal devient la baseline
+thermique V0.8 avant couplage en retour de la température vers la membrane et
+l'électrochimie.
