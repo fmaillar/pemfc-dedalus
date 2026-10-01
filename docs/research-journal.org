@@ -22407,3 +22407,57 @@ Sorties :
 
   results/v11-polarization-periodic.csv
   results/v11-polarization-periodic.json.
+
+
+
+*** Étape 25 — clarification du débit d'air cathodique unique
+
+Le FCgen-1020ACS open-cathode ne possède pas deux flux d'air indépendants pour :
+
+- alimentation en O2 ;
+- refroidissement.
+
+Il existe un seul flux d'air cathodique traversant les canaux.
+
+Le même débit :
+
+  stack_air_flow_slpm
+
+alimente simultanément :
+
+1. les bilans molaires cathode, donc l'apport O2 et l'évacuation N2/H2O ;
+2. la fermeture thermique, donc m_dot_air cp, NTU, T_air,out et Q_air.
+
+La dépendance physique est donc :
+
+  Q_air,cathode
+    -> transport O2
+    -> composition cathode
+    -> cinétique ORR
+
+et simultanément :
+
+  Q_air,cathode
+    -> convection forcée
+    -> refroidissement stack
+    -> température
+    -> hydratation et cinétique.
+
+Il ne faut donc jamais piloter séparément un débit "oxidant" et un débit
+"cooling" dans V11.
+
+Pour supprimer toute ambiguïté de vocabulaire, l'API principale a été renommée :
+
+  cathode_air_target_slpm(...)
+
+L'ancien nom :
+
+  coolant_air_target_slpm(...)
+
+reste uniquement comme alias de compatibilité.
+
+La polarisation périodique V11 utilise explicitement :
+
+  cathode_air_target_slpm(I)
+
+et transmet ce débit unique au RHS couplé matière + thermique.
