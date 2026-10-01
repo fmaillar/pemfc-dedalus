@@ -15,6 +15,7 @@ def test_convergence_metrics_are_zero_for_identical_rows() -> None:
             "stack_temperature_k": "303.15",
             "membrane_mean_water_content": "3.5",
             "anode_nitrogen_mol": "0.0",
+            "purge_event": "False",
         },
         {
             "time_s": "1.0",
@@ -22,6 +23,7 @@ def test_convergence_metrics_are_zero_for_identical_rows() -> None:
             "stack_temperature_k": "303.20",
             "membrane_mean_water_content": "3.6",
             "anode_nitrogen_mol": "1.0e-8",
+            "purge_event": "False",
         },
     ]
 
@@ -48,6 +50,7 @@ def test_convergence_metrics_interpolate_candidate_grid() -> None:
             "stack_temperature_k": "301.0",
             "membrane_mean_water_content": "4.0",
             "anode_nitrogen_mol": "1.0",
+            "purge_event": "False",
         },
         {
             "time_s": "1.0",
@@ -55,6 +58,7 @@ def test_convergence_metrics_interpolate_candidate_grid() -> None:
             "stack_temperature_k": "302.0",
             "membrane_mean_water_content": "5.0",
             "anode_nitrogen_mol": "2.0",
+            "purge_event": "False",
         },
     ]
     candidate = [reference[0], reference[-1]]
