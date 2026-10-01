@@ -11,8 +11,8 @@ at the purge boundary.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
 import math
+from dataclasses import dataclass, replace
 
 from .ballard_1020acs import Ballard1020ACSTechnologyReference
 from .v11_anode import (
