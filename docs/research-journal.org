@@ -21118,3 +21118,112 @@ sont réduites à deux :
 La fermeture thermique air-stack reste le verrou principal. Le crossover N2
 peut être raccordé ensuite à la fermeture littérature déjà développée en V07,
 mais il devra être transféré sans réintroduire les calibrations historiques.
+
+
+
+** V11 étape 20 — crossover N2 fermé par perméabilité Nafion littérature
+
+Le débit de crossover N2 n'est plus un argument libre du coeur prédictif V11.
+
+La fermeture reprend les données de perméabilité Nafion 117 de Catalano et al.
+(2012), sans calibration sur les données Ballard.
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_nitrogen.py
+
+introduit une référence dédiée :
+
+  CatalanoNitrogenReference.
+
+Les constantes utilisées sont celles déjà documentées lors des études V07 :
+
+- perméabilité N2 Nafion 117 sèche à 35 degC :
+    P_N2,dry = 0.18 Barrer ;
+- température de référence :
+    T_ref = 308.15 K ;
+- énergie d'activation N2 du polymère sec :
+    E_a = 49.6 kJ/mol ;
+- point d'ancrage humidité :
+    a_w = 0.75 ;
+- augmentation de perméabilité associée :
+    P/P_dry ~= 95 ;
+- borne supérieure littérature :
+    P/P_dry <= 100 ;
+- volume molaire partiel d'eau utilisé pour la conversion lambda -> phi_w :
+    Vbar_H2O = 17 cm3/mol.
+
+Aucun de ces paramètres n'est ajusté sur une tension, une température, une
+période de purge ou une trajectoire FCgen-1020ACS.
+
+La fraction volumique d'eau de la membrane est calculée depuis l'état V11 :
+
+  lambda_mem -> phi_w
+
+avec la densité sèche et l'EW V11.
+
+La dépendance de perméabilité suit l'augmentation exponentielle rapportée par
+Catalano en fonction de phi_w. La pente est déterminée par le point littérature
+a_w = 0.75, P/P_dry ~= 95, puis bornée au facteur 100 reporté.
+
+La dépendance thermique est :
+
+  P_dry(T)
+    = P_dry(T_ref)
+      exp[-E_a/R (1/T - 1/T_ref)].
+
+La perméance est ensuite :
+
+  K_N2 = P_N2(T,lambda) / L_mem.
+
+Le gradient moteur est obtenu directement des états gazeux V11 :
+
+  Delta p_N2
+    = max(p_N2,cathode - p_N2,anode, 0).
+
+Le flux et le débit par cellule sont :
+
+  J_N2 = K_N2 Delta p_N2
+
+  n_dot_N2 = A_cell J_N2.
+
+La fermeture est volontairement unidirectionnelle cathode -> anode dans ce
+modèle réduit. Un gradient inversé produit donc un crossover nul plutôt qu'un
+flux négatif.
+
+Le coeur :
+
+  coupled_v11_predictive_rhs(...)
+
+reconstruit maintenant :
+
+- p_N2,cathode depuis la fraction molaire cathode et la pression totale ;
+- p_N2,anode depuis l'inventaire anode et la pression idéale ;
+- le crossover N2 littérature ;
+- puis transmet directement ce débit au bilan anode et au régulateur H2.
+
+L'objet V11NitrogenCrossover est exposé dans les diagnostics.
+
+Les tests vérifient :
+
+- récupération de la perméabilité sèche de référence à 308.15 K ;
+- augmentation de perméabilité avec l'hydratation ;
+- récupération du facteur littérature au point a_w = 0.75 ;
+- annulation du flux lorsque le gradient N2 est inversé ;
+- identité n_dot_N2 = A_cell J_N2 ;
+- transmission exacte du crossover prédit vers l'inventaire N2 anode.
+
+Limite explicitement conservée :
+
+V11 utilise ici lambda_mem moyen comme réduction à un point de l'état
+through-plane. Les études V07 ont montré qu'une intégration des résistances à
+travers un profil d'hydratation est possible, mais la réintroduire ici
+nécessiterait un profil lambda(z) dynamique que l'état V11 lumped ne contient
+pas encore. Aucun profil artificiel n'est donc inventé.
+
+Après cette étape, le seul verrou physique encore externe au coeur prédictif
+est :
+
+  T_air,out cathode.
+
+La fermeture thermique air-stack devient donc le prochain chantier principal.
