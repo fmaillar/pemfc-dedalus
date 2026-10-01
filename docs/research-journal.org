@@ -19816,3 +19816,12 @@ Les grandeurs suivies seront au minimum :
 - temps de calcul.
 
 Le solveur Gummel globalisé reste inchangé pendant cette étude.
+
+
+Le script nominal accepte désormais les variables d'environnement V10_NX,
+V10_NY, V10_NZ et V10_OUTPUT afin de réutiliser exactement le même chemin de
+calcul sur plusieurs maillages.
+
+La cible suivante lance la convergence spatiale 4x4x16, 6x6x24 et 8x8x32 :
+
+  make quick-grid-stationary-inverse-bv-picard-v10
