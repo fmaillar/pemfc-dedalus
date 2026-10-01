@@ -23141,3 +23141,45 @@ Le quick utilise désormais des fichiers de sortie séparés afin de ne plus
 
   results/v11-polarization-airflow-controlled-quick.csv
   results/v11-polarization-airflow-controlled-quick.json.
+
+
+
+*** Étape 25g — diagnostic hydratation membrane après commit 7683f50
+
+Les diagnostics ASR confirment que le déficit de tension haute intensité est
+principalement associé à la fermeture membrane.
+
+À 15 A :
+
+  ASR_mem,V11 = 7.046e-5 ohm m2
+  ASR_mem,BOL implicite = 5.527e-5 ohm m2
+  L_mem effectif implicite = 62.7 um
+  lambda_mem,V11 = 2.715.
+
+À 26.04 A :
+
+  ASR_mem,V11 = 7.772e-5 ohm m2
+  ASR_mem,BOL implicite = 4.322e-5 ohm m2
+  L_mem effectif implicite = 44.5 um
+  lambda_mem,V11 = 2.397.
+
+À épaisseur maintenue à 80 um, la loi Springer nécessiterait environ :
+
+  lambda_mem ~= 3.29 à 15 A
+  lambda_mem ~= 3.80 à 26.04 A
+
+pour atteindre l'ASR compatible avec la courbe BOL, en supposant les autres
+termes de tension inchangés.
+
+Cette dépendance du lambda implicite avec le courant montre qu'un simple facteur
+constant sur l'épaisseur membrane ne peut pas corriger la courbe entière.
+
+Le diagnostic suivant est donc ajouté :
+
+- activité d'eau moyenne anode ;
+- activité d'eau moyenne cathode ;
+- lambda_eq Springer correspondant sur chaque face ;
+- lambda_mem implicite requis par la BOL à épaisseur 80 um.
+
+Objectif : déterminer si le dessèchement vient principalement de la fermeture
+gaz/membrane Ge ou du bilan global d'eau.
