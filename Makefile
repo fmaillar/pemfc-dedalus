@@ -123,6 +123,7 @@ help:
 	  'make screen-temperature-feedback-v08 quantify T-feedback on V0.7 closures' \
 	  'make quick-temperature-n2-feedback-v08 compare fixed-T and prescribed-T N2 dynamics' \
 	  'make quick-motupally-temperature-v08 compare Arrhenius-only and full T-dependent Motupally lookup' \
+	  'make motupally-temperature-convergence-v08 converge the Motupally temperature axis' \
 	  'make quick-n2-motupally-ka-v07 preflight Motupally k_a sensitivity' \
 	  'make n2-motupally-ka-v07 run full Motupally k_a sensitivity' \
 	  'make analyze-ge-transfer-v07 compare k_a with Ge et al. 2005' \
@@ -749,3 +750,27 @@ quick-motupally-temperature-v08:
 	  --lookup-rh-points 11 \
 	  --lookup-current-points 11 \
 	  --lookup-temperature-points 5
+
+
+motupally-temperature-convergence-v08:
+	$(TIME) $(PYTHON) -m scripts.run_v08_motupally_temperature_lookup \
+	  --jobs $(JOBS) --lookup-rh-points 11 --lookup-current-points 11 \
+	  --lookup-temperature-points 3 \
+	  --output-json results/v08-motupally-temperature-convergence-3.json \
+	  --output-csv results/v08-motupally-temperature-convergence-3.csv
+	$(TIME) $(PYTHON) -m scripts.run_v08_motupally_temperature_lookup \
+	  --jobs $(JOBS) --lookup-rh-points 11 --lookup-current-points 11 \
+	  --lookup-temperature-points 5 \
+	  --output-json results/v08-motupally-temperature-convergence-5.json \
+	  --output-csv results/v08-motupally-temperature-convergence-5.csv
+	$(TIME) $(PYTHON) -m scripts.run_v08_motupally_temperature_lookup \
+	  --jobs $(JOBS) --lookup-rh-points 11 --lookup-current-points 11 \
+	  --lookup-temperature-points 7 \
+	  --output-json results/v08-motupally-temperature-convergence-7.json \
+	  --output-csv results/v08-motupally-temperature-convergence-7.csv
+	$(TIME) $(PYTHON) -m scripts.run_v08_motupally_temperature_lookup \
+	  --jobs $(JOBS) --lookup-rh-points 11 --lookup-current-points 11 \
+	  --lookup-temperature-points 9 \
+	  --output-json results/v08-motupally-temperature-convergence-9.json \
+	  --output-csv results/v08-motupally-temperature-convergence-9.csv
+	$(PYTHON) -m scripts.analyze_v08_motupally_temperature_convergence
