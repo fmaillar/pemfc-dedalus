@@ -15,6 +15,7 @@ class ContinuationStage(TypedDict):
     iterations: int
     perturbation_norm: float
     converged: bool
+    perturbation_norm_history: list[float]
 
 
 class StationaryResult(TypedDict):
@@ -31,6 +32,9 @@ class StationaryResult(TypedDict):
     max_eta_v: float
     min_j_orr_a_m3: float
     max_j_orr_a_m3: float
+    initial_min_c_o2_mol_m3: float
+    initial_max_c_o2_mol_m3: float
+    initial_mean_c_o2_mol_m3: float
 
 
 def solve_stationary(
@@ -218,6 +222,12 @@ def solve_stationary(
     linear_solver = linear_problem.build_solver()
     linear_solver.solve()
 
+    c.change_scales(1)
+    initial_c_values = np.asarray(c["g"]).copy()
+    initial_min_c_o2 = float(np.min(initial_c_values))
+    initial_max_c_o2 = float(np.max(initial_c_values))
+    initial_mean_c_o2 = float(np.mean(initial_c_values))
+
     problem = d3.NLBVP(
         [
             c,
@@ -260,6 +270,7 @@ def solve_stationary(
             "iterations": 1,
             "perturbation_norm": 0.0,
             "converged": True,
+            "perturbation_norm_history": [0.0],
         }
     ]
 
@@ -281,6 +292,7 @@ def solve_stationary(
                     for perturbation in solver.perturbations
                 )
             )
+            perturbation_norm_history.append(perturbation_norm)
             stage_iterations += 1
             total_iterations += 1
 
@@ -291,6 +303,7 @@ def solve_stationary(
                 "iterations": stage_iterations,
                 "perturbation_norm": perturbation_norm,
                 "converged": stage_converged,
+                "perturbation_norm_history": perturbation_norm_history,
             }
         )
         if not stage_converged:
@@ -325,4 +338,7 @@ def solve_stationary(
         "max_eta_v": float(np.max(eta_values)),
         "min_j_orr_a_m3": float(np.min(j_values)),
         "max_j_orr_a_m3": float(np.max(j_values)),
+        "initial_min_c_o2_mol_m3": initial_min_c_o2,
+        "initial_max_c_o2_mol_m3": initial_max_c_o2,
+        "initial_mean_c_o2_mol_m3": initial_mean_c_o2,
     }
