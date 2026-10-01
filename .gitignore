@@ -30,7 +30,7 @@ output-electrochem-*/
 .v06-continuity-nominal/
 .v06-coupling/
 .quick-v06-grid/
- .quick-v06-ka/
+.quick-v06-ka/
 .quick-v06-rha/
 .v06-dry-high-load/
 .v06-grid-study/
