@@ -204,12 +204,12 @@ def simulate_nitrogen_regime(
 
     for step in range(n_steps + 1):
         time_s = min(step * dt_s, stop_time_s)
-        step_step_temperature_k = (
+        step_temperature_k = (
             temperature_k
             if temperature_model_k is None
             else float(temperature_model_k(time_s))
         )
-        if step_step_temperature_k <= 0.0:
+        if step_temperature_k <= 0.0:
             raise ValueError("temperature model must return positive values")
         flux_lambda, patch_current_a = interpolate_flux_and_current(
             water_state.relative_humidity,
@@ -231,7 +231,7 @@ def simulate_nitrogen_regime(
             nitrogen_mol=0.0,
             water_vapor_mol=water_state.vapor_mol,
             volume_m3=volume_m3,
-            step_temperature_k=step_temperature_k,
+            temperature_k=step_temperature_k,
             gas_constant_j_mol_k=gas_constant_j_mol_k,
         )
         reference_hydrogen_partial_pressure_pa = (
@@ -253,7 +253,7 @@ def simulate_nitrogen_regime(
             nitrogen_mol,
             water_state.vapor_mol,
             volume_m3=volume_m3,
-            step_temperature_k=step_temperature_k,
+            temperature_k=step_temperature_k,
             gas_constant_j_mol_k=gas_constant_j_mol_k,
         )
         min_total_pressure_pa = min(min_total_pressure_pa, total_pressure)
@@ -304,7 +304,7 @@ def simulate_nitrogen_regime(
             water_source_mol_s=water_source,
             dt_s=actual_dt,
             volume_m3=volume_m3,
-            step_temperature_k=step_temperature_k,
+            temperature_k=step_temperature_k,
             gas_constant_j_mol_k=gas_constant_j_mol_k,
         )
         cumulative_water_transfer_mol += water_source * actual_dt
@@ -386,7 +386,7 @@ def simulate_nitrogen_regime(
                 nitrogen_mol,
                 water_state.vapor_mol,
                 volume_m3=volume_m3,
-                step_temperature_k=step_temperature_k,
+                temperature_k=step_temperature_k,
                 gas_constant_j_mol_k=gas_constant_j_mol_k,
             )
             outflow_rate = pressure_driven_purge_molar_rate(
@@ -403,7 +403,7 @@ def simulate_nitrogen_regime(
                 gas_state,
                 gas_outflow_mol=outflow_rate * actual_dt,
                 volume_m3=volume_m3,
-                step_temperature_k=step_temperature_k,
+                temperature_k=step_temperature_k,
                 gas_constant_j_mol_k=gas_constant_j_mol_k,
             )
             hydrogen_mol = gas_state.hydrogen_mol
@@ -418,7 +418,7 @@ def simulate_nitrogen_regime(
                 nitrogen_mol,
                 water_state.vapor_mol,
                 volume_m3=volume_m3,
-                step_temperature_k=step_temperature_k,
+                temperature_k=step_temperature_k,
                 gas_constant_j_mol_k=gas_constant_j_mol_k,
             )
             min_total_pressure_pa = min(
@@ -443,7 +443,7 @@ def simulate_nitrogen_regime(
             nitrogen_mol=nitrogen_mol,
             water_vapor_mol=water_state.vapor_mol,
             volume_m3=volume_m3,
-            step_temperature_k=step_temperature_k,
+            temperature_k=step_temperature_k,
             gas_constant_j_mol_k=gas_constant_j_mol_k,
         )
         refill_h2 = max(target_hydrogen - hydrogen_mol, 0.0)
@@ -462,7 +462,7 @@ def simulate_nitrogen_regime(
                         nitrogen_mol,
                         water_state.vapor_mol,
                         volume_m3=volume_m3,
-                        step_temperature_k=step_temperature_k,
+                        temperature_k=step_temperature_k,
                         gas_constant_j_mol_k=gas_constant_j_mol_k,
                     )
                 )
@@ -489,7 +489,7 @@ def simulate_nitrogen_regime(
                     nitrogen_mol,
                     water_state.vapor_mol,
                     volume_m3=volume_m3,
-                    step_temperature_k=step_temperature_k,
+                    temperature_k=step_temperature_k,
                     gas_constant_j_mol_k=gas_constant_j_mol_k,
                 ),
                 "pressure_after_pa": None,
