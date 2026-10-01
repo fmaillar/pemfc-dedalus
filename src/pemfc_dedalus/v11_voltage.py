@@ -44,6 +44,7 @@ def predict_cell_voltage_v(
     membrane_mean_water_content: float,
     cathode_platinum_loading_mg_cm2_geo: float,
     cathode_ecsa_m2_pt_g_pt: float,
+    membrane_conductivity_multiplier: float = 1.0,
     additional_resolved_loss_v: float = 0.0,
     mea: V11MEAReference | None = None,
 ) -> V11VoltagePrediction:
@@ -64,6 +65,8 @@ def predict_cell_voltage_v(
         raise ValueError("water_activity must be in (0, 1]")
     if membrane_mean_water_content < 0.0:
         raise ValueError("membrane_mean_water_content must be non-negative")
+    if membrane_conductivity_multiplier <= 0.0:
+        raise ValueError("membrane_conductivity_multiplier must be positive")
     if additional_resolved_loss_v < 0.0:
         raise ValueError("additional_resolved_loss_v must be non-negative")
 
@@ -100,10 +103,13 @@ def predict_cell_voltage_v(
             ecsa_m2_pt_g_pt=cathode_ecsa_m2_pt_g_pt,
         )
         activation = orr.activation_loss_v
-        membrane_ohmic = reference.membrane_ohmic_loss_v(
-            current_a=current_a,
-            water_content=membrane_mean_water_content,
-            temperature_k=temperature_k,
+        membrane_ohmic = (
+            reference.membrane_ohmic_loss_v(
+                current_a=current_a,
+                water_content=membrane_mean_water_content,
+                temperature_k=temperature_k,
+            )
+            / membrane_conductivity_multiplier
         )
 
     breakdown = resolved_cell_voltage_v(
