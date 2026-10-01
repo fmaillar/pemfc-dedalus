@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from pemfc_dedalus.v11_system import V11DynamicState, coupled_v11_rhs
+from pemfc_dedalus.v11_system import (
+    V11DynamicState,
+    coupled_v11_predictive_rhs,
+    coupled_v11_rhs,
+)
 
 
 def _nominal_state() -> V11DynamicState:
@@ -126,4 +130,38 @@ def test_thermal_closure_remains_explicit_in_coupled_rhs() -> None:
     assert warm_out.thermal.air_cooling_w > cold_out.thermal.air_cooling_w
     assert warm_out.thermal.temperature_rate_k_s < (
         cold_out.thermal.temperature_rate_k_s
+    )
+
+
+
+def test_predictive_rhs_closes_cell_voltage_from_dynamic_state() -> None:
+    current = 26.04
+    derivative, diagnostics = coupled_v11_predictive_rhs(
+        state=_nominal_state(),
+        current_a=current,
+        stack_air_flow_slpm=216.1,
+        cathode_outlet_molar_flow_per_cell_mol_s=1.5e-2,
+        inlet_air_temperature_k=293.15,
+        cathode_air_outlet_temperature_k=303.15,
+        cathode_total_pressure_pa=101325.0,
+        inlet_oxygen_mole_fraction=0.2095,
+        inlet_water_mole_fraction=0.01,
+        nitrogen_crossover_mol_s=1.0e-8,
+        dt_regulator_s=0.01,
+        cathode_platinum_loading_mg_cm2_geo=0.4,
+        cathode_ecsa_m2_pt_g_pt=50.0,
+    )
+
+    assert diagnostics.voltage is not None
+    assert diagnostics.voltage.cell_voltage_v > 0.0
+    assert diagnostics.voltage.cell_voltage_v < diagnostics.voltage.reversible_v
+    assert diagnostics.thermal.heat_generation_w == pytest.approx(
+        10.0 * current * (1.253 - diagnostics.voltage.cell_voltage_v)
+    )
+    assert derivative.stack_temperature_k_s == pytest.approx(
+        diagnostics.thermal.temperature_rate_k_s
+    )
+    assert diagnostics.water_conservation_residual_mol_s == pytest.approx(
+        0.0,
+        abs=1.0e-15,
     )
