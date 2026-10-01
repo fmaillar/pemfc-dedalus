@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+import pytest
 
 from pemfc_dedalus.ballard_1020acs import (
     Ballard1020ACSTechnologyReference,
