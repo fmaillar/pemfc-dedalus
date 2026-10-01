@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import replace
 from pathlib import Path
 
@@ -23,7 +24,9 @@ def main() -> None:
     inlet_temperature_c = 20.0
     ntu = 3.0
     xi = 0.5
-    nx, ny, nz = 4, 4, 16
+    nx = int(os.environ.get("V10_NX", "4"))
+    ny = int(os.environ.get("V10_NY", "4"))
+    nz = int(os.environ.get("V10_NZ", "16"))
 
     voltage_v = base.tech.bol_typical_cell_voltage_v(current_a)
     target_temperature_k = 273.15 + base.tech.optimum_stack_temperature_c(current_a)
@@ -102,7 +105,10 @@ def main() -> None:
     }
 
     output_path = Path(
-        "results/quick-v10-stationary-inverse-bv-picard.json"
+        os.environ.get(
+            "V10_OUTPUT",
+            "results/quick-v10-stationary-inverse-bv-picard.json",
+        )
     )
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(output, indent=2) + "\n")
