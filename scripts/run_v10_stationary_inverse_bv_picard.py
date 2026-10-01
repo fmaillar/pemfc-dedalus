@@ -111,12 +111,13 @@ def main() -> None:
         f"relaxation={result['picard_relaxation']:.3g}",
         flush=True,
     )
-    for step in result["picard_history"]:
+    for picard_step in result["picard_history"]:
         print(
-            f"picard_iter={step['iteration']} "
-            f"dq_rel={step['relative_q_change']:.3e} "
-            f"cO2_min={step['min_c_o2_mol_m3']:.6g} "
-            f"qhat=[{step['min_q_hat']:.6g},{step['max_q_hat']:.6g}]",
+            f"picard_iter={picard_step['iteration']} "
+            f"dq_rel={picard_step['relative_q_change']:.3e} "
+            f"cO2_min={picard_step['min_c_o2_mol_m3']:.6g} "
+            f"qhat=[{picard_step['min_q_hat']:.6g},"
+            f"{picard_step['max_q_hat']:.6g}]",
             flush=True,
         )
     print(
@@ -132,15 +133,15 @@ def main() -> None:
         f"error={100.0 * relative_current_error:+.3f}%",
         flush=True,
     )
-    for step in result["globalization_history"]:
+    for newton_step in result["globalization_history"]:
         print(
-            f"iter={step['iteration']} "
-            f"residual={step['residual_start']:.3e}"
-            f"->{step['residual_final']:.3e} "
-            f"alpha={step['damping']:.6g} "
-            f"backtracks={step['backtracks']} "
-            f"cO2_min={step['min_c_o2_mol_m3']:.6g} "
-            f"qhat_min={step['min_q_hat']:.6g}",
+            f"iter={newton_step['iteration']} "
+            f"residual={newton_step['residual_start']:.3e}"
+            f"->{newton_step['residual_final']:.3e} "
+            f"alpha={newton_step['damping']:.6g} "
+            f"backtracks={newton_step['backtracks']} "
+            f"cO2_min={newton_step['min_c_o2_mol_m3']:.6g} "
+            f"qhat_min={newton_step['min_q_hat']:.6g}",
             flush=True,
         )
     print(f"Wrote {output_path}")
