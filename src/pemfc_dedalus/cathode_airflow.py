@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import overload
 
 import numpy as np
 
@@ -195,6 +196,26 @@ def streamwise_air_temperature_profile(
         inlet_air_flow_slpm_per_cell=per_cell_air_flow_slpm,
         heat_rejection_w_per_cell=heat_rejection_w_per_cell,
     )
+
+
+@overload
+def ideal_gas_species_concentration_mol_m3(
+    *,
+    mole_fraction: np.ndarray,
+    pressure_pa: float,
+    temperature_k: float | np.ndarray,
+    gas_constant_j_mol_k: float,
+) -> np.ndarray: ...
+
+
+@overload
+def ideal_gas_species_concentration_mol_m3(
+    *,
+    mole_fraction: float,
+    pressure_pa: float,
+    temperature_k: float,
+    gas_constant_j_mol_k: float,
+) -> float: ...
 
 
 def ideal_gas_species_concentration_mol_m3(
