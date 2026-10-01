@@ -15093,3 +15093,150 @@ streamwise est validée et l'étape suivante pourra ajouter la première physiqu
 non triviale : échange thermique local fini / advection avec une fermeture
 géométrique explicitement déclarée.
 
+
+*** Résultats de la validation Dedalus streamwise
+
+Le solveur Dedalus 1D couplé O2 / thermique reproduit les deux bilans réduits
+avec une erreur numérique négligeable.
+
+Erreur absolue maximale sur la température :
+
+  2.274e-13 K.
+
+Erreur absolue maximale sur la fraction molaire O2 :
+
+  8.840e-10.
+
+Erreur absolue maximale sur le débit molaire O2 :
+
+  quelques 1e-18 mol/s.
+
+La formulation spectrale streamwise est donc validée comme pont numérique entre
+les screenings analytiques et les futurs champs cathodiques.
+
+*** Remarque sur la coordonnée de sortie
+
+Les valeurs de sortie reportées par le quick correspondent au dernier noeud de
+la grille Chebyshev et non exactement à :
+
+  xi = 1.
+
+Pour la grille utilisée :
+
+  xi_max ~= 0.999849.
+
+Les écarts apparents de quelques millikelvins entre certaines températures de
+sortie reportées et les valeurs analytiques à xi = 1 ne sont donc pas des
+erreurs du solveur.
+
+Les métriques d'erreur point-à-point confirment au contraire la concordance à
+la précision machine.
+
+Les prochains diagnostics de bord devront soit évaluer explicitement le champ
+à xi = 1, soit comparer des grandeurs intégrales / nodales cohérentes.
+
+*** Décision après validation Dedalus
+
+Le prochain incrément peut maintenant introduire une première physique locale
+non triviale.
+
+Le gradient thermique observé est important, mais la loi V0.8 suppose
+implicitement que toute la chaleur rejetée peut être transférée à l'air jusqu'à
+la température cible.
+
+Cette hypothèse correspond à une efficacité d'échange idéale.
+
+La géométrie interne et la section réelle de passage d'air n'étant pas
+documentées, on ne doit pas introduire arbitrairement un coefficient h ou une
+surface d'échange.
+
+La fermeture suivante sera donc exprimée sous forme sans dimension via un
+nombre de transfert :
+
+  NTU = UA / (m_dot c_p).
+
+Pour une température de paroi / pile supposée uniforme :
+
+  epsilon = 1 - exp(-NTU)
+
+et :
+
+  T_air,out
+  =
+  T_stack
+  -
+  (T_stack - T_in) exp(-NTU).
+
+La puissance transférable devient :
+
+  Q_dot_air
+  =
+  epsilon m_dot c_p (T_stack - T_in).
+
+Cette fermeture permettra de quantifier directement l'écart entre la loi idéale
+V0.8 :
+
+  epsilon = 1
+
+et un échange local fini.
+
+*** Étape 4 — sensibilité à l'efficacité thermique / NTU
+
+Le prochain screening utilisera :
+
+  NTU =
+    0.5
+    1
+    2
+    3
+    5.
+
+Les mêmes points :
+
+  I =
+    7.3
+    14.5
+    26.04 A
+
+et :
+
+  T_air,in =
+    10
+    20
+    30 degC
+
+seront conservés.
+
+Pour chaque cas atteignable avec la loi idéale V0.8, on calculera :
+
+- efficacité epsilon ;
+- puissance thermique réellement transférable au débit V0.8 ;
+- fraction de la chaleur générée effectivement évacuée ;
+- déficit thermique éventuel ;
+- facteur minimal de débit nécessaire si epsilon est imposé.
+
+Cette étape ne prétend pas identifier le NTU réel du stack.
+
+Elle sert à déterminer la sensibilité de la commande d'air à l'hypothèse
+d'échange parfait et à identifier le niveau de NTU au-delà duquel la baseline
+V0.8 devient une approximation acceptable.
+
+Nouvelle cible :
+
+  make quick-ntu-sensitivity-v09
+
+Sorties :
+
+  results/quick-v09-ntu-sensitivity.json
+  results/quick-v09-ntu-sensitivity.csv
+
+*** Critère de décision
+
+Si des NTU modérés conduisent à un fort déficit de refroidissement, la prochaine
+étape devra introduire explicitement un transfert thermique local fini dans la
+PDE streamwise.
+
+Si la sensibilité devient faible dès NTU environ 3 à 5, une fermeture
+d'efficacité simple pourra être utilisée avant la spatialisation complète de la
+vitesse d'air.
+

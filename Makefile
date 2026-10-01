@@ -30,7 +30,7 @@ TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
         validate-v07-final \
         quick-thermal-v08 thermal-envelope-v08 airflow-control-v08 \
         quick-thermal-dynamic-v08 lumped-thermal-v08 validate-lumped-thermal-v08 \
-        quick-spatial-o2-v09 quick-spatial-thermal-v09 quick-dedalus-coupled-v09 \
+        quick-spatial-o2-v09 quick-spatial-thermal-v09 quick-dedalus-coupled-v09 quick-ntu-sensitivity-v09 \
         screen-temperature-feedback-v08 quick-temperature-n2-feedback-v08 \
         quick-n2-motupally-ka-v07 n2-motupally-ka-v07 analyze-ge-transfer-v07 \
         analyze-grimaldi-transfer-v07 \
@@ -129,6 +129,7 @@ help:
 	  'make quick-spatial-o2-v09 screen streamwise O2 depletion under V0.8 airflow control' \
 	  'make quick-spatial-thermal-v09 screen streamwise cathode-air heating under V0.8 airflow control' \
 	  'make quick-dedalus-coupled-v09 verify coupled streamwise O2/thermal balances with Dedalus' \
+	  'make quick-ntu-sensitivity-v09 screen finite cathode heat-transfer effectiveness' \
 	  'make quick-n2-motupally-ka-v07 preflight Motupally k_a sensitivity' \
 	  'make n2-motupally-ka-v07 run full Motupally k_a sensitivity' \
 	  'make analyze-ge-transfer-v07 compare k_a with Ge et al. 2005' \
@@ -806,3 +807,10 @@ quick-dedalus-coupled-v09:
 	  --currents-a 7.3 14.5 26.04 \
 	  --inlet-temperatures-c 10 20 30 \
 	  --points 64
+
+
+quick-ntu-sensitivity-v09:
+	$(PYTHON) -m scripts.run_v09_ntu_sensitivity \
+	  --ntu-values 0.5 1 2 3 5 \
+	  --currents-a 7.3 14.5 26.04 \
+	  --inlet-temperatures-c 10 20 30

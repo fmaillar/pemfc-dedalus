@@ -288,3 +288,38 @@ def lumped_temperature_analytic_k(
     return equilibrium + (
         initial_stack_temperature_k - equilibrium
     ) * np.exp(-time_s / tau)
+
+
+
+def heat_exchanger_effectiveness_from_ntu(ntu: float) -> float:
+    """Return constant-wall-temperature effectiveness epsilon = 1 - exp(-NTU)."""
+    if ntu < 0.0:
+        raise ValueError("ntu must be non-negative")
+    return float(1.0 - np.exp(-ntu))
+
+
+def finite_transfer_cooling_power_w(
+    *,
+    stack_temperature_k: float,
+    inlet_temperature_k: float,
+    air_flow_slpm: float,
+    ntu: float,
+    air_density_kg_m3: float = 1.204,
+    air_specific_heat_j_kg_k: float = 1005.0,
+) -> float:
+    """Return sensible cooling with finite heat-transfer effectiveness."""
+    effectiveness = heat_exchanger_effectiveness_from_ntu(ntu)
+    return effectiveness * ideal_air_cooling_power_w(
+        stack_temperature_k=stack_temperature_k,
+        inlet_temperature_k=inlet_temperature_k,
+        air_flow_slpm=air_flow_slpm,
+        air_density_kg_m3=air_density_kg_m3,
+        air_specific_heat_j_kg_k=air_specific_heat_j_kg_k,
+    )
+
+
+def airflow_multiplier_for_effectiveness(effectiveness: float) -> float:
+    """Return flow multiplier relative to the ideal epsilon=1 balance."""
+    if not 0.0 < effectiveness <= 1.0:
+        raise ValueError("effectiveness must lie in (0, 1]")
+    return 1.0 / effectiveness
