@@ -14681,3 +14681,114 @@ couplée à chaque pas temporel n'est pas nécessaire dans le régime nominal
 
 V0.8 est considérée comme validée et gelée.
 
+
+** V0.9 — Spatialisation cathodique open-cathode
+
+V0.8 est gelée après validation du point fixe thermo-N2 bidirectionnel.
+
+La suite du projet revient maintenant vers l'objectif spatial initial du dépôt :
+reconnecter les fermetures système V0.6-V0.8 aux champs cathodiques décrits avec
+Dedalus, sans introduire d'un seul coup un modèle CFD complet.
+
+*** Étape 1 — screening spatial 1D de l'appauvrissement O2
+
+Le premier incrément V0.9 quantifie l'appauvrissement en oxygène le long de la
+direction principale d'écoulement de l'air open-cathode.
+
+Avant d'introduire une équation d'advection-diffusion complète, on utilise un
+bilan plug-flow conservatif par cellule.
+
+Le débit d'air total issu de la loi V0.8 est réparti uniformément entre les
+cellules. Pour une cellule, la consommation faradique d'oxygène vaut :
+
+  n_dot_O2,rxn = I / (4 F).
+
+On suppose pour ce screening que cette consommation est répartie uniformément
+sur la coordonnée streamwise normalisée :
+
+  xi = x / L.
+
+Le débit molaire d'oxygène devient alors :
+
+  n_dot_O2(xi)
+  =
+  n_dot_O2,in - xi n_dot_O2,rxn.
+
+Le débit molaire inerte de l'air est conservé et la fraction molaire locale est
+recalculée à partir du débit total restant.
+
+Cette étape n'est pas encore une PDE Dedalus et ne représente ni la diffusion
+transverse, ni les jets de ventilateur, ni les ribs, ni une distribution locale
+du courant.
+
+Son objectif est de répondre à une question préalable :
+
+  l'appauvrissement streamwise en O2 est-il assez important, avec les débits
+  déjà imposés par V0.8, pour devoir être un couplage dominant de V0.9 ?
+
+*** Infrastructure V0.9 étape 1
+
+Nouveau module :
+
+  src/pemfc_dedalus/cathode_airflow.py
+
+Nouveau driver :
+
+  scripts/run_v09_cathode_oxygen_profile.py
+
+Nouveaux tests :
+
+  tests/test_cathode_airflow.py
+
+Cible :
+
+  make quick-spatial-o2-v09
+
+La campagne couvre :
+
+  I =
+    7.3
+    14.5
+    26.04 A
+
+et :
+
+  T_air,in =
+    10
+    20
+    30 degC.
+
+Le débit d'air est obtenu avec la loi de contrôle open-cathode V0.8, donc avec :
+
+  max(
+    contrainte thermique,
+    plancher stoechiométrique
+  ).
+
+Les sorties sont :
+
+  results/quick-v09-cathode-oxygen-profile.json
+  results/quick-v09-cathode-oxygen-profile.csv
+
+Les grandeurs principales à examiner sont :
+
+- contrainte active sur le débit d'air ;
+- stoechiométrie O2 effective ;
+- fraction molaire O2 en entrée ;
+- fraction molaire O2 en sortie ;
+- baisse relative de la fraction molaire O2 ;
+- utilisation de l'O2 disponible.
+
+*** Critère de décision
+
+Si l'appauvrissement O2 reste faible sur les régimes atteignables, la prochaine
+étape V0.9 pourra prioriser la spatialisation thermique et la distribution de
+vitesse d'air, tout en gardant un couplage O2 perturbatif.
+
+Si l'appauvrissement devient significatif dans certains régimes, la prochaine
+étape devra introduire explicitement l'advection-diffusion de O2 dans le champ
+cathodique avant de raffiner la thermique spatiale.
+
+Le résultat du screening décidera donc de l'ordre des deux prochains blocs
+physiques.
+
