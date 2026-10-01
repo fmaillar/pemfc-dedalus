@@ -27,6 +27,8 @@
       "max_cell_voltage_v": 0.7829129657078214,
       "mean_stack_temperature_k": 307.40240917010266,
       "mean_membrane_water_content": 2.715085643828611,
+      "mean_anode_water_activity": 0.2849179863072863,
+      "mean_cathode_water_activity": 0.2850275222835965,
       "mean_anode_nitrogen_mol": 7.335109778612527e-07,
       "mean_stack_power_w": 117.43528439974259,
       "target_stack_temperature_k": 307.10999999999996,
@@ -42,6 +44,9 @@
       "model_minus_manual_v": -0.015718793656888552,
       "bol_implied_membrane_ohmic_loss_v": 0.057175342713170485,
       "model_membrane_asr_ohm_m2": 7.046433182439042e-05,
+      "mean_anode_equilibrium_water_content": 2.715084976412413,
+      "mean_cathode_equilibrium_water_content": 2.715508693818937,
+      "bol_implied_membrane_water_content": 3.287122786962362,
       "bol_implied_membrane_asr_ohm_m2": 5.5269497956064805e-05,
       "bol_implied_effective_membrane_thickness_m": 6.274890745440536e-05
     },
@@ -62,6 +67,8 @@
       "max_cell_voltage_v": 0.7062282781626207,
       "mean_stack_temperature_k": 312.5542214898167,
       "mean_membrane_water_content": 2.3967498746524813,
+      "mean_anode_water_activity": 0.21657491702830783,
+      "mean_cathode_water_activity": 0.21667370963897323,
       "mean_anode_nitrogen_mol": 4.5815812741844264e-07,
       "mean_stack_power_w": 183.8950537288246,
       "target_stack_temperature_k": 312.96119999999996,
@@ -77,6 +84,9 @@
       "model_minus_manual_v": -0.06196331398168431,
       "bol_implied_membrane_ohmic_loss_v": 0.07761807950795718,
       "model_membrane_asr_ohm_m2": 7.772389422426277e-05,
+      "mean_anode_equilibrium_water_content": 2.396748881997791,
+      "mean_cathode_equilibrium_water_content": 2.397303410885851,
+      "bol_implied_membrane_water_content": 3.8036801031406897,
       "bol_implied_membrane_asr_ohm_m2": 4.322051278284867e-05,
       "bol_implied_effective_membrane_thickness_m": 4.4486204109270366e-05
     }
