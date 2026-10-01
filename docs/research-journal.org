@@ -19133,3 +19133,55 @@ La cible reste :
 Le prochain run doit identifier quelle équation fixe le plancher proche de
 1.5e-4. La suite dépendra alors de cette composante précise, plutôt que d'un
 changement algorithmique non ciblé.
+
+
+*** Résultat du diagnostic par composante (f47e0b3)
+
+Le plancher du mérite est dominé par deux composantes seulement :
+
+  membrane_potential = 1.3773e-4
+  inverse_bv         = 6.1718e-5.
+
+Les autres résidus sont négligeables en comparaison :
+
+  oxygen             = 1.02e-7
+  solid_potential    = 2.59e-9
+  conditions aux limites ~= 1e-14 à 1e-19.
+
+Le verrou numérique est donc localisé dans le sous-système couplé
+(phi_m, q).
+
+Ce résultat exclut comme causes principales :
+
+- le transport d'oxygène ;
+- la conduction électronique ;
+- les conditions aux limites.
+
+Il montre aussi que le niveau du résidu protonique est du même ordre que la
+tolérance Picard actuelle sur q_hat, fixée à 1e-4.
+
+*** Étape 27 — convergence Picard serrée sur le sous-système protonique
+
+Avant d'introduire une nouvelle méthode, l'initialisation Picard est poussée
+beaucoup plus près de son point fixe.
+
+Nouveaux paramètres :
+
+  maximum Picard = 160 itérations
+  omega = 0.25
+  tolérance relative q_hat = 1e-8.
+
+Newton globalisé reste inchangé.
+
+L'hypothèse testée est :
+
+  l'arrêt Picard à 1e-4 laisse précisément un défaut d'ordre 1e-4 dans le
+  couple phi_m-q, qui devient ensuite le plancher du line search Newton.
+
+Si cette hypothèse est correcte, le mérite initial de Newton et surtout les
+composantes membrane_potential et inverse_bv doivent diminuer fortement avant
+même le premier pas Newton.
+
+La cible reste :
+
+  make quick-stationary-inverse-bv-picard-v10
