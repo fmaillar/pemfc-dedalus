@@ -149,3 +149,61 @@ def open_cathode_airflow_target(
         stoichiometric_floor_slpm=stoichiometric_floor_slpm,
         thermal_required_slpm=thermal_required,
     )
+
+
+def ideal_air_cooling_power_w(
+    *,
+    stack_temperature_k: float,
+    inlet_temperature_k: float,
+    air_flow_slpm: float,
+    air_density_kg_m3: float = 1.204,
+    air_specific_heat_j_kg_k: float = 1005.0,
+) -> float:
+    """Return ideal sensible cooling with air equilibrating to stack temperature."""
+    if stack_temperature_k <= 0.0 or inlet_temperature_k <= 0.0:
+        raise ValueError("temperatures must be positive")
+    if air_specific_heat_j_kg_k <= 0.0:
+        raise ValueError("air_specific_heat_j_kg_k must be positive")
+
+    delta_temperature = max(
+        stack_temperature_k - inlet_temperature_k,
+        0.0,
+    )
+    mass_flow = air_mass_flow_kg_s(
+        air_flow_slpm,
+        air_density_kg_m3=air_density_kg_m3,
+    )
+    return mass_flow * air_specific_heat_j_kg_k * delta_temperature
+
+
+def advance_lumped_stack_temperature_k(
+    *,
+    stack_temperature_k: float,
+    inlet_temperature_k: float,
+    heat_rejection_w: float,
+    air_flow_slpm: float,
+    thermal_mass_j_k: float,
+    dt_s: float,
+    air_density_kg_m3: float = 1.204,
+    air_specific_heat_j_kg_k: float = 1005.0,
+) -> float:
+    """Advance one explicit-Euler step of the ideal lumped stack heat balance."""
+    if thermal_mass_j_k <= 0.0:
+        raise ValueError("thermal_mass_j_k must be positive")
+    if dt_s <= 0.0:
+        raise ValueError("dt_s must be positive")
+    if heat_rejection_w < 0.0:
+        raise ValueError("heat_rejection_w must be non-negative")
+
+    cooling_w = ideal_air_cooling_power_w(
+        stack_temperature_k=stack_temperature_k,
+        inlet_temperature_k=inlet_temperature_k,
+        air_flow_slpm=air_flow_slpm,
+        air_density_kg_m3=air_density_kg_m3,
+        air_specific_heat_j_kg_k=air_specific_heat_j_kg_k,
+    )
+    return stack_temperature_k + (
+        (heat_rejection_w - cooling_w)
+        / thermal_mass_j_k
+        * dt_s
+    )
