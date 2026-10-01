@@ -124,6 +124,7 @@ help:
 	  'make quick-temperature-n2-feedback-v08 compare fixed-T and prescribed-T N2 dynamics' \
 	  'make quick-motupally-temperature-v08 compare Arrhenius-only and full T-dependent Motupally lookup' \
 	  'make motupally-temperature-convergence-v08 converge the Motupally temperature axis' \
+	  'make bidirectional-thermal-v08 iterate T-current heat coupling to self-consistency' \
 	  'make quick-n2-motupally-ka-v07 preflight Motupally k_a sensitivity' \
 	  'make n2-motupally-ka-v07 run full Motupally k_a sensitivity' \
 	  'make analyze-ge-transfer-v07 compare k_a with Ge et al. 2005' \
@@ -774,3 +775,9 @@ motupally-temperature-convergence-v08:
 	  --output-json results/v08-motupally-temperature-convergence-9.json \
 	  --output-csv results/v08-motupally-temperature-convergence-9.csv
 	$(PYTHON) -m scripts.analyze_v08_motupally_temperature_convergence
+
+
+bidirectional-thermal-v08:
+	$(TIME) $(PYTHON) -m scripts.run_v08_bidirectional_thermal_coupling \
+	  --jobs $(JOBS) --lookup-rh-points 21 --lookup-current-points 21 \
+	  --max-iterations 6 --temperature-tolerance-k 0.01
