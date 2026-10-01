@@ -963,3 +963,13 @@ diagnose-polarization-stationary-v10:
 	  --stop-time 8e-3 --max-dt 2e-6 \
 	  --scalar-dt 1e-4 --window-points 6 \
 	  --relative-tolerance 5e-3 --skip-fraction 0.25
+
+
+quick-polarization-dt-stability-v10:
+	$(TIME) $(PYTHON) -m scripts.run_v10_polarization_dt_stability \
+	  --jobs $(JOBS) \
+	  --current-a 26.04 \
+	  --max-dts 2e-6 1e-6 5e-7 \
+	  --inlet-temperature-c 20 --ntu 3 \
+	  --nx 8 --ny 8 --nz 32 \
+	  --stop-time 8e-3 --scalar-dt 1e-4

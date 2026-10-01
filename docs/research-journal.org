@@ -17262,3 +17262,86 @@ Si aucun plateau robuste n'existe, il faudra stabiliser ou reformuler le
 pseudo-transitoire électrochimique avant de poursuivre la fermeture
 galvanostatique.
 
+
+*** Résultats du diagnostic temporel stationnaire
+
+Le détecteur par fenêtre courte identifie formellement une faible variation vers :
+
+  2.3--2.8 ms à 7.3 A
+
+et :
+
+  2.5--3.0 ms à 26.04 A.
+
+Cependant, ces fenêtres ne constituent pas de vrais plateaux stationnaires.
+
+À 7.3 A, le courant continue à décroître de façon monotone après la fenêtre.
+
+À 26.04 A, le courant atteint un minimum vers :
+
+  5.8 ms
+
+puis repart rapidement à la hausse et diverge du voisinage quasi-stationnaire.
+
+Le critère de faible span sur une fenêtre courte produit donc un faux positif.
+
+*** Diagnostic du schéma pseudo-temporel
+
+Dans le solveur électrochimique :
+
+- les opérateurs de diffusion et de conduction sont implicites ;
+- le terme Butler-Volmer j_ORR reste explicite dans les trois équations IVP.
+
+La forte non-linéarité exponentielle du terme réactionnel explicite est donc un
+candidat naturel pour expliquer l'instabilité tardive observée au point nominal.
+
+Avant toute reformulation, il faut distinguer :
+
+  instabilité de pas de temps
+
+et :
+
+  instabilité intrinsèque de la formulation pseudo-temporelle.
+
+*** Étape 8 — sensibilité au pas de temps
+
+Le test se concentre sur :
+
+  I = 26.04 A
+  V = 0.768166 V
+  grille = 8 x 8 x 32
+  stop_time = 8e-3 s.
+
+Les pas maximaux testés sont :
+
+  2e-6
+  1e-6
+  5e-7 s.
+
+Les trois tranches streamwise sont exécutées en parallèle.
+
+Pour chaque pas, le diagnostic enregistre :
+
+- j_bar(t) ;
+- minimum et maximum après 2 ms ;
+- temps du minimum ;
+- valeur finale ;
+- ratio final / minimum.
+
+Nouvelle cible :
+
+  make quick-polarization-dt-stability-v10
+
+Sorties :
+
+  results/quick-v10-polarization-dt-stability.json
+  results/quick-v10-polarization-dt-stability.csv
+
+*** Critère de décision
+
+Si la remontée tardive se décale ou disparaît lorsque max_dt diminue, elle sera
+classée comme instabilité numérique du schéma explicite.
+
+Si les trois pas présentent la même remontée au même temps physique, la
+formulation pseudo-temporelle elle-même devra être modifiée.
+
