@@ -20604,3 +20604,65 @@ Les tests vérifient :
 
 Cette fermeture conserve le statut de corrélation littérature : ses constantes
 ne sont pas réajustées aux données Ballard.
+
+
+** V11 étape 13 — bilan global d'eau conservatif
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_water.py
+
+introduit une comptabilité d'eau commune aux sous-systèmes anode, membrane et
+cathode.
+
+Les inventaires suivis par cellule sont :
+
+  n_H2O,v,a
+  n_H2O,mem
+  n_H2O,v,c
+  n_H2O,l,c.
+
+Le bilan utilise les conventions suivantes :
+
+- flux interfacial positif vers la membrane ;
+- changement de phase cathode positif vapeur -> liquide ;
+- eau d'entrée cathode positive vers la cellule ;
+- eau de sortie cathode et purge anode positives vers l'extérieur.
+
+La production électrochimique est une source externe exacte :
+
+  n_dot_H2O,rxn = I/(2F).
+
+Les transferts internes sont écrits en paires source/puits :
+
+  anode gaz <-> membrane
+  cathode gaz <-> membrane
+  cathode vapeur <-> liquide.
+
+Ils s'annulent donc exactement dans la dérivée de l'inventaire total.
+
+Le bilan global par cellule devient :
+
+  d n_H2O,total / dt
+    = I/(2F)
+      + n_dot_H2O,in,c
+      - n_dot_H2O,out,c
+      - n_dot_H2O,purge,a.
+
+Un diagnostic explicite calcule le résidu de conservation :
+
+  residual
+    = actual total storage rate
+      - expected external-source rate.
+
+Les tests vérifient :
+
+- annulation exacte des transferts internes ;
+- production Faraday comme seule source dans un système fermé ;
+- conservation lors d'un changement de phase ;
+- conservation paire-à-paire des échanges membrane/gaz ;
+- résidu global nul avec entrées/sorties externes non nulles.
+
+Aucune loi de condensation/évaporation n'est encore imposée. Le taux de
+changement de phase reste un terme explicite afin de ne pas introduire un
+coefficient cinétique non sourcé.
