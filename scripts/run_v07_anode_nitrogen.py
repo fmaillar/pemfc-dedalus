@@ -88,6 +88,10 @@ def simulate_nitrogen_regime(
     cathode_n2_partial_pressure_pa: float | None = None,
     n2_permeance_model: Callable[[float], float] | None = None,
     n2_state_permeance_model: Callable[[float, float], float] | None = None,
+    n2_state_temperature_permeance_model: (
+        Callable[[float, float, float], float] | None
+    ) = None,
+    cathode_n2_partial_pressure_model: Callable[[float], float] | None = None,
     temperature_model_k: Callable[[float], float] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     """Integrate H2/N2/H2O inventories with charge-triggered standard purges."""
@@ -102,22 +106,32 @@ def simulate_nitrogen_regime(
     if n2_crossover_permeance_mol_m2_s_pa is not None:
         if n2_crossover_permeance_mol_m2_s_pa < 0.0:
             raise ValueError("n2 crossover permeance must be non-negative")
-    if (
-        n2_permeance_model is not None
-        and n2_state_permeance_model is not None
-    ):
-        raise ValueError(
-            "provide only one dynamic N2 permeance model"
+    permeance_models = sum(
+        model is not None
+        for model in (
+            n2_permeance_model,
+            n2_state_permeance_model,
+            n2_state_temperature_permeance_model,
         )
+    )
+    if permeance_models > 1:
+        raise ValueError("provide only one dynamic N2 permeance model")
     pressure_driven = (
         n2_crossover_permeance_mol_m2_s_pa is not None
         or n2_permeance_model is not None
         or n2_state_permeance_model is not None
+        or n2_state_temperature_permeance_model is not None
     )
     if pressure_driven:
-        if cathode_n2_partial_pressure_pa is None:
+        if (
+            cathode_n2_partial_pressure_pa is None
+            and cathode_n2_partial_pressure_model is None
+        ):
             raise ValueError("cathode N2 partial pressure is required")
-        if cathode_n2_partial_pressure_pa <= 0.0:
+        if (
+            cathode_n2_partial_pressure_pa is not None
+            and cathode_n2_partial_pressure_pa <= 0.0
+        ):
             raise ValueError("cathode N2 partial pressure must be positive")
 
     initial_temperature_k = (
@@ -306,6 +320,13 @@ def simulate_nitrogen_regime(
                 water_state.relative_humidity,
                 current_density_a_m2,
             )
+        elif n2_state_temperature_permeance_model is not None:
+            current_density_a_m2 = cell_current_a / active_area_m2
+            dynamic_permeance = n2_state_temperature_permeance_model(
+                water_state.relative_humidity,
+                current_density_a_m2,
+                step_temperature_k,
+            )
         if dynamic_permeance is not None and dynamic_permeance < 0.0:
             raise ValueError("n2 permeance model returned a negative value")
 
@@ -313,9 +334,20 @@ def simulate_nitrogen_regime(
             n2_flux = n2_crossover_flux_mol_m2_s
             n2_source_rate = constant_n2_source_rate
         else:
-            if cathode_n2_partial_pressure_pa is None:
+            step_cathode_n2_partial_pressure_pa = (
+                cathode_n2_partial_pressure_pa
+                if cathode_n2_partial_pressure_model is None
+                else float(
+                    cathode_n2_partial_pressure_model(step_temperature_k)
+                )
+            )
+            if step_cathode_n2_partial_pressure_pa is None:
                 raise RuntimeError(
                     "cathode N2 partial pressure missing in pressure-driven mode"
+                )
+            if step_cathode_n2_partial_pressure_pa <= 0.0:
+                raise ValueError(
+                    "cathode N2 partial pressure model returned non-positive value"
                 )
             min_n2_permeance = min(min_n2_permeance, dynamic_permeance)
             max_n2_permeance = max(max_n2_permeance, dynamic_permeance)
@@ -327,7 +359,7 @@ def simulate_nitrogen_regime(
             )
             n2_flux = nitrogen_pressure_driven_flux(
                 dynamic_permeance,
-                cathode_n2_partial_pressure_pa,
+                step_cathode_n2_partial_pressure_pa,
                 anode_n2_partial_pressure_pa,
             )
             n2_source_rate = nitrogen_crossover_molar_rate(
