@@ -120,3 +120,25 @@ def test_positive_current_depletes_oxygen_without_airflow() -> None:
     assert rhs.oxygen_mol_s < 0.0
     assert rhs.nitrogen_mol_s == pytest.approx(0.0)
     assert rhs.water_vapour_mol_s == pytest.approx(0.0)
+
+
+
+def test_cathode_water_exchange_can_be_a_signed_sink() -> None:
+    state = CathodeGasState(
+        oxygen_mol=0.21,
+        nitrogen_mol=0.78,
+        water_vapour_mol=0.01,
+    )
+
+    rhs = cathode_gas_rhs_per_cell(
+        state=state,
+        stack_air_flow_slpm=0.0,
+        n_cells=10,
+        current_a=0.0,
+        inlet_oxygen_mole_fraction=0.21,
+        inlet_water_mole_fraction=0.01,
+        water_source_to_gas_mol_s=-2.0e-6,
+        outlet_molar_flow_per_cell_mol_s=0.0,
+    )
+
+    assert rhs.water_vapour_mol_s == pytest.approx(-2.0e-6)
