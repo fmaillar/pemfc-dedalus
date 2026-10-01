@@ -3,12 +3,10 @@
 The core assembles the V11 cathode, dead-end anode, membrane hydration,
 equilibrium cathode water partition and thermal balance.
 
-Four physical closures remain explicit arguments because they are not yet
-independently resolved for the target stack:
-- predicted cell voltage,
-- cathode air outlet temperature,
-- nitrogen crossover rate,
-- cathode outlet molar flow.
+The low-level RHS keeps externally supplied closures explicit for diagnostics.
+The predictive RHS resolves cell voltage and cathode outlet molar flow from the
+dynamic state. Cathode air outlet temperature and nitrogen crossover remain
+external because they are not yet independently resolved for the target stack.
 
 No fitted fallback values are supplied.
 """
