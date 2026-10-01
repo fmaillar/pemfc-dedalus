@@ -933,3 +933,13 @@ quick-polarization-v10:
 	  --relative-tolerance 5e-3 --max-iterations 8 \
 	  --nx 8 --ny 8 --nz 32 \
 	  --stop-time 1e-3 --max-dt 2e-6
+
+
+quick-polarization-convergence-v10:
+	$(TIME) $(PYTHON) -m scripts.run_v10_polarization_convergence \
+	  --jobs $(JOBS) \
+	  --currents-a 7.3 26.04 \
+	  --inlet-temperature-c 20 --ntu 3 \
+	  --grids 8,8,32 12,12,40 \
+	  --stop-times 1e-3 2e-3 \
+	  --max-dt 2e-6

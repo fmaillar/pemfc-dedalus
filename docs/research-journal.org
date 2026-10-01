@@ -16927,3 +16927,114 @@ utile instantané est limité à trois workers. Cette stratégie réduit donc su
 le coût d'une évaluation de tension sans modifier l'ordre déterministe de la
 recherche galvanostatique.
 
+
+*** Résultats de la première courbe galvanostatique thermo-couplée
+
+La fermeture converge aux trois courants.
+
+À :
+
+  I = 7.3 A
+
+on obtient :
+
+  V_galv = 0.850625 V
+  V_BOL = 0.830000 V
+  Delta V = +20.625 mV
+  erreur courant = +0.065 %.
+
+À :
+
+  I = 14.5 A
+
+on obtient :
+
+  V_galv = 0.808906 V
+  V_BOL = 0.800000 V
+  Delta V = +8.906 mV
+  erreur courant = +0.003 %.
+
+À :
+
+  I = 26.04 A
+
+on obtient :
+
+  V_galv = 0.768166 V
+  V_BOL = 0.768166 V
+  Delta V = 0.000 mV
+  erreur courant = +0.390 %.
+
+La tension décroît monotoniquement avec le courant.
+
+*** Interprétation provisoire
+
+La fermeture galvanostatique corrige principalement la faible charge.
+
+Le décalage par rapport à V_BOL(I) décroît avec le courant et devient
+négligeable au point nominal.
+
+Cependant, V0.9 avait montré une distinction importante :
+
+- le span ORR relatif était extrêmement robuste ;
+- le courant ORR absolu présentait encore une dérive de quelques pourcents avec
+  le pseudo-temps et une sensibilité résiduelle à la grille.
+
+Cette nuance devient critique en V1.0 car la variable fermée est précisément le
+courant absolu.
+
+La courbe V(I) obtenue ne doit donc pas encore être considérée comme convergée
+numériquement.
+
+*** Étape 5 — convergence de la fermeture galvanostatique
+
+Le test retient les deux extrêmes :
+
+  I = 7.3 A
+  I = 26.04 A
+
+et les tensions solutions actuelles :
+
+  0.850625 V
+  0.768166 V.
+
+Pour chaque courant, quatre configurations sont évaluées :
+
+  8 x 8 x 32, 1e-3 s
+  8 x 8 x 32, 2e-3 s
+  12 x 12 x 40, 1e-3 s
+  12 x 12 x 40, 2e-3 s.
+
+Chaque configuration conserve les trois tranches :
+
+  xi = 0
+  xi = 0.5
+  xi = 1
+
+et reconstruit j_bar par Simpson.
+
+Le test mesure :
+
+- erreur relative à j_target ;
+- dérive avec le pseudo-temps ;
+- sensibilité à la grille ;
+- variation du profil streamwise local.
+
+Nouvelle cible :
+
+  make quick-polarization-convergence-v10
+
+Sorties :
+
+  results/quick-v10-polarization-convergence.json
+  results/quick-v10-polarization-convergence.csv
+
+*** Critère de décision
+
+Si l'erreur courant reste inférieure à environ 1 % et stable entre les
+configurations, les tensions V_galv actuelles sont numériquement suffisamment
+robustes.
+
+Sinon, la résolution galvanostatique devra être relancée avec une configuration
+numérique plus convergée avant d'étendre ou d'interpréter la courbe V(I).
+
