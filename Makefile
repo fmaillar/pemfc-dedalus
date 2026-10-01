@@ -8,7 +8,7 @@ JOBS ?= 8
 PYTEST_WORKERS ?= 4
 TIME ?= /usr/bin/time -f 'real=%E user=%U sys=%S cpu=%P maxrss=%M_kB'
 
-.PHONY: help install test test-durations test-profile unit lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
+.PHONY: help install test test-full test-durations test-profile unit unit-full lint typecheck check smoke smoke-v01 smoke-v02 smoke-v03 smoke-v04 \
         quick-study-v02 quick-study-v04 quick-overnight-v04 overnight-v04 analyze-v04-rh plot-v04-rh \
         quick-v05 study-v05 quick-sweep-v05 sweep-v05 quick-grid-v05 grid-v05 \
         quick-v06 study-v06 quick-ka-v06 ka-v06 quick-grid-v06 grid-v06 quick-rha-v06 rha-v06 \
@@ -44,6 +44,7 @@ help:
 	@printf '%s\n' \
 	  'make install          install editable package and test dependencies' \
 	  'make test             run fast tests, Ruff and mypy' \
+	  'make test-full        run all tests including slow numerical tests' \
 	  'make test-durations   show the slowest pytest tests' \
 	  'make test-profile     profile pytest in one process with cProfile' \
 	  'make unit             run pytest only' \
