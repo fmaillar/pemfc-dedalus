@@ -8,8 +8,8 @@ is used.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import math
+from dataclasses import dataclass
 
 from .v11_thermal import standard_air_mass_flow_kg_s
 
