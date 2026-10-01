@@ -18909,3 +18909,84 @@ L'objectif du prochain run est de déterminer si :
 Si Picard converge mais Newton reste bloqué, il faudra alors examiner le
 critère de mérite ou envisager Picard lui-même comme solveur stationnaire de
 référence, avec Newton uniquement comme accélérateur optionnel.
+
+
+*** Résultat Picard convergé (eafbdc6)
+
+La stratégie Picard converge effectivement avant Newton.
+
+Avec :
+
+  omega = 0.25
+  tolérance relative q_hat = 1e-4
+  maximum = 80 itérations
+
+le critère est atteint en 34 itérations :
+
+  variation relative q_hat :
+    1.72e-1 -> ... -> 1.03e-4 -> 7.74e-5.
+
+La trajectoire reste physique :
+
+  min(c_O2) ~= 6.91478 mol/m3
+  min(q_hat) -> 0.27723
+  max(q_hat) -> 1.10967.
+
+Cela confirme qu'un point fixe transport-cinétique stable existe et qu'il est
+accessible par une itération de Picard sous-relaxée.
+
+Le Newton globalisé n'accepte cependant encore qu'un seul pas :
+
+  mérite annoncé : 2.049e-2 -> 1.345e-2
+  alpha = 1
+  backtracks = 0.
+
+Après ce pas :
+
+  j = 2143.26 A/m2
+  erreur = -0.314 %
+  min(c_O2) = 6.91471 mol/m3.
+
+Le fait qu'un état Picard presque fixé reste associé à un mérite NLBVP
+d'environ 2e-2 est incohérent avec l'interprétation physique attendue. Cette
+incohérence, combinée au faux résidu déjà rencontré avec reaction_scale,
+indique que l'utilisation directe de solver.F comme fonction de mérite est
+fragile.
+
+*** Étape 24 — mérite résiduel explicite
+
+Le line search ne doit plus utiliser solver.F comme diagnostic externe.
+
+À chaque état candidat, les dix résidus sont désormais reconstruits et
+évalués explicitement à partir des champs courants :
+
+  R_c =
+    -div(D grad(c)) + lift(tau_c2) + s_O2
+
+  R_s =
+    -div(sigma_s grad(phi_s)) + lift(tau_s2) + j_ORR
+
+  R_m =
+    -div(sigma_m grad(phi_m)) + lift(tau_m2) + j_ORR
+
+  R_BV =
+    eta + asinh(q/(2 j0 a_O2^gamma))/beta
+
+ainsi que les six résidus de conditions aux limites.
+
+Chaque expression est évaluée explicitement avec Dedalus après chaque essai
+de pas. Le mérite reste la norme quadratique des dix résidus normalisés par
+leurs échelles physiques.
+
+Cette modification élimine toute dépendance à l'état interne ou au calendrier
+d'évaluation de solver.F.
+
+La cible reste :
+
+  make quick-stationary-inverse-bv-picard-v10
+
+Le prochain run testera donc la combinaison :
+
+  Picard convergé
+  -> Newton globalisé
+  -> line search sur résidus physiques explicitement réévalués.
