@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "model": "v11-reference-analysis",
+  "source_csv": "results/v11-reference/v11-reference-dt-0p005.csv",
+  "purge_times_s": [
+    187.6804915514296,
+    276.00614439319696,
+    371.27999999980943
+  ],
+  "purge_count": 3,
+  "cell_voltage_v": {
+    "min": 0.7216379741474723,
+    "max": 0.8586692469225723,
+    "final": 0.8192453486455875
+  },
+  "stack_temperature_k": {
+    "min": 303.0431450165216,
+    "max": 316.1374183598667,
+    "final": 314.4499465182923
+  },
+  "membrane_mean_water_content": {
+    "min": 2.3834078436731527,
+    "max": 3.4854999999999983,
+    "final": 2.3933766376602583
+  },
+  "anode_water_activity": {
+    "min": 0.0,
+    "max": 0.4969407188811083,
+    "final": 0.21598763895261688
+  },
+  "cathode_water_activity": {
+    "min": 0.2130257672833735,
+    "max": 0.5,
+    "final": 0.22054751579317372
+  },
+  "anode_nitrogen_mol": {
+    "min": 0.0,
+    "max": 1.5345816380021138e-06,
+    "final": 1.1572787146269674e-06
+  },
+  "nitrogen_crossover_rate_mol_s": {
+    "min": 7.2109624436140445e-09,
+    "max": 1.0824963138418479e-08,
+    "final": 8.761101703300933e-09
+  }
+}
