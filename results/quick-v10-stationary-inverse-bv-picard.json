@@ -11,55 +11,55 @@
   ],
   "oxygen_feed_concentration_mol_m3": 8.229922696355533,
   "target_current_density_a_m2": 2150.0,
-  "current_density_a_m2": 2143.1145561547846,
-  "relative_current_error": -0.003202532021030408,
+  "current_density_a_m2": 2143.2552704780724,
+  "relative_current_error": -0.0031370834985709945,
   "converged": false,
   "newton_iterations": 1,
-  "physical_norm": 0.28187393457428084,
+  "physical_norm": 0.2126845861527958,
   "physical_norm_history": [
-    0.28187393457428084
+    0.2126845861527958
   ],
   "min_c_o2_history": [
-    6.914710708869282
+    6.914710684384294
   ],
   "component_norm_history": [
     {
-      "\u03b4c_o2": 0.0022128791870109237,
-      "\u03b4phi_s": 1.7665568887741894e-06,
-      "\u03b4phi_m": 0.029769874839359108,
-      "\u03b4q_hat": 0.24988941399102202
+      "\u03b4c_o2": 0.002168794291549732,
+      "\u03b4phi_s": 2.5521978672310163e-06,
+      "\u03b4phi_m": 0.02716389363100387,
+      "\u03b4q_hat": 0.183349346032375
     }
   ],
-  "total_reaction_current": 0.004286229112309569,
-  "mean_eta_v": -0.3698465206855342,
-  "mean_c_o2_mol_m3": 7.520969995965972,
-  "min_c_o2_mol_m3": 6.914710708869282,
-  "min_eta_v": -0.412026451114648,
-  "max_eta_v": -0.306029828459561,
-  "min_q_hat": 0.10849453538375017,
-  "max_q_hat": 1.1091009480678642,
-  "min_q_a_m3": 19438604.25625525,
-  "max_q_a_m3": 198713919.86215913,
+  "total_reaction_current": 0.004286510540956145,
+  "mean_eta_v": -0.37073812055122507,
+  "mean_c_o2_mol_m3": 7.520966039845397,
+  "min_c_o2_mol_m3": 6.914710684384293,
+  "min_eta_v": -0.4120282848322062,
+  "max_eta_v": -0.3085103212844103,
+  "min_q_hat": 0.13942587003616694,
+  "max_q_hat": 1.109146591987727,
+  "min_q_a_m3": 24980468.381479926,
+  "max_q_a_m3": 198722097.73113453,
   "q_reference_a_m3": 179166666.66666678,
-  "max_inverse_bv_residual_v": 0.023623143110101996,
-  "max_forward_bv_relative_error": 0.5495755099868979,
+  "max_inverse_bv_residual_v": 0.012319241103960044,
+  "max_forward_bv_relative_error": 0.25658951215176595,
   "initial_min_c_o2_mol_m3": 6.915029146137645,
   "initial_max_c_o2_mol_m3": 8.228028615156532,
   "initial_mean_c_o2_mol_m3": 7.57152888064709,
   "globalized": true,
-  "residual_merit": 0.019799142530158867,
+  "residual_merit": 0.013450627417714196,
   "globalization_history": [
     {
       "iteration": 1,
-      "residual_start": 0.0211107290454359,
-      "residual_final": 0.019799142530158867,
+      "residual_start": 0.020494859629135474,
+      "residual_final": 0.013450627417714196,
       "damping": 1.0,
       "backtracks": 0,
-      "min_c_o2_mol_m3": 6.914710708869282,
-      "min_q_hat": 0.10849453538375017
+      "min_c_o2_mol_m3": 6.914710684384294,
+      "min_q_hat": 0.13942587003616694
     }
   ],
-  "picard_iterations": 12,
+  "picard_iterations": 34,
   "picard_relaxation": 0.25,
   "picard_history": [
     {
@@ -145,6 +145,160 @@
       "min_q_hat": 0.3044244396144352,
       "max_q_hat": 1.1099590261497152,
       "relative_q_change": 0.032124604316622916
+    },
+    {
+      "iteration": 13,
+      "min_c_o2_mol_m3": 6.914779435007496,
+      "min_q_hat": 0.29781744119374604,
+      "max_q_hat": 1.109882964000196,
+      "relative_q_change": 0.02521389577284226
+    },
+    {
+      "iteration": 14,
+      "min_c_o2_mol_m3": 6.914779503278698,
+      "min_q_hat": 0.29280251739708785,
+      "max_q_hat": 1.109826838455827,
+      "relative_q_change": 0.019632348970266635
+    },
+    {
+      "iteration": 15,
+      "min_c_o2_mol_m3": 6.91477955374323,
+      "min_q_hat": 0.28899901725357324,
+      "max_q_hat": 1.1097854698310412,
+      "relative_q_change": 0.015187285186523687
+    },
+    {
+      "iteration": 16,
+      "min_c_o2_mol_m3": 6.91477959103493,
+      "min_q_hat": 0.2861163735726759,
+      "max_q_hat": 1.1097550103587097,
+      "relative_q_change": 0.011687171320165543
+    },
+    {
+      "iteration": 17,
+      "min_c_o2_mol_m3": 6.9147796185850146,
+      "min_q_hat": 0.2839330754151729,
+      "max_q_hat": 1.1097326059432147,
+      "relative_q_change": 0.008955940303260926
+    },
+    {
+      "iteration": 18,
+      "min_c_o2_mol_m3": 6.914779638933208,
+      "min_q_hat": 0.28228045538854285,
+      "max_q_hat": 1.1097161424797157,
+      "relative_q_change": 0.006839935120697953
+    },
+    {
+      "iteration": 19,
+      "min_c_o2_mol_m3": 6.914779653958645,
+      "min_q_hat": 0.28103022005225986,
+      "max_q_hat": 1.1097040560237939,
+      "relative_q_change": 0.005209855925991871
+    },
+    {
+      "iteration": 20,
+      "min_c_o2_mol_m3": 6.914779665051238,
+      "min_q_hat": 0.28008487976230406,
+      "max_q_hat": 1.1096951910309272,
+      "relative_q_change": 0.003959733238250846
+    },
+    {
+      "iteration": 21,
+      "min_c_o2_mol_m3": 6.914779673238707,
+      "min_q_hat": 0.2793704175772985,
+      "max_q_hat": 1.1096886946913154,
+      "relative_q_change": 0.003004394897436873
+    },
+    {
+      "iteration": 22,
+      "min_c_o2_mol_m3": 6.914779679280712,
+      "min_q_hat": 0.2788306827152597,
+      "max_q_hat": 1.1096839383047175,
+      "relative_q_change": 0.0022763758495210466
+    },
+    {
+      "iteration": 23,
+      "min_c_o2_mol_m3": 6.9147796837386375,
+      "min_q_hat": 0.27842310924539304,
+      "max_q_hat": 1.109680458868529,
+      "relative_q_change": 0.0017228227177829988
+    },
+    {
+      "iteration": 24,
+      "min_c_o2_mol_m3": 6.914779687027223,
+      "min_q_hat": 0.2781154511169883,
+      "max_q_hat": 1.1096779157463814,
+      "relative_q_change": 0.0013026752982735065
+    },
+    {
+      "iteration": 25,
+      "min_c_o2_mol_m3": 6.914779689452797,
+      "min_q_hat": 0.2778832952447518,
+      "max_q_hat": 1.109676058567873,
+      "relative_q_change": 0.0009842397738547067
+    },
+    {
+      "iteration": 26,
+      "min_c_o2_mol_m3": 6.914779691241554,
+      "min_q_hat": 0.2777081692922845,
+      "max_q_hat": 1.1096747034788481,
+      "relative_q_change": 0.0007431733034834767
+    },
+    {
+      "iteration": 27,
+      "min_c_o2_mol_m3": 6.914779692560494,
+      "min_q_hat": 0.2775761033619915,
+      "max_q_hat": 1.109673715591037,
+      "relative_q_change": 0.0005608510384025607
+    },
+    {
+      "iteration": 28,
+      "min_c_o2_mol_m3": 6.914779693532872,
+      "min_q_hat": 0.27747653768907876,
+      "max_q_hat": 1.1096729960275487,
+      "relative_q_change": 0.00042306592728406694
+    },
+    {
+      "iteration": 29,
+      "min_c_o2_mol_m3": 6.91477969424966,
+      "min_q_hat": 0.277401493783876,
+      "max_q_hat": 1.109672472370994,
+      "relative_q_change": 0.0003190065542473571
+    },
+    {
+      "iteration": 30,
+      "min_c_o2_mol_m3": 6.914779694777972,
+      "min_q_hat": 0.27734494595448966,
+      "max_q_hat": 1.109672091627695,
+      "relative_q_change": 0.00024046107300147946
+    },
+    {
+      "iteration": 31,
+      "min_c_o2_mol_m3": 6.914779695167315,
+      "min_q_hat": 0.2773023450947416,
+      "max_q_hat": 1.1096718150502887,
+      "relative_q_change": 0.00018120158716515515
+    },
+    {
+      "iteration": 32,
+      "min_c_o2_mol_m3": 6.914779695454213,
+      "min_q_hat": 0.27727025807553474,
+      "max_q_hat": 1.1096716143314214,
+      "relative_q_change": 0.00013651062074340777
+    },
+    {
+      "iteration": 33,
+      "min_c_o2_mol_m3": 6.914779695665597,
+      "min_q_hat": 0.27724609483518164,
+      "max_q_hat": 1.1096714688079876,
+      "relative_q_change": 0.00010281838287501115
+    },
+    {
+      "iteration": 34,
+      "min_c_o2_mol_m3": 6.91477969582133,
+      "min_q_hat": 0.27722790195158165,
+      "max_q_hat": 1.1096713634094104,
+      "relative_q_change": 7.742579102494467e-05
     }
   ]
 }
