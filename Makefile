@@ -1114,3 +1114,19 @@ polarization-airflow-controlled-v11:
 	  --temperature-tolerance-k 0.1 \
 	  --max-airflow-iterations 8 \
 	  --feasibility-scan-points 10
+
+
+.PHONY: quick-membrane-conductivity-sensitivity-v11
+
+quick-membrane-conductivity-sensitivity-v11:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_membrane_conductivity_sensitivity \
+	  --jobs $(JOBS) \
+	  --currents-a 15 26.04 \
+	  --conductivity-multipliers 1.0 1.5 2.0 \
+	  --dt 0.02 \
+	  --sample-every 1 \
+	  --max-cycles 20 \
+	  --cycle-tolerance 1e-3 \
+	  --temperature-tolerance-k 0.5 \
+	  --max-airflow-iterations 4 \
+	  --feasibility-scan-points 6
