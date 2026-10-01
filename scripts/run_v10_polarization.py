@@ -97,51 +97,60 @@ def main() -> None:
         )
         operating_base = replace(
             base,
-            stack_current_a=current_a,
+            stack_current_a=current_a_bound,
             stack_temperature=target_temperature_k,
             cathode_solid_potential=bol_voltage_v,
         )
 
         evaluation_index = 0
 
-        def evaluate(voltage_v: float, label: str) -> float:
+        def evaluate(
+            voltage_v: float,
+            label: str,
+            *,
+            current_a_bound: float = current_a,
+            operating_base_bound: CathodeParameters = operating_base,
+            target_temperature_k_bound: float = target_temperature_k,
+            inlet_temperature_k_bound: float = inlet_temperature_k,
+            target_current_density_bound: float = target_current_density,
+        ) -> float:
             nonlocal evaluation_index
             evaluation_index += 1
 
-            heat_rejection_w = operating_base.stack.heat_rejection_w(
-                current_a,
+            heat_rejection_w = operating_base_bound.stack.heat_rejection_w(
+                current_a_bound,
                 voltage_v,
             )
             airflow = open_cathode_airflow_target(
                 heat_rejection_w=heat_rejection_w,
-                inlet_temperature_k=inlet_temperature_k,
-                target_stack_temperature_k=target_temperature_k,
-                stoichiometric_floor_slpm=operating_base.stack.coolant_air_target_slpm(
-                    current_a
+                inlet_temperature_k=inlet_temperature_k_bound,
+                target_stack_temperature_k=target_temperature_k_bound,
+                stoichiometric_floor_slpm=operating_base_bound.stack.coolant_air_target_slpm(
+                    current_a_bound
                 ),
             )
             if airflow.target_air_flow_slpm is None:
                 raise RuntimeError(
-                    f"thermally unreachable current={current_a} A "
+                    f"thermally unreachable current={current_a_bound} A "
                     f"voltage={voltage_v} V"
                 )
 
             profile = solve_streamwise_finite_thermal_profile(
-                current_a=current_a,
+                current_a=current_a_bound,
                 total_air_flow_slpm=airflow.target_air_flow_slpm,
-                n_cells=operating_base.stack.n_cells,
-                oxygen_mole_fraction=operating_base.oxygen_mole_fraction,
-                faraday_c_mol=operating_base.faraday,
-                inlet_temperature_k=inlet_temperature_k,
+                n_cells=operating_base_bound.stack.n_cells,
+                oxygen_mole_fraction=operating_base_bound.oxygen_mole_fraction,
+                faraday_c_mol=operating_base_bound.faraday,
+                inlet_temperature_k=inlet_temperature_k_bound,
                 stack_temperature_k=target_temperature_k,
                 ntu=args.ntu,
                 points=args.profile_points,
             )
             concentration = ideal_gas_species_concentration_mol_m3(
                 mole_fraction=profile.oxygen_mole_fraction,
-                pressure_pa=operating_base.pressure,
+                pressure_pa=operating_base_bound.pressure,
                 temperature_k=profile.air_temperature_k,
-                gas_constant_j_mol_k=operating_base.gas_constant,
+                gas_constant_j_mol_k=operating_base_bound.gas_constant,
             )
             local_feed = {
                 xi: float(
@@ -155,7 +164,7 @@ def main() -> None:
             }
 
             params = replace(
-                operating_base,
+                operating_base_bound,
                 cathode_solid_potential=voltage_v,
             )
             local_current_densities: list[float] = []
@@ -163,7 +172,7 @@ def main() -> None:
             for xi in xis:
                 run_dir = (
                     args.work_dir
-                    / f"current-{current_a:.2f}"
+                    / f"current-{current_a_bound:.2f}"
                     / f"eval-{evaluation_index:02d}-{label}"
                     / f"xi-{xi:.1f}"
                 )
@@ -186,7 +195,7 @@ def main() -> None:
                 local_current_densities.append(current_density)
                 rows.append(
                     {
-                        "current_a": current_a,
+                        "current_a": current_a_bound,
                         "evaluation": label,
                         "voltage_v": voltage_v,
                         "slice_xi": xi,
@@ -194,7 +203,7 @@ def main() -> None:
                         "air_flow_slpm": airflow.target_air_flow_slpm,
                         "heat_rejection_w": heat_rejection_w,
                         "model_current_density_a_m2": current_density,
-                        "target_current_density_a_m2": target_current_density,
+                        "target_current_density_a_m2": target_current_density_bound,
                         "mean_eta_v": _last_scalar(run_dir, "mean_eta"),
                     }
                 )
@@ -285,9 +294,9 @@ def main() -> None:
 
         solutions.append(
             {
-                "current_a": current_a,
+                "current_a": current_a_bound,
                 "target_temperature_c": target_temperature_c,
-                "target_current_density_a_m2": target_current_density,
+                "target_current_density_a_m2": target_current_density_bound,
                 "bol_voltage_v": bol_voltage_v,
                 "bol_mean_current_density_a_m2": bol_j,
                 "bol_relative_error": bol_error,
