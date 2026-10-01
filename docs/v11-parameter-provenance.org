@@ -81,7 +81,8 @@ justification.
 Required to convert imposed stack current I into current density j = I/A.
 
 The representative Dedalus domain area is not automatically the real Ballard
-active cell area.
+active cell area. The product manual gives the external stack dimensions, but
+not the electrochemically active MEA area.
 
 Status: UNRESOLVED.
 
@@ -115,3 +116,153 @@ Status: PARTLY RESOLVED.
 If one of these unresolved quantities is required by a calculation, V11 should
 raise an explicit error or require it as an argument. It must not substitute a
 historical fitted default.
+
+
+* Additional parameters recovered from MAN5100319-0B
+
+** Anode gas volume
+
+Section 6.3.2 states that a purge volume of 20 mL/cell is equivalent to two
+anode volumes.
+
+Therefore:
+
+  V_anode = 10 mL/cell.
+
+For the 10-cell user stack:
+
+  V_anode,stack = 100 mL = 1.0e-4 m3.
+
+This replaces the historical V0.7 provisional assumption of 20 mL/cell for
+V11.
+
+** Purge flow and timing
+
+Run-time purge:
+
+  minimum purge flow = 2.4 slpm/cell
+  purge volume = 20 mL/cell
+  purge duration < 500 ms
+  purge interval = 2300 A.s.
+
+Ballard lab run-time condition:
+
+  20 mL/cell
+  200 ms
+  2300 A.s.
+
+Start-up purge:
+
+  purge flow = 6.0 slpm/cell
+  purge duration = 200 ms
+  purge volume = 20 mL/cell.
+
+For 10 cells:
+
+  run-time purge flow >= 24 slpm
+  start-up purge flow = 60 slpm
+  purge volume = 200 mL.
+
+At I = 26.04 A:
+
+  purge period = 2300 / 26.04 = 88.33 s.
+
+** Anode pressure drop
+
+The manual gives:
+
+  Delta P_anode [mbar]
+    = 31.21 * H2 flow per cell [slpm].
+
+Therefore:
+
+  at 2.4 slpm/cell: Delta P ~= 74.9 mbar
+  at 6.0 slpm/cell: Delta P ~= 187.3 mbar.
+
+** Hydrogen reaction flow
+
+The appendix gives:
+
+  H2 reacted = 0.00696 slpm/(A cell) * I * n_cells.
+
+At 26.04 A and 10 cells:
+
+  H2 reacted ~= 1.8124 slpm.
+
+This agrees with the Faraday-law implementation and can be used as a manual
+cross-check, not as a fitted law.
+
+** Stoichiometric oxidant flow
+
+The appendix gives:
+
+  air required = 0.0166 slpm/(A cell) * I * n_cells.
+
+At 26.04 A and 10 cells:
+
+  stoichiometric air ~= 4.3226 slpm.
+
+The manual requires steady-state air stoichiometry greater than 20, implying a
+strict oxidant floor above approximately:
+
+  86.45 slpm
+
+at this operating point.
+
+The cooling requirement is generally much larger than the oxidant requirement
+and must be determined from the energy balance rather than from oxygen
+stoichiometry alone.
+
+** Bus-plate electrical loss
+
+The manual gives total bus-plate resistance:
+
+  R_bus ~= 2.2 mOhm.
+
+At 26.04 A:
+
+  Delta V_bus ~= 57.3 mV
+
+for the complete stack bus plates.
+
+** Heat-generation relation
+
+The manual gives:
+
+  Q_created = n_cells * I * (1.253 - V_cell).
+
+At the nominal 10-cell, 26.04 A, V_cell ~= 0.76817 V point:
+
+  Q_created ~= 126.25 W.
+
+This relation is admissible as a direct manufacturer-provided energy balance
+for V11.
+
+** Air properties
+
+The appendix tabulates dry-air density, heat capacity and thermal conductivity
+at 1 atm over 0--100 degC. These values may be interpolated when the V11
+thermal/air model is implemented.
+
+** Cathode pressure drop
+
+The manual provides an explicit stack pressure-drop correlation as a function
+of stack temperature, stack volumetric flow and cell count.
+
+The parsed equation formatting is ambiguous enough that the equation should be
+transcribed from the rendered manual page before implementation.
+
+* Still not recoverable from the manual
+
+The manual does not provide enough information to determine without additional
+assumptions:
+
+- true electrochemically active cell area;
+- catalyst loading / ECSA;
+- exchange-current density j0;
+- GDL/MPL/CL porosity and tortuosity;
+- membrane thickness and equivalent weight;
+- N2 crossover permeability;
+- detailed contact resistances inside the cell.
+
+These remain unresolved or require independent literature/material data.
