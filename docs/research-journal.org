@@ -20884,3 +20884,53 @@ La cinétique intrinsèque ORR est désormais résolue par littérature.
 
 Le dernier verrou d'activation est le roughness factor spécifique au catalyst
 layer FCgen-1020ACS.
+
+
+** V11 étape 17 — fermeture de tension prédictive sans calibration Ballard
+
+La recherche spécifique FCgen-1020ACS/1020AVS n'a pas permis d'identifier un
+couple défendable :
+
+  chargement Pt cathode
+  ECSA
+
+propre au produit.
+
+Les publications sur cette famille confirment des électrodes carbone et un
+catalyseur Pt, mais pas le roughness factor nécessaire. Des travaux Ballard plus
+anciens rapportent environ 0.55--0.60 mgPt/cm2 au cathode sur d'autres stacks,
+mais ces valeurs ne sont pas transférées comme défauts au 1020ACS.
+
+Un nouveau module :
+
+  src/pemfc_dedalus/v11_voltage.py
+
+assemble maintenant la tension prédictive V11 :
+
+  V_cell
+    = E_rev
+      - eta_ORR
+      - eta_membrane
+      - eta_additional,resolved.
+
+Les termes sont :
+
+- E_rev : thermodynamique Nernst/Shomate déjà implémentée ;
+- eta_ORR : cinétique Neyerlin avec chargement Pt et ECSA obligatoires ;
+- eta_membrane : conductivité protonique issue de l'état d'hydratation V11 ;
+- eta_additional,resolved : uniquement pour une perte physique explicitement
+  résolue et fournie par l'appelant.
+
+Aucun terme empirique de concentration n'est ajouté.
+
+Les tests vérifient :
+
+- OCV = E_rev à courant nul ;
+- V_cell < E_rev sous charge ;
+- baisse de la perte d'activation lorsque le chargement Pt augmente ;
+- baisse de la perte d'activation lorsque l'ECSA augmente ;
+- soustraction exacte d'une perte additionnelle explicitement fournie.
+
+Les valeurs génériques Pt/ECSA utilisées dans les tests servent seulement à
+tester les relations et les unités. Elles ne constituent pas des paramètres
+FCgen-1020ACS.
