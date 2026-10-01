@@ -17990,3 +17990,86 @@ physiques.
 Si une variable physique domine encore la norme, il faudra poursuivre le
 diagnostic numérique avant de reprendre la continuation.
 
+
+*** Résultat de la décomposition de la norme Newton
+
+Au niveau :
+
+  lambda = 1e-6
+  damping = 0.25
+
+la norme totale à l'itération 40 vaut environ :
+
+  1.19e-3.
+
+Cette valeur est dominée par les variables tau.
+
+Les perturbations des champs physiques valent :
+
+  delta(c_O2) = 7.13e-7
+  delta(phi_s) = 1.76e-14
+  delta(phi_m) = 2.31e-6.
+
+En revanche, certaines perturbations auxiliaires restent de l'ordre de :
+
+  delta(tau_c1) = 5.58e-4
+  delta(tau_m1) = 6.28e-4.
+
+Le plancher observé sur la norme globale n'est donc pas représentatif de la
+convergence des champs physiques.
+
+*** Étape 16 — convergence sur les champs physiques
+
+Le critère Newton est redéfini sur :
+
+  c_O2
+  phi_s
+  phi_m
+
+uniquement.
+
+La norme physique est la somme des normes des trois premières perturbations du
+NLBVP.
+
+Le seuil retenu pour ce screening est :
+
+  1e-5.
+
+Le facteur d'amortissement reste :
+
+  damping = 0.25.
+
+La continuation est réintroduite progressivement, mais seulement jusqu'à :
+
+  lambda = 1e-3
+
+avec les niveaux :
+
+  1e-6
+  1e-5
+  1e-4
+  1e-3.
+
+Chaque niveau dispose de :
+
+  40 itérations maximum.
+
+La grille reste :
+
+  4 x 4 x 16
+  xi = 0.5.
+
+La sortie conserve également la norme totale et les normes par composante pour
+diagnostic.
+
+*** Critère de décision
+
+Si les quatre niveaux atteignent le seuil physique sans perte de positivité de
+c_O2, la continuation pourra être prolongée vers :
+
+  1e-2
+  1e-1
+  1.
+
+Sinon, le premier niveau défaillant sera analysé avant toute extension.
+
