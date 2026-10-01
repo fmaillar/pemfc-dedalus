@@ -104,14 +104,33 @@ def _load_csv(path: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(handle))
 
 
+def _regular_sample_rows(
+    rows: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    """Return continuous trajectory samples, excluding discrete purge resets."""
+    return [row for row in rows if row["purge_event"] == "False"]
+
+
 def _unique_time_series(
     rows: list[dict[str, str]],
     field: str,
 ) -> tuple[np.ndarray, np.ndarray]:
-    times = _read_numeric_column(rows, "time_s")
-    values = _read_numeric_column(rows, field)
+    regular = _regular_sample_rows(rows)
+    times = _read_numeric_column(regular, "time_s")
+    values = _read_numeric_column(regular, field)
     unique_times, unique_indices = np.unique(times, return_index=True)
     return unique_times, values[unique_indices]
+
+
+def _purge_times(rows: list[dict[str, str]]) -> np.ndarray:
+    return np.asarray(
+        [
+            float(row["time_s"])
+            for row in rows
+            if row["purge_event"] == "True"
+        ],
+        dtype=float,
+    )
 
 
 def convergence_metrics(
@@ -125,6 +144,17 @@ def convergence_metrics(
         COMPARISON_FIELDS[0],
     )
     metrics: dict[str, float] = {}
+
+    reference_purges = _purge_times(reference_rows)
+    candidate_purges = _purge_times(candidate_rows)
+    if reference_purges.shape != candidate_purges.shape:
+        metrics["purge_time_max_abs_s"] = float("inf")
+    elif reference_purges.size == 0:
+        metrics["purge_time_max_abs_s"] = 0.0
+    else:
+        metrics["purge_time_max_abs_s"] = float(
+            np.max(np.abs(candidate_purges - reference_purges))
+        )
 
     for field in COMPARISON_FIELDS:
         reference_field_time, reference_values = _unique_time_series(
@@ -214,9 +244,12 @@ def main() -> None:
     reference_rows = _load_csv(Path(str(finest["csv_path"])))
 
     metric_names = [
-        f"{field}_{kind}"
-        for field in COMPARISON_FIELDS
-        for kind in ("max_abs", "rms")
+        "purge_time_max_abs_s",
+        *[
+            f"{field}_{kind}"
+            for field in COMPARISON_FIELDS
+            for kind in ("max_abs", "rms")
+        ],
     ]
     convergence_rows: list[dict[str, Any]] = []
     for summary in summaries:
@@ -261,6 +294,7 @@ def main() -> None:
                 f"Tmax={float(row['stack_temperature_k_max_abs']):.3e} K "
                 f"lambda_max="
                 f"{float(row['membrane_mean_water_content_max_abs']):.3e} "
+                f"purge_dt={float(row['purge_time_max_abs_s']):.3e} s "
                 f"purges={int(row['purge_count'])}",
                 flush=True,
             )
