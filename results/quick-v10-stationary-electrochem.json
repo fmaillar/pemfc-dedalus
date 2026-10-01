@@ -13,26 +13,32 @@
   "max_newton_iterations": 10,
   "oxygen_feed_concentration_mol_m3": 8.229922696355533,
   "target_current_density_a_m2": 2150.0,
-  "current_density_a_m2": 0.0,
-  "relative_current_error": -1.0,
+  "current_density_a_m2": -331.19073837925174,
+  "relative_current_error": -1.1540422038973264,
   "converged": false,
   "newton_iterations": 10,
-  "perturbation_norm": 0.0004007394467987972,
+  "perturbation_norm": 62623279.16183595,
   "newton_damping": 0.5,
   "continuation_history": [
     {
       "reaction_scale": 0.0,
+      "iterations": 1,
+      "perturbation_norm": 0.0,
+      "converged": true
+    },
+    {
+      "reaction_scale": 0.01,
       "iterations": 10,
-      "perturbation_norm": 0.0004007394467987972,
+      "perturbation_norm": 62623279.16183595,
       "converged": false
     }
   ],
-  "total_reaction_current": 0.0,
-  "mean_eta_v": -0.4118344827586205,
-  "mean_c_o2_mol_m3": 7.571528880647087,
-  "min_c_o2_mol_m3": -0.18720217250187962,
-  "min_eta_v": -0.41183448275862056,
-  "max_eta_v": -0.41183448275862056,
-  "min_j_orr_a_m3": 0.0,
-  "max_j_orr_a_m3": 0.0
+  "total_reaction_current": -0.0006623814767585034,
+  "mean_eta_v": -0.7436295483950518,
+  "mean_c_o2_mol_m3": 7.628339834078758,
+  "min_c_o2_mol_m3": -0.17591677856882082,
+  "min_eta_v": -1.296741726861085,
+  "max_eta_v": -0.36253491761483836,
+  "min_j_orr_a_m3": -765859895.9980824,
+  "max_j_orr_a_m3": 365649218.39690286
 }
