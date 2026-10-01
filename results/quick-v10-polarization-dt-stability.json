@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "model": "v10-polarization-timestep-stability",
+  "current_a": 26.04,
+  "voltage_v": 0.7681655172413794,
+  "summaries": [
+    {
+      "max_dt": 2e-06,
+      "minimum_after_2ms_a_m2": 2033.8856761304253,
+      "maximum_after_2ms_a_m2": 2801.2362567163345,
+      "time_of_minimum_s": 0.005800000000000121,
+      "final_current_density_a_m2": 2801.2362567163345,
+      "final_to_minimum_ratio": 1.3772830447608218
+    },
+    {
+      "max_dt": 1e-06,
+      "minimum_after_2ms_a_m2": 2033.8856745224641,
+      "maximum_after_2ms_a_m2": 2801.235551100847,
+      "time_of_minimum_s": 0.005800000000000445,
+      "final_current_density_a_m2": 2801.235551100847,
+      "final_to_minimum_ratio": 1.377282698919913
+    },
+    {
+      "max_dt": 5e-07,
+      "minimum_after_2ms_a_m2": 2033.8856743405956,
+      "maximum_after_2ms_a_m2": 2833.5084920057107,
+      "time_of_minimum_s": 0.005799999999998965,
+      "final_current_density_a_m2": 2833.5084920057107,
+      "final_to_minimum_ratio": 1.3931503268611005
+    }
+  ]
+}
