@@ -13946,3 +13946,75 @@ Décision :
   mesurer l'écart entre approximation Arrhenius-only et lookup complet ;
 
   seulement ensuite décider du nombre de plans T requis pour la baseline V0.8.
+
+
+*** Gate rouge — référence de température hors portée
+
+La première exécution du lookup Motupally dépendant de T est arrêtée au lint.
+
+Gate :
+
+  pytest :
+    172 passed
+
+  Ruff :
+    échec F821.
+
+Erreur :
+
+  Undefined name 'stack_temperature_k'
+
+dans :
+
+  scripts/run_v07_n2_catalano_motupally.py
+
+au sein de :
+
+  run_simulation_task().
+
+*** Cause
+
+L'ajout du paramètre optionnel :
+
+  stack_temperature_k
+
+dans la construction du lookup Motupally a entraîné un remplacement trop large.
+
+Une occurrence historique :
+
+  p.stack_temperature
+
+dans :
+
+  run_simulation_task()
+
+a été remplacée par :
+
+  stack_temperature_k
+
+alors que cette variable n'existe pas dans cette fonction.
+
+La baseline V0.7 doit continuer d'utiliser :
+
+  p.stack_temperature
+
+dans ce chemin historique.
+
+*** Correctif
+
+L'appel à :
+
+  make_v06_transport_permeance_model(...)
+
+dans :
+
+  run_simulation_task()
+
+utilise de nouveau :
+
+  stack_temperature_k=p.stack_temperature.
+
+Aucune physique V0.8 n'est modifiée.
+
+Le paramétrage en température reste limité au chemin de construction explicite
+du lookup V0.8.
