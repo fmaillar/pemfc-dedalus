@@ -179,6 +179,8 @@ def run_v11_dynamic(
     stop_time_s: float,
     dt_s: float,
     automatic_purge: bool = True,
+    manual_purge_times_s: tuple[float, ...] = (),
+    initial_purge_clock: V11PurgeClock | None = None,
     sample_every_s: float | None = None,
 ) -> list[V11TrajectoryPoint]:
     """Integrate V11 with piecewise controls and discrete purge events.
@@ -194,12 +196,22 @@ def run_v11_dynamic(
         raise ValueError("dt_s must be positive")
     if sample_every_s is not None and sample_every_s <= 0.0:
         raise ValueError("sample_every_s must be positive when provided")
+    if any(time <= 0.0 or time > stop_time_s for time in manual_purge_times_s):
+        raise ValueError(
+            "manual purge times must lie in the interval (0, stop_time_s]"
+        )
+    if any(
+        right <= left
+        for left, right in zip(manual_purge_times_s, manual_purge_times_s[1:])
+    ):
+        raise ValueError("manual purge times must be strictly increasing")
 
     state = initial_state
-    clock = V11PurgeClock()
+    clock = V11PurgeClock() if initial_purge_clock is None else initial_purge_clock
     purge_count = 0
     time_s = 0.0
     next_sample_s = 0.0
+    manual_purge_index = 0
     trajectory: list[V11TrajectoryPoint] = []
     tolerance = 1.0e-12
 
@@ -241,23 +253,32 @@ def run_v11_dynamic(
             if automatic_purge
             else float("inf")
         )
+        next_manual_purge_s = (
+            manual_purge_times_s[manual_purge_index]
+            if manual_purge_index < len(manual_purge_times_s)
+            else float("inf")
+        )
 
         step = min(
             dt_s,
             stop_time_s - time_s,
             control_boundary - time_s,
             purge_wait,
+            next_manual_purge_s - time_s,
         )
         if sample_every_s is not None:
             step = min(step, next_sample_s - time_s)
 
         if step <= tolerance:
-            purge_now = automatic_purge and purge_wait <= tolerance
-            if purge_now:
+            automatic_purge_now = automatic_purge and purge_wait <= tolerance
+            manual_purge_now = next_manual_purge_s <= time_s + tolerance
+            if automatic_purge_now or manual_purge_now:
                 event = apply_v11_purge_event(state=state)
                 state = event.state
                 clock = V11PurgeClock()
                 purge_count += 1
+                if manual_purge_now:
+                    manual_purge_index += 1
                 append_point(purge_event=True, diagnostic_dt_s=dt_s)
                 continue
 
@@ -288,7 +309,7 @@ def run_v11_dynamic(
             )
         )
 
-        purge_now = (
+        automatic_purge_now = (
             automatic_purge
             and time_to_ballard_purge_s(
                 clock=clock,
@@ -296,11 +317,20 @@ def run_v11_dynamic(
             )
             <= tolerance
         )
+        next_manual_purge_s = (
+            manual_purge_times_s[manual_purge_index]
+            if manual_purge_index < len(manual_purge_times_s)
+            else float("inf")
+        )
+        manual_purge_now = next_manual_purge_s <= time_s + tolerance
+        purge_now = automatic_purge_now or manual_purge_now
         if purge_now:
             event = apply_v11_purge_event(state=state)
             state = event.state
             clock = V11PurgeClock()
             purge_count += 1
+            if manual_purge_now:
+                manual_purge_index += 1
             append_point(purge_event=True, diagnostic_dt_s=dt_s)
 
         if sample_every_s is None:
