@@ -22847,3 +22847,50 @@ principalement imposée par le refroidissement.
 
 L'ancienne fermeture géométrique reste dans le dépôt pour comparaison mais ne
 pilote plus coupled_v11_predictive_rhs().
+
+
+
+*** Étape 25d — correction d'échelle de la loi Ballard E.23
+
+Le premier quick après bascule vers la fermeture Ballard a échoué pour 15 A et
+26.04 A avec :
+
+  no physically valid converged purge cycle found in airflow scan.
+
+La cause identifiée est une erreur d'échelle dans la première implémentation.
+
+Le manuel exprime explicitement son exemple thermique en grandeurs par cellule :
+
+  q_created : W/cell
+  m_dot     : kg/s/cell
+  Q_air     : slpm/cell.
+
+La corrélation E.23 doit donc être appliquée à chaque cellule avec :
+
+  m_dot_cell = m_dot_stack / n_cells.
+
+La chaleur totale retirée au stack devient :
+
+  q_removed,stack
+    = n_cells
+      * [m_dot_cell Cp (T_stack - T_amb)
+         / (1 + 0.403 m_dot_cell Cp)].
+
+La première implémentation injectait m_dot_stack directement dans E.23, ce qui
+surestimait fortement le refroidissement pour un stack multi-cellules.
+
+La relation inverse a été corrigée de la même façon :
+
+  q_removed,cell = q_removed,stack / n_cells
+
+puis résolution de m_dot_cell, et enfin :
+
+  m_dot_stack = n_cells * m_dot_cell.
+
+Un test vérifie désormais l'invariance suivante :
+
+- à débit par cellule constant,
+- T_air,out est identique,
+- q_removed,stack est proportionnel au nombre de cellules.
+
+Le quick airflow-controlled doit être relancé après cette correction.
