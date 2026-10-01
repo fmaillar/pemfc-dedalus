@@ -297,6 +297,8 @@ def solve_stationary_inverse_bv(
 
     picard_history: list[InverseBVPicardStep] = []
     if picard_iterations:
+        picard_namespace = locals().copy()
+
         def solve_picard_transport() -> None:
             picard_problem = d3.LBVP(
                 [
@@ -310,7 +312,7 @@ def solve_stationary_inverse_bv(
                     tau_m1,
                     tau_m2,
                 ],
-                namespace=locals(),
+                namespace=picard_namespace,
             )
             picard_problem.add_equation(
                 "-div(diffusivity*grad_c) + lift(tau_c2, -1) = -s_o2"
