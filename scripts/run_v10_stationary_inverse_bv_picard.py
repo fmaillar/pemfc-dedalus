@@ -71,7 +71,7 @@ def main() -> None:
         ny=ny,
         nz=nz,
         oxygen_feed_concentration=oxygen_feed,
-        max_newton_iterations=40,
+        max_newton_iterations=120,
         globalized=True,
         residual_tolerance=1e-8,
         max_backtracks=12,
