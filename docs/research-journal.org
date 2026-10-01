@@ -13074,3 +13074,108 @@ Décision :
 Si cette validation est concluante, le modèle lumped idéal devient la baseline
 thermique V0.8 avant couplage en retour de la température vers la membrane et
 l'électrochimie.
+
+
+*** Gate rouge lors de la validation lumped
+
+La première exécution de la séquence de validation V0.8 a été lancée avec des
+commandes séparées au lieu d'un chaînage par :
+
+  &&
+
+Conséquence :
+
+  make test
+
+a échoué sur un seul test unitaire, mais les commandes suivantes ont tout de
+même été exécutées :
+
+  make validate-lumped-thermal-v08
+  make push-results.
+
+Le gate logiciel était donc rouge au moment du push des résultats de validation.
+
+Échec observé :
+
+  test_euler_lumped_solution_converges_to_analytic_solution
+
+avec :
+
+  dt = 0.1 s
+
+  T_num = 307.0721076 K
+  T_analytic = 307.0699422 K
+
+  erreur absolue =
+    0.002165 K
+
+pour une tolérance de :
+
+  0.002 K.
+
+Le test était donc légèrement trop agressif par rapport à l'erreur Euler
+explicite attendue.
+
+*** Résultat scientifique de la validation malgré le gate rouge
+
+La campagne de validation exécutée ensuite est cohérente.
+
+Erreur maximale sur les cas balayés :
+
+  0.02416 K
+
+pour :
+
+  dt = 2 s.
+
+Lorsque dt est divisé par deux, l'erreur est approximativement divisée par deux,
+comme attendu pour Euler explicite d'ordre 1.
+
+Exemples à T_in = 10 °C, offset initial nul :
+
+  dt = 2.00 s :
+    erreur = +0.0242 K
+
+  dt = 1.00 s :
+    erreur = +0.0121 K
+
+  dt = 0.50 s :
+    erreur = +0.0060 K
+
+  dt = 0.25 s :
+    erreur = +0.0030 K.
+
+La tendance est donc correcte et l'erreur numérique reste négligeable devant
+les écarts thermiques physiques de plusieurs kelvins.
+
+*** Correctif
+
+Le test unitaire de convergence conserve la même tolérance :
+
+  0.002 K
+
+mais utilise désormais :
+
+  dt = 0.05 s
+
+au lieu de :
+
+  dt = 0.1 s.
+
+Cela vérifie toujours la convergence vers la solution analytique sans placer le
+test au voisinage immédiat du seuil d'erreur attendu.
+
+Aucune physique n'est modifiée.
+
+*** Règle de workflow
+
+Les séquences locales critiques doivent désormais être données et exécutées sous
+forme chaînée :
+
+  git pull --ff-only &&
+  make test &&
+  make <target> &&
+  make push-results
+
+afin qu'aucune campagne ni aucun push de résultats ne se poursuive après un gate
+rouge.
