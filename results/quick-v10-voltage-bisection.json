@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "model": "v10-common-voltage-bisection",
+  "current_a": 26.04,
+  "target_current_density_a_m2": 2150.0,
+  "bol_voltage_v": 0.7681655172413794,
+  "converged": true,
+  "relative_tolerance": 0.005,
+  "iteration_count": 4,
+  "solution_voltage_v": 0.768125,
+  "solution_mean_current_density_a_m2": 2159.8984728295245,
+  "solution_relative_error": 0.004603940850941631,
+  "voltage_shift_from_bol_v": -4.051724137943413e-05,
+  "history": [
+    {
+      "iteration": 1,
+      "voltage_v": 0.755,
+      "mean_current_density_a_m2": 2709.2583059030026,
+      "relative_error": 0.2601201422804663,
+      "bracket_low_v": 0.74,
+      "bracket_high_v": 0.77
+    },
+    {
+      "iteration": 2,
+      "voltage_v": 0.7625,
+      "mean_current_density_a_m2": 2380.8256453544222,
+      "relative_error": 0.10736076528112663,
+      "bracket_low_v": 0.755,
+      "bracket_high_v": 0.77
+    },
+    {
+      "iteration": 3,
+      "voltage_v": 0.76625,
+      "mean_current_density_a_m2": 2231.2584355412637,
+      "relative_error": 0.03779462118198311,
+      "bracket_low_v": 0.7625,
+      "bracket_high_v": 0.77
+    },
+    {
+      "iteration": 4,
+      "voltage_v": 0.768125,
+      "mean_current_density_a_m2": 2159.8984728295245,
+      "relative_error": 0.004603940850941631,
+      "bracket_low_v": 0.76625,
+      "bracket_high_v": 0.77
+    }
+  ],
+  "rows": [
+    {
+      "evaluation": "bracket-low",
+      "voltage_v": 0.74,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.708885712418018,
+      "model_current_density_a_m2": 3671.97865208297,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.44051339835681874
+    },
+    {
+      "evaluation": "bracket-low",
+      "voltage_v": 0.74,
+      "slice_xi": 0.5,
+      "oxygen_feed_concentration_mol_m3": 8.229922696355533,
+      "model_current_density_a_m2": 3476.67292837639,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.44048558692063267
+    },
+    {
+      "evaluation": "bracket-low",
+      "voltage_v": 0.74,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.094746926638376,
+      "model_current_density_a_m2": 3421.4238059000268,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.44047772951277325
+    },
+    {
+      "evaluation": "bracket-high",
+      "voltage_v": 0.77,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.708885712418018,
+      "model_current_density_a_m2": 2194.8173007866803,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.4103042207303047
+    },
+    {
+      "evaluation": "bracket-high",
+      "voltage_v": 0.77,
+      "slice_xi": 0.5,
+      "oxygen_feed_concentration_mol_m3": 8.229922696355533,
+      "model_current_density_a_m2": 2076.600530867339,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.41028764756194835
+    },
+    {
+      "evaluation": "bracket-high",
+      "voltage_v": 0.77,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.094746926638376,
+      "model_current_density_a_m2": 2043.1867867703054,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.4102829669976695
+    },
+    {
+      "evaluation": "iteration-01",
+      "voltage_v": 0.755,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.708885712418018,
+      "model_current_density_a_m2": 2843.337521520806,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.4253956268925349
+    },
+    {
+      "evaluation": "iteration-01",
+      "voltage_v": 0.755,
+      "slice_xi": 0.5,
+      "oxygen_feed_concentration_mol_m3": 8.229922696355533,
+      "model_current_density_a_m2": 2691.054276491254,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.4253741289091978
+    },
+    {
+      "evaluation": "iteration-01",
+      "voltage_v": 0.755,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.094746926638376,
+      "model_current_density_a_m2": 2647.995207932196,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.425368056440112
+    },
+    {
+      "evaluation": "iteration-02",
+      "voltage_v": 0.7625,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.708885712418018,
+      "model_current_density_a_m2": 2499.0184222628054,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.4178470121794889
+    },
+    {
+      "evaluation": "iteration-02",
+      "voltage_v": 0.7625,
+      "slice_xi": 0.5,
+      "oxygen_feed_concentration_mol_m3": 8.229922696355533,
+      "model_current_density_a_m2": 2364.777088505064,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.41782813064685537
+    },
+    {
+      "evaluation": "iteration-02",
+      "voltage_v": 0.7625,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.094746926638376,
+      "model_current_density_a_m2": 2326.8270958434728,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.41782279771898334
+    },
+    {
+      "evaluation": "iteration-03",
+      "voltage_v": 0.76625,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.708885712418018,
+      "model_current_density_a_m2": 2342.1856589580498,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.4140749320912083
+    },
+    {
+      "evaluation": "iteration-03",
+      "voltage_v": 0.76625,
+      "slice_xi": 0.5,
+      "oxygen_feed_concentration_mol_m3": 8.229922696355533,
+      "model_current_density_a_m2": 2216.1957857317534,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.4140572410227424
+    },
+    {
+      "evaluation": "iteration-03",
+      "voltage_v": 0.76625,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.094746926638376,
+      "model_current_density_a_m2": 2180.5818113625182,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.4140522445419636
+    },
+    {
+      "evaluation": "iteration-04",
+      "voltage_v": 0.768125,
+      "slice_xi": 0.0,
+      "oxygen_feed_concentration_mol_m3": 8.708885712418018,
+      "model_current_density_a_m2": 2267.352275692265,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.41218941050225977
+    },
+    {
+      "evaluation": "iteration-04",
+      "voltage_v": 0.768125,
+      "slice_xi": 0.5,
+      "oxygen_feed_concentration_mol_m3": 8.229922696355533,
+      "model_current_density_a_m2": 2145.307179013957,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.4121722871883089
+    },
+    {
+      "evaluation": "iteration-04",
+      "voltage_v": 0.768125,
+      "slice_xi": 1.0,
+      "oxygen_feed_concentration_mol_m3": 8.094746926638376,
+      "model_current_density_a_m2": 2110.809845229054,
+      "target_current_density_a_m2": 2150.0,
+      "mean_eta_v": -0.41216745115668535
+    }
+  ]
+}
