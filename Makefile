@@ -1085,3 +1085,28 @@ polarization-periodic-v11:
 	  --dt 0.01 \
 	  --sample-every 1 \
 	  --max-cycles 12
+
+
+.PHONY: quick-polarization-airflow-controlled-v11 polarization-airflow-controlled-v11
+
+quick-polarization-airflow-controlled-v11:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_polarization_airflow_controlled \
+	  --jobs $(JOBS) \
+	  --currents-a 15 26.04 \
+	  --dt 0.02 \
+	  --sample-every 1 \
+	  --max-cycles 12 \
+	  --cycle-tolerance 1e-4 \
+	  --temperature-tolerance-k 0.5 \
+	  --max-airflow-iterations 4
+
+polarization-airflow-controlled-v11:
+	OMP_NUM_THREADS=1 NUMEXPR_NUM_THREADS=1 $(TIME) $(PYTHON) -m scripts.run_v11_polarization_airflow_controlled \
+	  --jobs $(JOBS) \
+	  --currents-a 5 10 15 20 26.04 30 \
+	  --dt 0.01 \
+	  --sample-every 1 \
+	  --max-cycles 12 \
+	  --cycle-tolerance 1e-4 \
+	  --temperature-tolerance-k 0.1 \
+	  --max-airflow-iterations 8
