@@ -16553,3 +16553,138 @@ Si l'écart devient important, surtout à faible charge, V1.0 introduira une
 résolution de V_cell telle que le courant électrochimique converge vers la
 densité de courant imposée.
 
+
+*** Résultats du screening de fermeture en courant
+
+Le screening confirme que la loi :
+
+  V_cell = V_BOL(I)
+
+ne ferme pas correctement le courant électrochimique sur l'ensemble de la plage.
+
+À :
+
+  I = 7.3 A
+  V_BOL = 0.830 V
+
+la cible est :
+
+  j_target = 602.73 A/m2.
+
+Le modèle donne :
+
+  xi = 0 :
+    j_model = 905.11 A/m2
+    erreur = +50.17 %
+
+  xi = 1 :
+    j_model = 871.92 A/m2
+    erreur = +44.66 %.
+
+À :
+
+  I = 14.5 A
+  V_BOL = 0.800 V
+
+la cible est :
+
+  j_target = 1197.20 A/m2.
+
+Le modèle donne :
+
+  xi = 0 :
+    erreur = +21.49 %
+
+  xi = 1 :
+    erreur = +15.48 %.
+
+À :
+
+  I = 26.04 A
+  V_BOL ~= 0.7682 V
+
+la cible est :
+
+  j_target = 2150 A/m2.
+
+Le modèle donne :
+
+  xi = 0 :
+    erreur = +5.38 %
+
+  xi = 1 :
+    erreur = -1.89 %.
+
+L'erreur absolue maximale observée est donc :
+
+  50.17 %.
+
+*** Interprétation
+
+V_BOL(I) ne peut pas être utilisée comme fermeture de courant sur toute la plage.
+
+L'écart est particulièrement important à faible charge.
+
+Cependant, sous fonctionnement galvanostatique, la tension de cellule est une
+grandeur commune à toute la cellule, alors que la densité de courant locale peut
+varier avec xi.
+
+Il serait donc incorrect de résoudre une tension différente pour chaque tranche.
+
+La contrainte correcte est de chercher une tension commune telle que le courant
+streamwise moyen satisfasse :
+
+  <j_model(xi; V_cell)>_xi
+  =
+  j_target.
+
+*** Étape 2 — balayage de tension commune au point nominal
+
+La première résolution est limitée au point :
+
+  I = 26.04 A
+  T_air,in = 20 degC
+  NTU = 3.
+
+Trois tranches sont utilisées :
+
+  xi = 0
+  xi = 0.5
+  xi = 1.
+
+Pour une même tension V_cell, les trois problèmes quasi-3D sont résolus puis la
+densité de courant moyenne streamwise est reconstruite par la règle de Simpson :
+
+  j_bar
+  =
+  (j_0 + 4 j_0.5 + j_1) / 6.
+
+Le premier balayage utilise :
+
+  V_cell =
+    0.74
+    0.77
+    0.80 V.
+
+Nouvelle cible :
+
+  make quick-voltage-bracket-v10
+
+Sorties :
+
+  results/quick-v10-voltage-bracket.json
+  results/quick-v10-voltage-bracket.csv
+
+*** Critère de décision
+
+Le balayage doit vérifier :
+
+1. la monotonie décroissante de j_bar avec V_cell ;
+
+2. l'existence d'un intervalle de tension encadrant :
+
+  j_target = 2150 A/m2.
+
+Si l'encadrement est obtenu, l'étape suivante introduira une résolution
+automatique par bissection sur une tension commune.
+

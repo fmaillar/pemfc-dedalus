@@ -900,3 +900,13 @@ freeze-v09: validate-v09-final
 
 quick-current-closure-v10:
 	$(PYTHON) -m scripts.analyze_v10_current_closure
+
+
+quick-voltage-bracket-v10:
+	$(TIME) $(PYTHON) -m scripts.run_v10_voltage_bracket \
+	  --current-a 26.04 \
+	  --inlet-temperature-c 20 \
+	  --ntu 3 \
+	  --voltages-v 0.74 0.77 0.80 \
+	  --nx 8 --ny 8 --nz 32 \
+	  --stop-time 1e-3 --max-dt 2e-6
