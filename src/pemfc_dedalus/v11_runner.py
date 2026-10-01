@@ -344,3 +344,67 @@ def run_v11_dynamic(
     if trajectory[-1].time_s < stop_time_s - tolerance:
         append_point(purge_event=False, diagnostic_dt_s=dt_s)
     return trajectory
+
+
+
+def trajectory_point_to_row(point: V11TrajectoryPoint) -> dict[str, float | int | bool]:
+    """Flatten one trajectory point for CSV/JSON output."""
+    diagnostics = point.diagnostics
+    if diagnostics.voltage is None:
+        raise ValueError("predictive trajectory requires voltage diagnostics")
+    if diagnostics.nitrogen_crossover is None:
+        raise ValueError("predictive trajectory requires N2 diagnostics")
+    if diagnostics.heat_transfer is None:
+        raise ValueError("predictive trajectory requires heat-transfer diagnostics")
+
+    voltage = diagnostics.voltage
+    crossover = diagnostics.nitrogen_crossover
+    heat = diagnostics.heat_transfer
+    state = point.state
+    return {
+        "time_s": point.time_s,
+        "current_a": point.current_a,
+        "stack_air_flow_slpm": point.stack_air_flow_slpm,
+        "purge_event": point.purge_event,
+        "purge_count": point.purge_count,
+        "charge_since_purge_as": point.charge_since_purge_as,
+        "stack_temperature_k": state.stack_temperature_k,
+        "membrane_mean_water_content": state.membrane_mean_water_content,
+        "anode_hydrogen_mol": state.anode_hydrogen_mol,
+        "anode_nitrogen_mol": state.anode_nitrogen_mol,
+        "anode_water_vapour_mol": state.anode_water_vapour_mol,
+        "cathode_oxygen_mol": state.cathode_oxygen_mol,
+        "cathode_nitrogen_mol": state.cathode_nitrogen_mol,
+        "cathode_total_water_mol": state.cathode_total_water_mol,
+        "anode_water_activity": diagnostics.anode_water_activity,
+        "cathode_water_activity": diagnostics.cathode_water_activity,
+        "cathode_water_vapour_mol": diagnostics.cathode_phase.vapour_mol,
+        "cathode_liquid_water_mol": diagnostics.cathode_phase.liquid_mol,
+        "cell_voltage_v": voltage.cell_voltage_v,
+        "reversible_voltage_v": voltage.reversible_v,
+        "orr_activation_loss_v": voltage.orr_activation_loss_v,
+        "membrane_ohmic_loss_v": voltage.membrane_ohmic_loss_v,
+        "additional_resolved_loss_v": voltage.additional_resolved_loss_v,
+        "heat_generation_w": diagnostics.thermal.heat_generation_w,
+        "air_cooling_w": diagnostics.thermal.air_cooling_w,
+        "temperature_rate_k_s": diagnostics.thermal.temperature_rate_k_s,
+        "air_outlet_temperature_k": heat.outlet_temperature_k,
+        "heat_transfer_ntu": heat.ntu,
+        "heat_transfer_effectiveness": heat.effectiveness,
+        "nitrogen_crossover_flux_mol_m2_s": crossover.flux_mol_m2_s,
+        "nitrogen_crossover_rate_mol_s": crossover.rate_mol_s,
+        "hydrogen_inlet_mol_s": diagnostics.hydrogen_inlet_mol_s,
+        "cathode_outlet_molar_flow_per_cell_mol_s": (
+            diagnostics.cathode_outlet_molar_flow_per_cell_mol_s
+        ),
+        "water_conservation_residual_mol_s": (
+            diagnostics.water_conservation_residual_mol_s
+        ),
+    }
+
+
+def trajectory_to_rows(
+    trajectory: list[V11TrajectoryPoint],
+) -> list[dict[str, float | int | bool]]:
+    """Flatten a complete trajectory for persistent output."""
+    return [trajectory_point_to_row(point) for point in trajectory]
