@@ -30,6 +30,7 @@ from .v11_thermal import stack_temperature_rhs_k_s
 from .v11_voltage import predict_cell_voltage_v
 
 FARADAY_C_MOL = 96485.33212
+REDUCED_DEFAULT_DT_S = 0.1
 
 
 @dataclass(frozen=True)
@@ -232,3 +233,44 @@ def reduced_v11_rhs(
         cathode_outlet_water_mole_fraction=water_fraction,
     )
     return derivative, outputs
+
+
+def advance_reduced_v11_euler(
+    *,
+    state: V11ReducedState,
+    inputs: V11ReducedInputs,
+    parameters: V11ReducedParameters,
+    dt_s: float = REDUCED_DEFAULT_DT_S,
+    stack: UserStackConfiguration | None = None,
+) -> V11ReducedState:
+    """Advance the reduced state by one explicit-Euler step.
+
+    The default 0.1 s step is selected from a local convergence study over
+    5--26.04 A. After 30 s it keeps the stack-voltage deviation within about
+    1.1 mV of a 1 ms reference while remaining inexpensive. Callers may
+    override dt_s for convergence studies or externally sampled data.
+    """
+    if dt_s <= 0.0:
+        raise ValueError("dt_s must be positive")
+
+    derivative, _ = reduced_v11_rhs(
+        state=state,
+        inputs=inputs,
+        parameters=parameters,
+        stack=stack,
+    )
+    next_state = V11ReducedState(
+        stack_temperature_k=(
+            state.stack_temperature_k
+            + dt_s * derivative.stack_temperature_k_s
+        ),
+        membrane_mean_water_content=(
+            state.membrane_mean_water_content
+            + dt_s * derivative.membrane_mean_water_content_s
+        ),
+    )
+    if next_state.stack_temperature_k <= 0.0:
+        raise ValueError("Euler step produced non-positive stack temperature")
+    if next_state.membrane_mean_water_content < 0.0:
+        raise ValueError("Euler step produced negative membrane water content")
+    return next_state
