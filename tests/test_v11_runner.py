@@ -167,3 +167,21 @@ def test_runner_rejects_two_purge_command_interfaces_at_once() -> None:
             purge_commands=(V11PurgeCommand(time_s=0.004),),
             manual_purge_times_s=(0.006,),
         )
+
+
+def test_v11_state_space_interface_classifies_inputs() -> None:
+    from pemfc_dedalus.v11_interfaces import (
+        V11ExogenousInputs,
+        V11ManipulatedInputs,
+        V11ModelParameters,
+    )
+
+    manipulated = V11ManipulatedInputs(216.1, False)
+    exogenous = V11ExogenousInputs(
+        26.04, 293.15, 101325.0, 0.21, 0.01
+    )
+    parameters = V11ModelParameters(0.4, 50.0)
+
+    assert manipulated.stack_air_flow_slpm == 216.1
+    assert exogenous.current_a == 26.04
+    assert parameters.membrane_conductivity_multiplier == 1.0
