@@ -32,6 +32,13 @@ class V11ControlSegment:
 
 
 @dataclass(frozen=True)
+class V11PurgeCommand:
+    """Discrete purge command issued by the supervisory controller."""
+
+    time_s: float
+
+
+@dataclass(frozen=True)
 class V11RunnerInputs:
     """Time-invariant boundary conditions and electrochemical inputs."""
 
@@ -195,6 +202,7 @@ def run_v11_dynamic(
     stop_time_s: float,
     dt_s: float,
     automatic_purge: bool = True,
+    purge_commands: tuple[V11PurgeCommand, ...] = (),
     manual_purge_times_s: tuple[float, ...] = (),
     initial_purge_clock: V11PurgeClock | None = None,
     sample_every_s: float | None = None,
@@ -212,22 +220,38 @@ def run_v11_dynamic(
         raise ValueError("dt_s must be positive")
     if sample_every_s is not None and sample_every_s <= 0.0:
         raise ValueError("sample_every_s must be positive when provided")
-    if any(time <= 0.0 or time > stop_time_s for time in manual_purge_times_s):
+    if purge_commands and manual_purge_times_s:
         raise ValueError(
-            "manual purge times must lie in the interval (0, stop_time_s]"
+            "use purge_commands or manual_purge_times_s, not both"
+        )
+    commanded_purge_times_s = (
+        tuple(command.time_s for command in purge_commands)
+        if purge_commands
+        else manual_purge_times_s
+    )
+    if any(
+        time <= 0.0 or time > stop_time_s
+        for time in commanded_purge_times_s
+    ):
+        raise ValueError(
+            "purge command times must lie in the interval (0, stop_time_s]"
         )
     if any(
         right <= left
-        for left, right in zip(manual_purge_times_s, manual_purge_times_s[1:], strict=False)
+        for left, right in zip(
+            commanded_purge_times_s,
+            commanded_purge_times_s[1:],
+            strict=False,
+        )
     ):
-        raise ValueError("manual purge times must be strictly increasing")
+        raise ValueError("purge command times must be strictly increasing")
 
     state = initial_state
     clock = V11PurgeClock() if initial_purge_clock is None else initial_purge_clock
     purge_count = 0
     time_s = 0.0
     next_sample_s = 0.0
-    manual_purge_index = 0
+    purge_command_index = 0
     trajectory: list[V11TrajectoryPoint] = []
     tolerance = 1.0e-12
 
@@ -268,9 +292,9 @@ def run_v11_dynamic(
             if automatic_purge
             else float("inf")
         )
-        next_manual_purge_s = (
-            manual_purge_times_s[manual_purge_index]
-            if manual_purge_index < len(manual_purge_times_s)
+        next_commanded_purge_s = (
+            commanded_purge_times_s[purge_command_index]
+            if purge_command_index < len(commanded_purge_times_s)
             else float("inf")
         )
 
@@ -279,7 +303,7 @@ def run_v11_dynamic(
             stop_time_s - time_s,
             control_boundary - time_s,
             purge_wait,
-            next_manual_purge_s - time_s,
+            next_commanded_purge_s - time_s,
         )
         if sample_every_s is not None:
             step = min(step, next_sample_s - time_s)
@@ -293,14 +317,14 @@ def run_v11_dynamic(
                 continue
 
             automatic_purge_now = automatic_purge and purge_wait <= tolerance
-            manual_purge_now = next_manual_purge_s <= time_s + tolerance
-            if automatic_purge_now or manual_purge_now:
+            commanded_purge_now = next_commanded_purge_s <= time_s + tolerance
+            if automatic_purge_now or commanded_purge_now:
                 event = apply_v11_purge_event(state=state)
                 state = event.state
                 clock = V11PurgeClock()
                 purge_count += 1
-                if manual_purge_now:
-                    manual_purge_index += 1
+                if commanded_purge_now:
+                    purge_command_index += 1
                 append_point(purge_event=True)
                 continue
 
@@ -327,7 +351,7 @@ def run_v11_dynamic(
         # Snap accumulated floating-point time onto exact scheduled surfaces.
         for scheduled_time in (
             control_boundary,
-            next_manual_purge_s,
+            next_commanded_purge_s,
             next_sample_s if sample_every_s is not None else float("inf"),
             stop_time_s,
         ):
@@ -348,20 +372,20 @@ def run_v11_dynamic(
             )
             <= tolerance
         )
-        next_manual_purge_s = (
-            manual_purge_times_s[manual_purge_index]
-            if manual_purge_index < len(manual_purge_times_s)
+        next_commanded_purge_s = (
+            commanded_purge_times_s[purge_command_index]
+            if purge_command_index < len(commanded_purge_times_s)
             else float("inf")
         )
-        manual_purge_now = next_manual_purge_s <= time_s + tolerance
-        purge_now = automatic_purge_now or manual_purge_now
+        commanded_purge_now = next_commanded_purge_s <= time_s + tolerance
+        purge_now = automatic_purge_now or commanded_purge_now
         if purge_now:
             event = apply_v11_purge_event(state=state)
             state = event.state
             clock = V11PurgeClock()
             purge_count += 1
-            if manual_purge_now:
-                manual_purge_index += 1
+            if commanded_purge_now:
+                purge_command_index += 1
             append_point(purge_event=True)
 
         if sample_every_s is None:
