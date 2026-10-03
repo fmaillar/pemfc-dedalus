@@ -10,6 +10,7 @@ from pemfc_dedalus.ballard_1020acs import (
 )
 from pemfc_dedalus.v11_control import (
     minimum_recommended_airflow_slpm,
+    supervisory_commands_at_time,
     supervisory_control_decision,
 )
 from pemfc_dedalus.v11_system import V11DynamicState
@@ -117,3 +118,23 @@ def test_supervisory_controller_rejects_invalid_threshold() -> None:
             max_anode_nitrogen_mole_fraction=1.0,
             max_anode_water_mole_fraction=0.20,
         )
+
+
+def test_supervisory_decision_translates_to_runner_commands() -> None:
+    control, purge_commands, decision = supervisory_commands_at_time(
+        time_s=1.0,
+        state=_state(n2_mol=2.0e-4),
+        current_a=26.04,
+        steady_air_flow_slpm=216.1,
+        maximum_air_flow_slpm=300.0,
+        max_anode_nitrogen_mole_fraction=0.20,
+        max_anode_water_mole_fraction=0.50,
+    )
+
+    assert control.start_time_s == pytest.approx(1.0)
+    assert control.current_a == pytest.approx(26.04)
+    assert control.stack_air_flow_slpm == pytest.approx(
+        decision.stack_air_flow_slpm
+    )
+    assert len(purge_commands) == 1
+    assert purge_commands[0].time_s == pytest.approx(1.0)
