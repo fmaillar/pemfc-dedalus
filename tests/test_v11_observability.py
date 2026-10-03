@@ -86,3 +86,21 @@ def test_observability_report_has_consistent_dimensions() -> None:
     assert len(report.state_names) == 8
     assert len(report.singular_values) == 8
     assert 1 <= report.rank <= report.state_dimension
+
+
+def test_diagnostic_observability_numbers() -> None:
+    report = local_observability_report(
+        state=_nominal_state(),
+        current_a=26.04,
+        stack_air_flow_slpm=216.1,
+        exogenous=_exogenous(),
+        parameters=_parameters(),
+    )
+
+    raise AssertionError(
+        "OBSERVABILITY_DIAGNOSTIC "
+        f"rank={report.rank}/{report.state_dimension}; "
+        f"singular_values={report.singular_values}; "
+        f"voltage_sensitivity={report.voltage_state_sensitivity}; "
+        f"temperature_sensitivity={report.temperature_state_sensitivity}"
+    )
