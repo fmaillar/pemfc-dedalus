@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 import dedalus.public as d3
 import numpy as np
@@ -55,6 +55,19 @@ class StationaryResult(TypedDict):
     residual_merit: float
     reaction_scale_reached: float
     globalization_history: list[GlobalizationAttempt]
+    kinetics_model: str
+    linearization_eta_v: float | None
+
+
+def _linearized_bv_coefficients(
+    *, eta_ref: float, beta_a: float, beta_c: float
+) -> tuple[float, float]:
+    """Return Butler-Volmer factor and d/deta at a reference overpotential."""
+    cathodic = float(np.exp(-beta_c * eta_ref))
+    anodic = float(np.exp(beta_a * eta_ref))
+    factor = cathodic - anodic
+    slope = -beta_c * cathodic - beta_a * anodic
+    return factor, slope
 
 
 def solve_stationary(
@@ -64,6 +77,8 @@ def solve_stationary(
     ny: int = 8,
     nz: int = 32,
     oxygen_feed_concentration: float | None = None,
+    kinetics_model: Literal["butler_volmer", "linearized"] = "butler_volmer",
+    linearization_eta_v: float | None = None,
     newton_tolerance: float = 1e-8,
     max_newton_iterations: int = 30,
     newton_damping: float = 0.25,
@@ -86,6 +101,8 @@ def solve_stationary(
     max_backtracks: int = 8,
     max_continuation_attempts: int = 80,
 ) -> StationaryResult:
+    if kinetics_model not in {"butler_volmer", "linearized"}:
+        raise ValueError("kinetics_model must be 'butler_volmer' or 'linearized'")
     if not 0.0 < newton_damping <= 1.0:
         raise ValueError("newton_damping must be in (0, 1]")
     if not reaction_scales:
@@ -205,24 +222,41 @@ def solve_stationary(
 
     eta = phi_s - phi_m - E_eq
     oxygen_activity = c / c_ref
-    bv_exp_limit = 40.0
-    cathodic_arg_raw = -beta_c * eta
-    anodic_arg_raw = beta_a * eta
-    cathodic_arg = bv_exp_limit * np.tanh(cathodic_arg_raw / bv_exp_limit)
-    anodic_arg = bv_exp_limit * np.tanh(anodic_arg_raw / bv_exp_limit)
+
+    if kinetics_model == "butler_volmer":
+        bv_exp_limit = 40.0
+        cathodic_arg_raw = -beta_c * eta
+        anodic_arg_raw = beta_a * eta
+        cathodic_arg = bv_exp_limit * np.tanh(cathodic_arg_raw / bv_exp_limit)
+        anodic_arg = bv_exp_limit * np.tanh(anodic_arg_raw / bv_exp_limit)
+        kinetic_factor = np.exp(cathodic_arg) - np.exp(anodic_arg)
+        eta_linearization_used: float | None = None
+    else:
+        eta_linearization_used = (
+            phi_s_bc - phi_m_bc - E_eq
+            if linearization_eta_v is None
+            else linearization_eta_v
+        )
+        factor_ref, slope_ref = _linearized_bv_coefficients(
+            eta_ref=eta_linearization_used,
+            beta_a=beta_a,
+            beta_c=beta_c,
+        )
+        kinetic_factor = factor_ref + slope_ref * (eta - eta_linearization_used)
 
     reaction_scale = dist.Field(name="reaction_scale")
     reaction_scale["g"] = reaction_scales[0]
 
     # In the intended cathodic operating branch eta is negative and the net
-    # Butler-Volmer source is positive. Avoid abs() here so the NLBVP has a
-    # differentiable source for Newton linearisation.
+    # Butler-Volmer source is positive. The linearized option preserves the
+    # local value and derivative of Butler-Volmer at eta_linearization_used,
+    # removing the exponential curvature from Newton's Jacobian.
     j_orr = (
         reaction_scale
         * chi_cl
         * j0_vol
         * oxygen_activity**gamma_o2
-        * (np.exp(cathodic_arg) - np.exp(anodic_arg))
+        * kinetic_factor
     )
     s_o2 = j_orr / (4.0 * F)
 
@@ -569,4 +603,6 @@ def solve_stationary(
         "residual_merit": final_residual_merit,
         "reaction_scale_reached": reaction_scale_reached,
         "globalization_history": globalization_history,
+        "kinetics_model": kinetics_model,
+        "linearization_eta_v": eta_linearization_used,
     }
