@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .ballard_1020acs import UserStackConfiguration
+from .ballard_1020acs import (\n    Ballard1020ACSTechnologyReference,\n    UserStackConfiguration,\n)\nfrom .v11_anode import AnodeGasState, ideal_gas_total_pressure_pa
 from .v11_runner import V11RunnerInputs, V11TrajectoryPoint
 from .v11_system import V11DynamicState
 
@@ -61,8 +61,10 @@ class V11Measurements:
     """Actual measured quantities available on the physical stack."""
 
     current_a: float
+    stack_air_flow_slpm: float
     stack_voltage_v: float
     internal_stack_temperature_k: float
+    anode_pressure_pa: float
 
 
 def model_outputs_from_trajectory_point(
@@ -94,12 +96,25 @@ def measurements_from_trajectory_point(
     *,
     stack: UserStackConfiguration | None = None,
 ) -> V11Measurements:
-    """Map one model sample onto the three physical sensor channels."""
+    """Map one model sample onto the physical sensor channels."""
     outputs = model_outputs_from_trajectory_point(point, stack=stack)
+    tech = Ballard1020ACSTechnologyReference()
+    anode_state = AnodeGasState(
+        hydrogen_mol=point.state.anode_hydrogen_mol,
+        nitrogen_mol=point.state.anode_nitrogen_mol,
+        water_vapour_mol=point.state.anode_water_vapour_mol,
+    )
+    anode_pressure = ideal_gas_total_pressure_pa(
+        state=anode_state,
+        volume_m3=tech.anode_gas_volume_per_cell_m3,
+        temperature_k=point.state.stack_temperature_k,
+    )
     return V11Measurements(
         current_a=point.current_a,
+        stack_air_flow_slpm=point.stack_air_flow_slpm,
         stack_voltage_v=outputs.stack_voltage_v,
         internal_stack_temperature_k=point.state.stack_temperature_k,
+        anode_pressure_pa=anode_pressure,
     )
 
 
