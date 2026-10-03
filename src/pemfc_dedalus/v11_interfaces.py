@@ -2,7 +2,7 @@
 
 The dynamic state itself remains V11DynamicState. This module only classifies
 model quantities into manipulated inputs, exogenous disturbances, model
-parameters and measurable outputs. It contains no control law.
+parameters and model outputs. It contains no control law and makes no claim\nabout sensor availability or formal observability.
 """
 
 from __future__ import annotations
@@ -42,8 +42,8 @@ class V11ModelParameters:
 
 
 @dataclass(frozen=True)
-class V11MeasuredOutputs:
-    """Quantities that can be exposed as the model measurement vector y."""
+class V11ModelOutputs:
+    """Algebraic/model outputs y; sensor availability is defined separately."""
 
     current_a: float
     stack_air_flow_slpm: float
@@ -55,17 +55,17 @@ class V11MeasuredOutputs:
     cathode_water_activity: float
 
 
-def measured_outputs_from_trajectory_point(
+def model_outputs_from_trajectory_point(
     point: V11TrajectoryPoint,
-) -> V11MeasuredOutputs:
-    """Build the measurement vector from one predictive trajectory sample."""
+) -> V11ModelOutputs:
+    """Build the model-output vector from one predictive trajectory sample."""
     diagnostics = point.diagnostics
     if diagnostics.voltage is None:
         raise ValueError("predictive trajectory requires voltage diagnostics")
     if diagnostics.heat_transfer is None:
         raise ValueError("predictive trajectory requires heat-transfer diagnostics")
 
-    return V11MeasuredOutputs(
+    return V11ModelOutputs(
         current_a=point.current_a,
         stack_air_flow_slpm=point.stack_air_flow_slpm,
         purge_event=point.purge_event,
