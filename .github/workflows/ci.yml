@@ -112,6 +112,3 @@ jobs:
       - name: Run unit tests
         run: python -m pytest -q
 
-      - name: Report observability map
-        run: python scripts/run_v11_observability_map.py
-
