@@ -112,3 +112,6 @@ jobs:
       - name: Run unit tests
         run: python -m pytest -q
 
+      - name: Report nominal observability
+        run: python scripts/run_v11_observability.py
+
