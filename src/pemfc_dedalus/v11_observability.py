@@ -47,7 +47,7 @@ def _state_vector(state: V11DynamicState) -> np.ndarray:
 
 def _state_from_vector(vector: np.ndarray) -> V11DynamicState:
     return V11DynamicState(
-        **{name: float(value) for name, value in zip(_STATE_NAMES, vector)}
+        **{name: float(value) for name, value in zip(_STATE_NAMES, vector, strict=True)}
     )
 
 
