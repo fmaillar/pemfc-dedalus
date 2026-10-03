@@ -15,6 +15,7 @@ from .ballard_1020acs import (
     Ballard1020ACSTechnologyReference,
     UserStackConfiguration,
 )
+from .v11_runner import V11ControlSegment, V11PurgeCommand
 from .v11_system import V11DynamicState
 
 
@@ -161,3 +162,46 @@ def supervisory_control_decision(
         anode_nitrogen_mole_fraction=nitrogen_fraction,
         anode_water_mole_fraction=water_fraction,
     )
+
+
+def supervisory_commands_at_time(
+    *,
+    time_s: float,
+    state: V11DynamicState,
+    current_a: float,
+    steady_air_flow_slpm: float,
+    maximum_air_flow_slpm: float,
+    max_anode_nitrogen_mole_fraction: float,
+    max_anode_water_mole_fraction: float,
+    stack: UserStackConfiguration | None = None,
+    technology: Ballard1020ACSTechnologyReference | None = None,
+) -> tuple[
+    V11ControlSegment,
+    tuple[V11PurgeCommand, ...],
+    V11SupervisoryDecision,
+]:
+    """Translate one supervisory decision into V11 runner commands."""
+    if time_s < 0.0:
+        raise ValueError("time_s must be non-negative")
+
+    decision = supervisory_control_decision(
+        state=state,
+        current_a=current_a,
+        steady_air_flow_slpm=steady_air_flow_slpm,
+        maximum_air_flow_slpm=maximum_air_flow_slpm,
+        max_anode_nitrogen_mole_fraction=max_anode_nitrogen_mole_fraction,
+        max_anode_water_mole_fraction=max_anode_water_mole_fraction,
+        stack=stack,
+        technology=technology,
+    )
+    control = V11ControlSegment(
+        start_time_s=time_s,
+        current_a=current_a,
+        stack_air_flow_slpm=decision.stack_air_flow_slpm,
+    )
+    purge_commands = (
+        (V11PurgeCommand(time_s=time_s),)
+        if decision.purge_command and time_s > 0.0
+        else ()
+    )
+    return control, purge_commands, decision
