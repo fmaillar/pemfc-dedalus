@@ -7,6 +7,7 @@ import pytest
 from pemfc_dedalus.v11_purge import V11PurgeClock
 from pemfc_dedalus.v11_runner import (
     V11ControlSegment,
+    V11PurgeCommand,
     V11RunnerInputs,
     run_v11_dynamic,
     trajectory_to_rows,
@@ -76,7 +77,7 @@ def test_runner_applies_automatic_purge_at_exact_charge_threshold() -> None:
     assert purge_points[0].charge_since_purge_as == pytest.approx(0.0)
 
 
-def test_runner_supports_manual_purge_and_resets_charge_clock() -> None:
+def test_runner_supports_explicit_purge_command_and_resets_charge_clock() -> None:
     trajectory = run_v11_dynamic(
         initial_state=_state(),
         controls=(V11ControlSegment(0.0, 10.0, 120.0),),
@@ -84,7 +85,7 @@ def test_runner_supports_manual_purge_and_resets_charge_clock() -> None:
         stop_time_s=0.01,
         dt_s=0.01,
         automatic_purge=False,
-        manual_purge_times_s=(0.004,),
+        purge_commands=(V11PurgeCommand(time_s=0.004),),
     )
 
     purge_points = [point for point in trajectory if point.purge_event]
@@ -152,3 +153,17 @@ def test_sample_times_are_snapped_to_requested_grid() -> None:
     assert [point.time_s for point in trajectory] == pytest.approx(
         [0.0, 0.02, 0.04, 0.06]
     )
+
+
+def test_runner_rejects_two_purge_command_interfaces_at_once() -> None:
+    with pytest.raises(ValueError, match="not both"):
+        run_v11_dynamic(
+            initial_state=_state(),
+            controls=(V11ControlSegment(0.0, 10.0, 120.0),),
+            inputs=_inputs(),
+            stop_time_s=0.01,
+            dt_s=0.01,
+            automatic_purge=False,
+            purge_commands=(V11PurgeCommand(time_s=0.004),),
+            manual_purge_times_s=(0.006,),
+        )
