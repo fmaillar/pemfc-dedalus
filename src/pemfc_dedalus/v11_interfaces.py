@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from .v11_runner import V11TrajectoryPoint
+from .v11_runner import V11RunnerInputs, V11TrajectoryPoint\nfrom .v11_system import V11DynamicState
 
 
 @dataclass(frozen=True)
@@ -45,9 +45,6 @@ class V11ModelParameters:
 class V11ModelOutputs:
     """Algebraic/model outputs y; sensor availability is defined separately."""
 
-    current_a: float
-    stack_air_flow_slpm: float
-    purge_event: bool
     stack_temperature_k: float
     cell_voltage_v: float
     air_outlet_temperature_k: float
@@ -66,12 +63,57 @@ def model_outputs_from_trajectory_point(
         raise ValueError("predictive trajectory requires heat-transfer diagnostics")
 
     return V11ModelOutputs(
-        current_a=point.current_a,
-        stack_air_flow_slpm=point.stack_air_flow_slpm,
-        purge_event=point.purge_event,
         stack_temperature_k=point.state.stack_temperature_k,
         cell_voltage_v=diagnostics.voltage.cell_voltage_v,
         air_outlet_temperature_k=diagnostics.heat_transfer.outlet_temperature_k,
         anode_water_activity=diagnostics.anode_water_activity,
         cathode_water_activity=diagnostics.cathode_water_activity,
+    )
+
+
+@dataclass(frozen=True)
+class V11StateSpaceSample:
+    """One time sample of the nonlinear hybrid state-space model."""
+
+    time_s: float
+    state: V11DynamicState
+    manipulated: V11ManipulatedInputs
+    exogenous: V11ExogenousInputs
+    parameters: V11ModelParameters
+    outputs: V11ModelOutputs
+
+
+def state_space_sample_from_trajectory_point(
+    point: V11TrajectoryPoint,
+    inputs: V11RunnerInputs,
+) -> V11StateSpaceSample:
+    """Expose one runner sample as (t, x, u, d, p, y)."""
+    manipulated = V11ManipulatedInputs(
+        stack_air_flow_slpm=point.stack_air_flow_slpm,
+        purge_event=point.purge_event,
+    )
+    exogenous = V11ExogenousInputs(
+        current_a=point.current_a,
+        inlet_air_temperature_k=inputs.inlet_air_temperature_k,
+        cathode_total_pressure_pa=inputs.cathode_total_pressure_pa,
+        inlet_oxygen_mole_fraction=inputs.inlet_oxygen_mole_fraction,
+        inlet_water_mole_fraction=inputs.inlet_water_mole_fraction,
+    )
+    parameters = V11ModelParameters(
+        cathode_platinum_loading_mg_cm2_geo=(
+            inputs.cathode_platinum_loading_mg_cm2_geo
+        ),
+        cathode_ecsa_m2_pt_g_pt=inputs.cathode_ecsa_m2_pt_g_pt,
+        membrane_conductivity_multiplier=(
+            inputs.membrane_conductivity_multiplier
+        ),
+        additional_resolved_loss_v=inputs.additional_resolved_loss_v,
+    )
+    return V11StateSpaceSample(
+        time_s=point.time_s,
+        state=point.state,
+        manipulated=manipulated,
+        exogenous=exogenous,
+        parameters=parameters,
+        outputs=model_outputs_from_trajectory_point(point),
     )
